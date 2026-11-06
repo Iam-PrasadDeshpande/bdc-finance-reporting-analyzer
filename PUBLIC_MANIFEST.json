@@ -1,0 +1,74 @@
+{
+ "staged_utc": "2026-11-06T11:39:52Z",
+ "source_build_manifest_sha256": "e60ac98a93076feef4dcbd9c1448575669c9897d8e78cd5fe69f325566753f9c",
+ "files": [
+  {
+   "path": ".gitignore",
+   "sha256": "5b914165ae337e5f7ab26768bf5e48331f1d9f0dd6263e7bb115eab23acef41d",
+   "bytes": 54
+  },
+  {
+   "path": ".streamlit/config.toml",
+   "sha256": "51e56aff45c2df51a12eb1a2c414b8bcde3b3ed161f112f441b1a16201c3e256",
+   "bytes": 478
+  },
+  {
+   "path": "app.py",
+   "sha256": "52aba4b4bd08b00ede32b4efc0644c8cedc2f72996b6e8157e8cff28ea24524c",
+   "bytes": 13093
+  },
+  {
+   "path": "ar_aging_demo.py",
+   "sha256": "07300c0fab2c9a212e39b10486867e67c38f862b8ccbf63722fa9fa737dc135b",
+   "bytes": 8727
+  },
+  {
+   "path": "data/public_demo/manifest_SYNTHETIC.json",
+   "sha256": "66e61177ae64497aa9d63cb10c6338862514659f05ef98175e478a3c0f98513f",
+   "bytes": 481
+  },
+  {
+   "path": "data/public_demo/source_report_extract_SYNTHETIC.csv",
+   "sha256": "e670807aec1a8f0e5f9cb7e4ef9f64dda049e7f0ed50a47296fcc406a70ad2fe",
+   "bytes": 34247
+  },
+  {
+   "path": "data/public_demo/target_model_extract_SYNTHETIC.csv",
+   "sha256": "70e8e4f3b74fb52b79cb941ae3b83866d9851137b3e846331fcbb8e8c9cfbae0",
+   "bytes": 34212
+  },
+  {
+   "path": "kpi_recon.py",
+   "sha256": "4d53132fe0082f5203a0aa1d257d5448fcae92863e181f20ea629d953d8e9ee5",
+   "bytes": 7301
+  },
+  {
+   "path": "public_content/ar_aging_scenario.md",
+   "sha256": "6007c60e91ed66dc1592f4cb2aa00bfa9345519970c3f810946d90c5da23acc7",
+   "bytes": 2636
+  },
+  {
+   "path": "public_home.py",
+   "sha256": "5f8d6dce97ab636af43de019c8a021ad0e7f3f6d8d6a8b82bc02039b150513fc",
+   "bytes": 14918
+  },
+  {
+   "path": "public_pages.py",
+   "sha256": "2fe3ff96074471a82d5b18a2606d18c8708b0a11b182df63a39a4953e31720cf",
+   "bytes": 10408
+  },
+  {
+   "path": "README.md",
+   "sha256": "d0c148769bbbab8e0b8c645960aa9eea85070f794194c1c46a3b4f23428ea966",
+   "bytes": 2284
+  },
+  {
+   "path": "requirements.txt",
+   "sha256": "0c79ca0a9f2f1f3f3c725a3c366e0ff64f59b8d9cfa0d317f49ff64280ec7a8c",
+   "bytes": 779
+  }
+ ],
+ "audit_status": "PASS",
+ "hard_findings": 0,
+ "soft_findings": 18
+}

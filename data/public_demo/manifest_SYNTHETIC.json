@@ -1,0 +1,12 @@
+{
+ "origin": "SYNTHETIC",
+ "generator": "ar_aging_demo.generate",
+ "seed": 2026,
+ "items": 360,
+ "rows": 720,
+ "note": "Neutral synthetic AR items. Both extracts derive from one synthetic ledger; their independence is simulated.",
+ "files_sha256": {
+  "source_report_extract_SYNTHETIC.csv": "e670807aec1a8f0e5f9cb7e4ef9f64dda049e7f0ed50a47296fcc406a70ad2fe",
+  "target_model_extract_SYNTHETIC.csv": "70e8e4f3b74fb52b79cb941ae3b83866d9851137b3e846331fcbb8e8c9cfbae0"
+ }
+}

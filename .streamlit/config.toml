@@ -1,0 +1,25 @@
+# Public-site Streamlit configuration (copied into the public build by build_public.py).
+[server]
+headless = true
+enableStaticServing = false
+enableXsrfProtection = true
+enableCORS = true
+maxUploadSize = 1
+runOnSave = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = "none"
+showErrorLinks = false
+toolbarMode = "minimal"
+
+[global]
+developmentMode = false
+
+[theme]
+primaryColor = "#14796f"
+textColor = "#163145"
+font = "sans serif"
