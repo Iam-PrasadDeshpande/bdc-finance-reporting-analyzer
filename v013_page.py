@@ -65,18 +65,21 @@ def render() -> None:
 
 
 # ---------------------------------------------------------------------------------------------------- Home
+def _pick(example: str, res: dict, scn: str) -> None:
+    st.session_state["ag_q_input"] = example
+    st.session_state["ag_run"] = agents.run_request(example, res, scn)
+
+
 def _home(res, s, scn, tech):
     st.markdown("### Ask the agents")
     st.write("An orchestrator plans your request, routes it to an agent family and calls its specialist agents through typed, MCP-style tools. "
              "Agents read the persisted synthetic results or draft locally; a person approves and nothing is written to SAP.")
-    q = st.text_input("Your request", value=st.session_state.get("ag_q", agents.EXAMPLES[0]), key="ag_q_input")
+    st.session_state.setdefault("ag_q_input", agents.EXAMPLES[0])
+    q = st.text_input("Your request", key="ag_q_input")
     cols = st.columns(4)
     for i, ex in enumerate(agents.EXAMPLES):
-        if cols[i % 4].button(ex, key=f"ex{i}", width="stretch"):
-            st.session_state["ag_q"] = ex
-            st.session_state["ag_q_input"] = ex
-            st.session_state["ag_run"] = agents.run_request(ex, res, scn)
-            st.rerun()
+        # on_click callbacks run before the script body, so they may set the text_input's session key safely.
+        cols[i % 4].button(ex, key=f"ex{i}", width="stretch", on_click=_pick, args=(ex, res, scn))
     if st.button("Run plan", type="primary", key="runplan"):
         st.session_state["ag_run"] = agents.run_request(q, res, scn)
     r = st.session_state.get("ag_run")
@@ -84,6 +87,9 @@ def _home(res, s, scn, tech):
     fam = next(f for f in agents.FAMILIES if f["id"] == route["family"])
     st.caption(f"Routed to: **{fam['name']}** (intent: {route['intent']})")
     if r:
+        used = next((t["args"].get("scenario") for t in r["trace"]), scn)
+        if used != scn:
+            st.caption(f"This answer was computed for scenario {used}; press Run plan to refresh it for scenario {scn}.")
         _show_run(r, tech)
     st.markdown("#### How it works")
     cc = st.columns(4)
