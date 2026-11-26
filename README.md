@@ -31,3 +31,10 @@ sponsored, endorsed or affiliated with SAP SE. Object names cited on the site co
 
 No open-source licence is granted. The source is published for viewing; all rights are reserved by the author unless a
 LICENSE file is added.
+
+## v0.13 - Agent Suite (synthetic)
+
+The **Agent Suite** section adds an orchestrated set of specialist agents (discovery, gap and decision, engineering, reconciliation, governance) over two synthetic scenarios: a single S/4HANA system and a multi-system landscape with Central Finance. Agents read persisted synthetic results or draft locally; none can write to SAP. It also shows proposed architecture options, an ontology and a live replay of the orchestrator trace.
+
+- All data, system ids, objects and product ids are **synthetic**. No SAP, BDC or Datasphere system is connected (mode: DEMO).
+- Synthetic success (SYNTHETIC_PASS) is not a live Finance validation. Live SAP validation, live BDC validation and Finance validation remain **HOLD / INSUFFICIENT_EVIDENCE**.

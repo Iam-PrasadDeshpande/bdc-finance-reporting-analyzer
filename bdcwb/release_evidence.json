@@ -1,0 +1,19 @@
+{
+ "regression_v012": {
+  "ran": 176,
+  "failures": 0,
+  "skipped": 0,
+  "recorded": "2026-11-26T17:29:06Z",
+  "note": "All pre-existing test modules. One assertion was updated deliberately: public navigation now has six sections (Agent Suite added) instead of five. No other existing test was changed."
+ },
+ "tests_v013": {
+  "ran": 84,
+  "failures": 0,
+  "skipped": 0
+ },
+ "public_build_audit": "PASS",
+ "public_build_hard_findings": 0,
+ "public_build_soft_findings": 18,
+ "recorded": "2026-11-26T17:29:06Z",
+ "publication_approval": "GRANTED_FOR_SYNTHETIC_DEMO_ONLY"
+}

@@ -16,7 +16,7 @@ INTERNAL = os.environ.get("BDC_WORKBENCH") == "1" and importlib.util.find_spec("
 if INTERNAL:
     import internal_routes
 SLUGS = {"Vision & Approach": "vision", "AR Aging Scenario": "ar-aging", "Architecture": "architecture",
-         "Evidence & Limitations": "evidence", "Methodology": "methodology"}
+         "Evidence & Limitations": "evidence", "Methodology": "methodology", "Agent Suite": "agent-suite"}
 BY_SLUG = {v: k for k, v in SLUGS.items()}
 HOLD = "Real Finance assessment: HOLD / INSUFFICIENT_EVIDENCE"
 TRADEMARK = ("SAP, SAP S/4HANA, SAP Business Data Cloud, SAP Datasphere and other SAP products and services mentioned are "
@@ -183,6 +183,10 @@ elif section == "Methodology":
                 "- Synthetic data can reach SYNTHETIC_PASS only; PASS requires customer runtime extracts on both sides.")
     if INTERNAL:
         internal_routes.workbench_tools("Methodology")
+
+elif section == "Agent Suite":
+    import v013_page
+    v013_page.render()
 
 st.divider()
 st.caption("Independent assessment prototype, not affiliated with SAP. No SAP connection, customer data or authentication on this site. "
