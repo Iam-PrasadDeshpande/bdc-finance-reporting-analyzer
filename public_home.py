@@ -28,6 +28,7 @@ PUBLIC_SECTIONS = (
     "Architecture",
     "Evidence & Limitations",
     "Methodology",
+    "Agent Suite",
 )
 
 CSS = r"""
