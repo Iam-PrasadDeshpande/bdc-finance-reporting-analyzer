@@ -94,7 +94,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "b8ee4ed33e486de70faaa930db9f74dc214d80b32898d9f873698c50f01770c4",
+   "sha256": "d6f00d5b96c79fcab40e84d2a9264af551f4bf83ac5f309ea75ea7f978447fce",
    "bytes": 589
   },
   {
@@ -169,8 +169,8 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "803756d663bb464e835b2e2903099148442ee51bcb77efb50c5c39b179609a66",
-   "bytes": 23959
+   "sha256": "6a19ac7f0d2fb96528337c242585dbb81e82566f24b81ec61c70bc392a277826",
+   "bytes": 24685
   }
  ],
  "audit_status": "PASS",
