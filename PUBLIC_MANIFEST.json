@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-27",
- "source_build_manifest_sha256": "7ebbf0f33eef3024c578b5b8a75a76c617180853feeff01ce416133eec39666f",
+ "source_build_manifest_sha256": "519ea978eded36355f94db1214cb2f4c461dcbe1e6f8c7c3f456c7de3110aded",
  "files": [
   {
    "path": ".gitignore",
@@ -48,6 +48,11 @@
    "bytes": 17785
   },
   {
+   "path": "bdcwb/arch_diagrams.py",
+   "sha256": "66dfc2bab06c01e4261866c09f3c94a167ebcb2c1eab544de547595d2888431b",
+   "bytes": 44622
+  },
+  {
    "path": "bdcwb/artifacts.py",
    "sha256": "374713b795ebb612689fdc1530029081bc63fd5e607b68e5b77138de50ed62a9",
    "bytes": 9962
@@ -76,6 +81,11 @@
    "path": "bdcwb/delta.py",
    "sha256": "042405f2477e8e9a71d040110b65430e288eb271d5a3fa711e71854ece638aa9",
    "bytes": 18708
+  },
+  {
+   "path": "bdcwb/diagram.py",
+   "sha256": "bac3f73c84e481548c4eb1b2aeb590b5b15af02fe8b9b6b0db78a2256c6ca068",
+   "bytes": 6915
   },
   {
    "path": "bdcwb/dsp_model.py",
@@ -114,7 +124,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "4ff843dcb42f7cb7150928b496c29601b53affd8a8e5df6fbfe34017a3d534c9",
+   "sha256": "c381259c7da72e2123d40dad6253ac52ca18a36286e8efcb274b6c9fa84bc386",
    "bytes": 696
   },
   {
@@ -199,12 +209,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "833eaec4cc128dd5135abd4b449e0958b15aa15c8d8b65194a9e8de5dd639671",
-   "bytes": 68492
+   "sha256": "4031c9bf91a422c4f8e7af995b072cc1b008a8ce0a0aa1ae003bdb191712a7b4",
+   "bytes": 68991
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.5"
+ "release": "v0.13.6"
 }

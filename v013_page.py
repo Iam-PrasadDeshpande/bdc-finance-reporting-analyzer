@@ -29,7 +29,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.5"
+RELEASE = "0.13.6"
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
@@ -844,6 +844,14 @@ def _onto_concepts():
 
 
 # ---------------------------------------------------------------------------------------------------- Level 2: Architecture & operations
+def _run_architecture(res, scn):
+    """Run the request in the box and show the whole trace (a replay slider left at 0 must not make a new run look empty)."""
+    ss = st.session_state
+    run = agents.run_request(ss.get("ag_liveq", ""), res, scn)
+    ss["ag_live"] = run
+    ss["ag_step"] = len(arch.live_events(run))
+
+
 def _architecture(res, s, scn, tech):
     st.radio("Architecture", ARCH_TABS, horizontal=True, key="tabs_arch", label_visibility="collapsed")
     tab = st.session_state["tabs_arch"]
@@ -852,11 +860,12 @@ def _architecture(res, s, scn, tech):
     if tab == "Live run":
         st.markdown("##### Follow a request through the architecture")
         q = st.text_input("Business intent", value="Reconcile the selected synthetic scenario end to end", key="ag_liveq")
-        if st.button("Run architecture", key="runarch", type="primary"):
-            st.session_state["ag_live"] = agents.run_request(q, res, scn)
+        st.button("Run architecture", key="runarch", type="primary", on_click=_run_architecture, args=(res, scn))
         run = st.session_state.get("ag_live") or agents.run_request(q, res, scn)
         ev = arch.live_events(run)
-        step = st.slider("Replay step", 0, len(ev), len(ev), key="ag_step")
+        if not 0 <= st.session_state.get("ag_step", -1) <= len(ev):
+            st.session_state["ag_step"] = len(ev)
+        step = st.slider("Replay step", 0, len(ev), key="ag_step", help="Drag to replay the request one event at a time. Run architecture resets it to the full trace.")
         diagram(AD.sequence_svg(ev, step)[0])
         table([{"#": i + 1, "from": e["from"], "to": e["to"], "event": e["label"], "state": e["state"]} for i, e in enumerate(ev[:max(step, 1)])])
         st.caption("Events are produced from the real orchestrator trace. The last event shows that SAP connectors are not reached in DEMO mode.")

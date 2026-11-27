@@ -3,17 +3,17 @@
   "ran": 176,
   "failures": 0,
   "skipped": 0,
-  "recorded": "2026-11-27T11:45:47Z",
+  "recorded": "2026-11-27T16:59:56Z",
   "note": "All pre-existing test modules. test_public_site.py was adapted deliberately to the new router: the five old sections are now one 'Old demo' page opened with ?view=old-demo, and their navigation radio moved from the sidebar into the page body. Assertions about the old sections' content were not changed."
  },
  "tests_v013": {
-  "ran": 143,
+  "ran": 144,
   "failures": 0,
   "skipped": 0
  },
  "public_build_audit": "PASS",
  "public_build_hard_findings": 0,
  "public_build_soft_findings": 18,
- "recorded": "2026-11-27T11:45:47Z",
+ "recorded": "2026-11-27T16:59:56Z",
  "publication_approval": "OWNER_ASSERTED_SYNTHETIC_DEMO_ONLY"
 }
