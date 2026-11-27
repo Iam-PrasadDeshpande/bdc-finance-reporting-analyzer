@@ -6,12 +6,15 @@ content: **reuse** delivered content, **extend** Datasphere modeling, build a **
 **retain** the existing report.
 
 ## What the site contains
-- **Vision & Approach** (home): the transition problem and the seven-step process
-  Discover → Understand → Identify BDC products → Map semantics → Validate → Reconcile → Recommend.
-- **AR Aging Scenario**: an interactive *method demonstration* on **synthetic** data. It compares a source report
-  definition with a candidate target definition, reconciles the results and quantifies the Finance decisions behind any
-  difference (key date, company code, aging buckets, ledger, aging basis, special G/L, JSON export).
-- **Architecture**, **Evidence & Limitations**, **Methodology**.
+- **Agent Suite** (default page): a synthetic-only agent cockpit for multi-object, multi-system SAP transition scenarios.
+  Home "Ask the transition agents" (scenario, request, example chips), then three spaces: **Workbench apps** (14 apps from
+  object discovery and the dependency graph to Finance reconciliation and release gates), **Agents** (23 agents in five
+  families with typed tools; write requests are refused and turned into a draft-only proposal) and **Architecture &
+  operations** (live run, complete architecture options, hosting, registry, selection, decision brief, ontology, diagrams).
+  Three themes (SAP Quartz Light, Quartz Dark, Horizon Light). Scenario A is a single S/4HANA system; Scenario B is a
+  multi-system landscape with Central Finance.
+- **Old demo** (Menu -> Old demo, `?view=old-demo`): the earlier v0.12 analyzer on one page - Vision & Approach, AR Aging
+  Scenario (interactive *method demonstration* on **synthetic** data), Architecture, Evidence & Limitations, Methodology.
 
 ## Restrictions and validation limits
 - All figures are **SYNTHETIC**. `SYNTHETIC_PASS` means two calculations agree on generated data under the same

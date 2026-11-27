@@ -3,17 +3,17 @@
   "ran": 176,
   "failures": 0,
   "skipped": 0,
-  "recorded": "2026-11-26T17:39:32Z",
-  "note": "All pre-existing test modules. One assertion was updated deliberately: public navigation now has six sections (Agent Suite added) instead of five. No other existing test was changed."
+  "recorded": "2026-11-27T01:21:42Z",
+  "note": "All pre-existing test modules. test_public_site.py was adapted deliberately to the new router: the five old sections are now one 'Old demo' page opened with ?view=old-demo, and their navigation radio moved from the sidebar into the page body. Assertions about the old sections' content were not changed."
  },
  "tests_v013": {
-  "ran": 85,
+  "ran": 90,
   "failures": 0,
   "skipped": 0
  },
  "public_build_audit": "PASS",
  "public_build_hard_findings": 0,
  "public_build_soft_findings": 18,
- "recorded": "2026-11-26T17:39:32Z",
+ "recorded": "2026-11-27T01:21:42Z",
  "publication_approval": "GRANTED_FOR_SYNTHETIC_DEMO_ONLY"
 }

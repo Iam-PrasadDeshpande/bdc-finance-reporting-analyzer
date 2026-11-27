@@ -20,6 +20,9 @@ toolbarMode = "minimal"
 developmentMode = false
 
 [theme]
-primaryColor = "#14796f"
-textColor = "#163145"
+base = "light"
+primaryColor = "#0a6ed1"
+backgroundColor = "#f5f6f7"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#1d2d3e"
 font = "sans serif"
