@@ -6,13 +6,13 @@ content: **reuse** delivered content, **extend** Datasphere modeling, build a **
 **retain** the existing report.
 
 ## What the site contains
-- **Agent Suite** (default page): a synthetic-only agent cockpit for multi-object, multi-system SAP transition scenarios.
-  Home "Ask the transition agents" (scenario, request, example chips), then three spaces: **Workbench apps** (14 apps from
-  object discovery and the dependency graph to Finance reconciliation and release gates), **Agents** (23 agents in five
-  families with typed tools; write requests are refused and turned into a draft-only proposal) and **Architecture &
-  operations** (live run, complete architecture options, hosting, registry, selection, decision brief, ontology, diagrams).
-  Three themes (SAP Quartz Light, Quartz Dark, Horizon Light). Scenario A is a single S/4HANA system; Scenario B is a
-  multi-system landscape with Central Finance.
+- **Agent Suite** (default page): a synthetic-only agent cockpit built around the delta - what the customer changed in standard SAP, how it
+  was found, and the next step. Three agents (S/4HANA, BDC & Datasphere, Utility) work through five stages: **1 Find the delta** (a delta
+  register comparing each SAP object with the data product SAP delivers), **2 Solution the delta** (extend the SAP product, or a new
+  backend CDS view and a customer-managed data model), **3 Datasphere activities** (replication flows, transformation, semantic model,
+  offline simulation), **4 Compare and reconcile** and **5 End-to-end result**. Also: Agents, and Architecture & operations (a swimlane of
+  every component across all systems). Three themes. Scenario A is a single S/4HANA system; Scenario B is a multi-system landscape with
+  Central Finance.
 - **Old demo** (Menu -> Old demo, `?view=old-demo`): the earlier v0.12 analyzer on one page - Vision & Approach, AR Aging
   Scenario (interactive *method demonstration* on **synthetic** data), Architecture, Evidence & Limitations, Methodology.
 
