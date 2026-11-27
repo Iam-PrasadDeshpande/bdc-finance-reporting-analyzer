@@ -12,27 +12,29 @@ import re
 THEMES = {
     "SAP Quartz Light": {"bg": "#f5f6f7", "surface": "#ffffff", "surface2": "#f2f5f8", "ink": "#1d2d3e", "muted": "#5b738b", "line": "#d9dfe6",
                           "accent": "#0a6ed1", "on_accent": "#ffffff", "accent_soft": "#eaf3fc", "accent_line": "#b9d6f3", "ok": "#188918", "ok_soft": "#eaf6ea", "warn": "#b35c00",
-                          "warn_soft": "#fff4e5", "bad": "#bb0000", "bad_soft": "#fdecec", "radius": "8px", "shadow": "0 1px 2px rgba(20,40,60,.05)"},
+                          "warn_soft": "#fff4e5", "bad": "#bb0000", "bad_soft": "#fdecec", "radius": "8px", "shadow": "0 1px 2px rgba(20,40,60,.05)", "l_source": "#2e7d32", "l_finance": "#7a5ca8", "l_bdc": "#0a6ed1", "l_dsp": "#00838f", "l_consume": "#6b7785", "l_agent": "#b8860b", "l_gov": "#c77700", "l_conn": "#bb0000", "c_fi": "#7a5ca8", "c_rec": "#2e7d32", "c_ctl": "#5b6b7b", "c_ref": "#8a95a1"},
     "SAP Quartz Dark": {"bg": "#10161c", "surface": "#1a2129", "surface2": "#222b35", "ink": "#e8edf2", "muted": "#9fb0c0", "line": "#333f4b",
                          "accent": "#5cb2ff", "on_accent": "#0b1a2a", "accent_soft": "#17304a", "accent_line": "#2f5b88", "ok": "#6fcf6f", "ok_soft": "#183321", "warn": "#f0b050",
-                         "warn_soft": "#3a2c14", "bad": "#ff8080", "bad_soft": "#3b1c1c", "radius": "8px", "shadow": "none"},
+                         "warn_soft": "#3a2c14", "bad": "#ff8080", "bad_soft": "#3b1c1c", "radius": "8px", "shadow": "none", "l_source": "#6fcf6f", "l_finance": "#b59af0", "l_bdc": "#5cb2ff", "l_dsp": "#4dd0d8", "l_consume": "#9fb0c0", "l_agent": "#e0b44c", "l_gov": "#f0a040", "l_conn": "#ff8080", "c_fi": "#b59af0", "c_rec": "#6fcf6f", "c_ctl": "#9fb0c0", "c_ref": "#7d8b99"},
     "SAP Horizon Light": {"bg": "#f5f6f7", "surface": "#ffffff", "surface2": "#eef1f4", "ink": "#1d2d3e", "muted": "#556b82", "line": "#cdd5dd",
                            "accent": "#0070f2", "on_accent": "#ffffff", "accent_soft": "#e8f1fe", "accent_line": "#aacbfa", "ok": "#256f3a", "ok_soft": "#e9f5ec", "warn": "#a65b00",
-                           "warn_soft": "#fff3e0", "bad": "#aa0808", "bad_soft": "#fdeaea", "radius": "12px", "shadow": "0 0 0 1px rgba(0,0,0,.04), 0 2px 6px rgba(20,40,60,.06)"},
+                           "warn_soft": "#fff3e0", "bad": "#aa0808", "bad_soft": "#fdeaea", "radius": "12px", "shadow": "0 0 0 1px rgba(0,0,0,.04), 0 2px 6px rgba(20,40,60,.06)", "l_source": "#2e7d32", "l_finance": "#7a5ca8", "l_bdc": "#0a6ed1", "l_dsp": "#00838f", "l_consume": "#6b7785", "l_agent": "#b8860b", "l_gov": "#c77700", "l_conn": "#bb0000", "c_fi": "#7a5ca8", "c_rec": "#2e7d32", "c_ctl": "#5b6b7b", "c_ref": "#8a95a1"},
 }
 DEFAULT_THEME = "SAP Quartz Light"
 
 _BASE = """
 :root{--bg:%(bg)s;--surface:%(surface)s;--surface2:%(surface2)s;--ink:%(ink)s;--muted:%(muted)s;--line:%(line)s;--accent:%(accent)s;--on-accent:%(on_accent)s;
 --accent-soft:%(accent_soft)s;--accent-line:%(accent_line)s;--ok:%(ok)s;--ok-soft:%(ok_soft)s;--warn:%(warn)s;--warn-soft:%(warn_soft)s;
---bad:%(bad)s;--bad-soft:%(bad_soft)s;--radius:%(radius)s;--shadow:%(shadow)s}
+--bad:%(bad)s;--bad-soft:%(bad_soft)s;--radius:%(radius)s;--shadow:%(shadow)s;
+--l-source:%(l_source)s;--l-finance:%(l_finance)s;--l-bdc:%(l_bdc)s;--l-dsp:%(l_dsp)s;--l-consume:%(l_consume)s;--l-agent:%(l_agent)s;--l-gov:%(l_gov)s;--l-conn:%(l_conn)s;
+--c-fi:%(c_fi)s;--c-rec:%(c_rec)s;--c-ctl:%(c_ctl)s;--c-ref:%(c_ref)s}
 .stApp{background:var(--bg)}
 header[data-testid="stHeader"],[data-testid="stToolbar"],[data-testid="stDecoration"],footer,#MainMenu{display:none!important}
 %(sidebar)s
 :where(.stApp) :where(p,li,label,h1,h2,h3,h4,h5,h6,span,div,td,th,summary,small,caption){color:var(--ink)}
 :where(.stApp) :where([data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *){color:var(--muted)}
 .stApp .block-container{max-width:none;padding:4.3rem 0 5.5rem}
-.st-key-page_body{width:100%%;max-width:1280px;margin-inline:auto;padding:0 1.5rem}
+.st-key-page_body{width:100%%;max-width:1500px;margin-inline:auto;padding:0 1.5rem}
 h1,h2,h3,h4{letter-spacing:-.01em}
 /* shell bar */
 .st-key-shell{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--line);padding:.5rem 1.6rem}
@@ -117,36 +119,56 @@ table.ag-table tr:hover td{background:var(--accent-soft)}
 .ag-st{display:inline-block;padding:.02rem .5rem;border-radius:99px;font-size:.72rem;font-weight:700;white-space:nowrap}
 .ag-st.ok{background:var(--ok-soft);color:var(--ok)!important}.ag-st.warn{background:var(--warn-soft);color:var(--warn)!important}.ag-st.bad{background:var(--bad-soft);color:var(--bad)!important}
 
-/* landscape swimlanes */
-.ag-land{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:30px;align-items:start;margin:.4rem 0}
-.ag-lane{position:relative}
-.ag-lane:not(:last-child)::after{content:"\2192";position:absolute;right:-24px;top:2px;color:var(--accent)!important;font-weight:800;font-size:1.1rem}
-.ag-lane-h{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)!important;margin:0 0 .45rem;border-bottom:2px solid var(--line);padding-bottom:.3rem}
-.ag-sys{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--lc,var(--accent));border-radius:var(--radius);padding:.55rem .65rem;margin-bottom:.75rem;box-shadow:var(--shadow)}
-.ag-sys.opt{border-style:dashed;border-top-style:solid}
-.ag-sys .nm{font-weight:800;font-size:.95rem}
-.ag-sys .rl{font-size:.7rem;color:var(--muted)!important;line-height:1.35;margin:.1rem 0 .3rem}
-.ag-cmp{display:flex;gap:.45rem;border-top:1px dashed var(--line);padding:.32rem 0;font-size:.74rem;line-height:1.35}
-.ag-cmp .d{color:var(--muted)!important;font-size:.68rem;display:block}
-.ag-dot{flex:0 0 8px;height:8px;border-radius:50%%;background:var(--accent);margin-top:.35rem}
-.ag-dot.ok{background:var(--ok)}.ag-dot.bad{background:var(--bad)}.ag-dot.mute{background:var(--muted)}
-.ag-flowrow{font-size:.7rem;color:var(--muted)!important;margin:.15rem 0 .5rem;line-height:1.5}
-.ag-flowrow b{color:var(--accent)!important}
-.ag-band{margin:1rem 0 .3rem}
-.ag-band-h{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)!important;border-bottom:2px solid var(--line);padding-bottom:.3rem;margin-bottom:.55rem}
-.ag-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem}
-.ag-cards .ag-sys{margin:0}
-.ag-sys.blocked{border-color:var(--bad);border-top-color:var(--bad);border-style:dashed;background:var(--bad-soft)}
-.ag-recon{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}
-@media(max-width:1000px){.ag-land{grid-template-columns:1fr}.ag-lane:not(:last-child)::after{display:none}}
-
 /* legal block */
 .ag-legal{margin:2rem 0 .5rem;border-top:1px solid var(--line);padding-top:1rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4rem;font-size:.74rem;line-height:1.55;color:var(--muted)!important}
 .ag-legal b{color:var(--ink)!important;display:block;margin-bottom:.2rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
 .ag-legal a{color:var(--accent)!important}
 @media(max-width:900px){.ag-legal{grid-template-columns:1fr}}
+
+/* top bar: wraps instead of colliding */
+.st-key-shell [data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.4rem .8rem!important;align-items:center}
+.st-key-shell [data-testid="stColumn"]{flex:0 0 auto!important;width:auto!important;min-width:0!important}
+.st-key-shell [data-testid="stColumn"]:has(.ag-brand){flex:1 1 330px!important}
+.ag-brand .ag-title,.ag-brand .ag-crumb{white-space:nowrap}
+[data-testid="stMetricLabel"],[data-testid="stMetricLabel"] *{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.st-key-ag_theme{min-width:250px}.st-key-ag_scn{min-width:350px}
+.st-key-shell [data-testid="stPopover"] button,.st-key-shell button{white-space:nowrap}
+.st-key-shell .ag-badge{white-space:nowrap}
+.ag-badge{max-width:100%%;white-space:normal;line-height:1.35}
+@media(max-width:1280px){.stApp .block-container{padding-top:7.4rem}}
 /* keyboard focus */
 [data-testid="stRadioOption"]:focus-within,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* svg diagrams (bdcwb.diagram) */
+.dg-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:.5rem;margin:.4rem 0 .9rem}
+svg.dg{display:block;height:auto;font-family:inherit}
+svg.dg text{font-family:inherit}
+.dg-zone{fill:var(--surface2);stroke:var(--line);stroke-width:1}
+.dg-zone-t{fill:var(--muted);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.dg-box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.dg-box.dg-dashed{stroke-dasharray:5 4}
+.dg-box.dg-bad{stroke:var(--bad);fill:var(--bad-soft)}
+.dg-box.dg-sel{stroke:var(--accent);fill:var(--accent-soft)}
+.dg-hd{stroke:none}
+.dg-t{fill:var(--ink)}
+.dg-tb{fill:var(--ink);font-weight:700}
+.dg-s{fill:var(--muted)}
+.dg-e{stroke:var(--l-bdc);stroke-width:1.7;fill:none}
+.dg-e-fi{stroke:var(--c-fi)}
+.dg-e-rec{stroke:var(--c-rec)}
+.dg-e-ctl{stroke:var(--c-ctl)}
+.dg-e-ref{stroke:var(--c-ref)}
+.dg-e-blk{stroke:var(--bad)}
+.dg-e-gov{stroke:var(--l-gov)}
+.dg-dash{stroke-dasharray:6 4}
+.dg-ah{stroke:none}
+.dg-ah.dg-e{fill:var(--l-bdc)}.dg-ah.dg-e-fi{fill:var(--c-fi)}.dg-ah.dg-e-rec{fill:var(--c-rec)}.dg-ah.dg-e-ctl{fill:var(--c-ctl)}.dg-ah.dg-e-ref{fill:var(--c-ref)}.dg-ah.dg-e-blk{fill:var(--bad)}.dg-ah.dg-e-gov{fill:var(--l-gov)}
+.dg-plate{fill:var(--surface);opacity:.96}
+.dg-elabel{fill:var(--muted);font-weight:600}
+.dg-dot{fill:var(--l-bdc)}.dg-dot-bad{fill:var(--bad)}.dg-dot-ok{fill:var(--ok)}.dg-dot-mute{fill:var(--muted)}
+.dg-chip-ok{fill:var(--ok-soft);stroke:var(--ok)}.dg-chip-warn{fill:var(--warn-soft);stroke:var(--warn)}.dg-chip-bad{fill:var(--bad-soft);stroke:var(--bad)}
+.dg-chip-t-ok{fill:var(--ok);font-weight:700}.dg-chip-t-warn{fill:var(--warn);font-weight:700}.dg-chip-t-bad{fill:var(--bad);font-weight:700}
+.dg-life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
 /* footer */
 .ag-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-top:1px solid var(--line);padding:.35rem 1.2rem;font-size:.72rem;color:var(--muted)}
 .ag-foot b{color:var(--ink)}
@@ -254,46 +276,3 @@ def _row(c: dict) -> str:
 def _card(title: str, sub: str, rows: str, layer: str, extra: str = "") -> str:
     return (f'<div class="ag-sys {extra}" style="--lc:{_LANE_COLORS[layer]}"><div class="nm">{esc(title)}</div>'
             f'<div class="rl">{esc(_short(sub, 120))}</div>{rows}</div>')
-
-
-def landscape_html(L: dict, view: str = "Full landscape") -> str:
-    """Swimlane diagram: source -> finance consolidation -> BDC -> Datasphere -> consumption, then agent suite, governance, connectors."""
-    comps, flows = L["components"], L["flows"]
-    lanes = [("source", "Source systems"), ("finance", "Finance consolidation"), ("bdc", "SAP Business Data Cloud"), ("dsp", "Datasphere"), ("consume", "Consumption")]
-    out = []
-    if view in ("Full landscape", "Data landscape"):
-        cols, flowrows = [], []
-        sys_lane = {c["system"]: c["layer"] for c in comps if c["kind"] == "System"}
-        for layer, name in lanes:
-            items = [c for c in comps if c["layer"] == layer]
-            systems = []
-            for c in items:
-                if c["system"] not in systems:
-                    systems.append(c["system"])
-            body = []
-            for sy in systems:
-                mine = [c for c in items if c["system"] == sy]
-                head = next((c for c in mine if c["kind"] == "System"), None)
-                rest = [c for c in mine if c is not head]
-                if head:
-                    body.append(_card(head["name"], head["detail"], "".join(_row(c) for c in rest), layer, "opt" if head["status"] == "OPTIONAL" else ""))
-                else:
-                    body.append(_card(name if sy in ("-", "Suite") else sy, "", "".join(_row(c) for c in rest), layer))
-            cols.append(f'<div class="ag-lane"><div class="ag-lane-h">{esc(name)}</div>{"".join(body)}</div>')
-            outgoing = [f for f in flows if f["plane"] in ("data", "fi", "ref") and sys_lane.get(f["from"], "") == layer]
-            txt = "<br>".join(f'<b>&rarr; {esc({"CON.AM": "Analytic models"}.get(f["to"], f["to"]))}</b> {esc(f["label"])}' for f in outgoing)
-            flowrows.append(f'<div class="ag-flowrow">{txt}</div>')
-        out.append('<div class="ag-land">' + "".join(cols) + "</div>")
-        out.append('<div class="ag-band-h" style="margin-top:.6rem">Flows leaving each column</div><div class="ag-land">' + "".join(flowrows) + "</div>")
-        rec = [f for f in flows if f["plane"] == "recon"]
-        if rec:
-            chips = "".join(f'<span class="ag-st {"ok" if f["status"] in _DOT_OK else "warn"}">{esc(f["label"])}</span>' for f in rec)
-            out.append(f'<div class="ag-band"><div class="ag-band-h">Reconciliation overlay (synthetic verdicts, not live validation)</div><div class="ag-recon">{chips}</div></div>')
-    if view in ("Full landscape", "Agent suite and governance"):
-        for layer, title in (("agent", "Agent suite (this workbench)"), ("gov", "Governance and operations"), ("conn", "SAP connectors (interfaces) - none reached in DEMO mode")):
-            items = [c for c in comps if c["layer"] == layer]
-            cards = "".join(_card(c["name"], c["kind"], f'<div class="ag-cmp"><span class="ag-dot {"bad" if c["status"] in _DOT_BAD else ""}"></span><span><span class="d">{esc(_short(c["detail"], 140))}'
-                                                         f'{(" &middot; " + esc(c["interface"])) if c["interface"] not in ("-", "") else ""}</span></span></div>', layer,
-                             "blocked" if c["status"] in _DOT_BAD else "") for c in items)
-            out.append(f'<div class="ag-band"><div class="ag-band-h">{esc(title)}</div><div class="ag-cards">{cards}</div></div>')
-    return "".join(out)
