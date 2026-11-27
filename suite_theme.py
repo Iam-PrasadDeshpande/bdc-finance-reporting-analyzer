@@ -116,6 +116,29 @@ table.ag-table tr:last-child td{border-bottom:0}
 table.ag-table tr:hover td{background:var(--accent-soft)}
 .ag-st{display:inline-block;padding:.02rem .5rem;border-radius:99px;font-size:.72rem;font-weight:700;white-space:nowrap}
 .ag-st.ok{background:var(--ok-soft);color:var(--ok)!important}.ag-st.warn{background:var(--warn-soft);color:var(--warn)!important}.ag-st.bad{background:var(--bad-soft);color:var(--bad)!important}
+
+/* landscape swimlanes */
+.ag-land{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:30px;align-items:start;margin:.4rem 0}
+.ag-lane{position:relative}
+.ag-lane:not(:last-child)::after{content:"\2192";position:absolute;right:-24px;top:2px;color:var(--accent)!important;font-weight:800;font-size:1.1rem}
+.ag-lane-h{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)!important;margin:0 0 .45rem;border-bottom:2px solid var(--line);padding-bottom:.3rem}
+.ag-sys{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--lc,var(--accent));border-radius:var(--radius);padding:.55rem .65rem;margin-bottom:.75rem;box-shadow:var(--shadow)}
+.ag-sys.opt{border-style:dashed;border-top-style:solid}
+.ag-sys .nm{font-weight:800;font-size:.95rem}
+.ag-sys .rl{font-size:.7rem;color:var(--muted)!important;line-height:1.35;margin:.1rem 0 .3rem}
+.ag-cmp{display:flex;gap:.45rem;border-top:1px dashed var(--line);padding:.32rem 0;font-size:.74rem;line-height:1.35}
+.ag-cmp .d{color:var(--muted)!important;font-size:.68rem;display:block}
+.ag-dot{flex:0 0 8px;height:8px;border-radius:50%%;background:var(--accent);margin-top:.35rem}
+.ag-dot.ok{background:var(--ok)}.ag-dot.bad{background:var(--bad)}.ag-dot.mute{background:var(--muted)}
+.ag-flowrow{font-size:.7rem;color:var(--muted)!important;margin:.15rem 0 .5rem;line-height:1.5}
+.ag-flowrow b{color:var(--accent)!important}
+.ag-band{margin:1rem 0 .3rem}
+.ag-band-h{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)!important;border-bottom:2px solid var(--line);padding-bottom:.3rem;margin-bottom:.55rem}
+.ag-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem}
+.ag-cards .ag-sys{margin:0}
+.ag-sys.blocked{border-color:var(--bad);border-top-color:var(--bad);border-style:dashed;background:var(--bad-soft)}
+.ag-recon{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}
+@media(max-width:1000px){.ag-land{grid-template-columns:1fr}.ag-lane:not(:last-child)::after{display:none}}
 /* footer */
 .ag-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-top:1px solid var(--line);padding:.35rem 1.2rem;font-size:.72rem;color:var(--muted)}
 .ag-foot b{color:var(--ink)}
@@ -123,8 +146,8 @@ table.ag-table tr:hover td{background:var(--accent-soft)}
 """
 _HIDE_SIDEBAR = '[data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],[data-testid="collapsedControl"]{display:none!important}'
 
-_OK = re.compile(r"^(PASS|SYNTHETIC_PASS|OK|OFFLINE_VALIDATED|ENGINEERING_ACCEPTED_SYNTHETIC|COMPLETE|MATCH|DETECTED|True|GENERATED)$")
-_WARN = re.compile(r"^(HOLD|NOT_RUN|NOT_REACHED|UNKNOWN|UNAVAILABLE|PROPOSED|READY_FOR_AUTHORIZED_EXECUTION|INSUFFICIENT_EVIDENCE|PLANNED|PENDING)$")
+_OK = re.compile(r"^(NO_DELTA|PASS|SYNTHETIC_PASS|OK|OFFLINE_VALIDATED|ENGINEERING_ACCEPTED_SYNTHETIC|COMPLETE|MATCH|DETECTED|True|GENERATED)$")
+_WARN = re.compile(r"^(CUSTOM_FIELD|CUSTOM_OBJECT|STRUCTURAL|SEMANTIC_RULE|FIELD_GAP_STANDARD|SECURITY|NO_STANDARD_PRODUCT|UNKNOWN_CATALOG|HOLD|NOT_RUN|NOT_REACHED|UNKNOWN|UNAVAILABLE|PROPOSED|READY_FOR_AUTHORIZED_EXECUTION|INSUFFICIENT_EVIDENCE|PLANNED|PENDING)$")
 _BAD = re.compile(r"^(FAIL|FAILED|BLOCKED\w*|REFUSED|ERROR|MISMATCH|False)$")
 
 
@@ -168,14 +191,82 @@ def card(title: str, body: str, selected: bool = False, kicker: str = "") -> str
 
 
 def flow(items: list[tuple[str, str, str]], selected: int = 1) -> str:
+    n = len(items)
     parts = []
     for i, (t, sub, d) in enumerate(items):
         if i:
             parts.append('<div class="arrow">&rarr;</div>')
         parts.append(f'<div class="ag-card{" sel" if i == selected else ""}"><h4>{esc(t)}</h4><p><b>{esc(sub)}</b></p><p>{esc(d)}</p></div>')
-    return '<div class="ag-flow">' + "".join(parts) + "</div>"
+    cols = " ".join(["minmax(0,1fr)"] * n).replace(" minmax", " 22px minmax")
+    return f'<div class="ag-flow" style="grid-template-columns:{cols}">' + "".join(parts) + "</div>"
 
 
 def footer(extra: str = "") -> str:
     return ('<div class="ag-foot"><b>Demo and learning purposes only.</b> Synthetic finance data; no live SAP, BDC or Datasphere system is connected. '
             'SYNTHETIC_PASS is not a live Finance validation. Independent prototype, not affiliated with SAP.' + extra + "</div>")
+
+
+_LANE_COLORS = {"source": "#2e7d32", "finance": "#7a5ca8", "bdc": "#0a6ed1", "dsp": "#00838f", "consume": "#888888", "agent": "#b8860b", "gov": "#c77700", "conn": "#bb0000"}
+_DOT_BAD = {"NOT REACHED", "UNAVAILABLE", "NOT RUN", "NOT AUTHORIZED"}
+_DOT_OK = {"OFFLINE_VALIDATED", "PASS", "SYNTHETIC_PASS"}
+_DOT_MUTE = {"OPTIONAL", "REFERENCE"}
+
+
+def _short(x: str, n: int = 100) -> str:
+    return x if len(x) <= n else x[: n - 1] + "\u2026"
+
+
+def _row(c: dict) -> str:
+    st_ = c["status"]
+    kind = "bad" if st_ in _DOT_BAD else "ok" if st_ in _DOT_OK else "mute" if st_ in _DOT_MUTE else ""
+    iface = f' &middot; {esc(_short(c["interface"], 48))}' if c["interface"] not in ("-", "") else ""
+    return (f'<div class="ag-cmp" title="{esc(c["detail"])}"><span class="ag-dot {kind}"></span><span><b>{esc(c["name"])}</b>'
+            f'<span class="d">{esc(_short(c["detail"]))}{iface}</span></span></div>')
+
+
+def _card(title: str, sub: str, rows: str, layer: str, extra: str = "") -> str:
+    return (f'<div class="ag-sys {extra}" style="--lc:{_LANE_COLORS[layer]}"><div class="nm">{esc(title)}</div>'
+            f'<div class="rl">{esc(_short(sub, 120))}</div>{rows}</div>')
+
+
+def landscape_html(L: dict, view: str = "Full landscape") -> str:
+    """Swimlane diagram: source -> finance consolidation -> BDC -> Datasphere -> consumption, then agent suite, governance, connectors."""
+    comps, flows = L["components"], L["flows"]
+    lanes = [("source", "Source systems"), ("finance", "Finance consolidation"), ("bdc", "SAP Business Data Cloud"), ("dsp", "Datasphere"), ("consume", "Consumption")]
+    out = []
+    if view in ("Full landscape", "Data landscape"):
+        cols, flowrows = [], []
+        sys_lane = {c["system"]: c["layer"] for c in comps if c["kind"] == "System"}
+        for layer, name in lanes:
+            items = [c for c in comps if c["layer"] == layer]
+            systems = []
+            for c in items:
+                if c["system"] not in systems:
+                    systems.append(c["system"])
+            body = []
+            for sy in systems:
+                mine = [c for c in items if c["system"] == sy]
+                head = next((c for c in mine if c["kind"] == "System"), None)
+                rest = [c for c in mine if c is not head]
+                if head:
+                    body.append(_card(head["name"], head["detail"], "".join(_row(c) for c in rest), layer, "opt" if head["status"] == "OPTIONAL" else ""))
+                else:
+                    body.append(_card(name if sy in ("-", "Suite") else sy, "", "".join(_row(c) for c in rest), layer))
+            cols.append(f'<div class="ag-lane"><div class="ag-lane-h">{esc(name)}</div>{"".join(body)}</div>')
+            outgoing = [f for f in flows if f["plane"] in ("data", "fi", "ref") and sys_lane.get(f["from"], "") == layer]
+            txt = "<br>".join(f'<b>&rarr; {esc({"CON.AM": "Analytic models"}.get(f["to"], f["to"]))}</b> {esc(f["label"])}' for f in outgoing)
+            flowrows.append(f'<div class="ag-flowrow">{txt}</div>')
+        out.append('<div class="ag-land">' + "".join(cols) + "</div>")
+        out.append('<div class="ag-band-h" style="margin-top:.6rem">Flows leaving each column</div><div class="ag-land">' + "".join(flowrows) + "</div>")
+        rec = [f for f in flows if f["plane"] == "recon"]
+        if rec:
+            chips = "".join(f'<span class="ag-st {"ok" if f["status"] in _DOT_OK else "warn"}">{esc(f["label"])}</span>' for f in rec)
+            out.append(f'<div class="ag-band"><div class="ag-band-h">Reconciliation overlay (synthetic verdicts, not live validation)</div><div class="ag-recon">{chips}</div></div>')
+    if view in ("Full landscape", "Agent suite and governance"):
+        for layer, title in (("agent", "Agent suite (this workbench)"), ("gov", "Governance and operations"), ("conn", "SAP connectors (interfaces) - none reached in DEMO mode")):
+            items = [c for c in comps if c["layer"] == layer]
+            cards = "".join(_card(c["name"], c["kind"], f'<div class="ag-cmp"><span class="ag-dot {"bad" if c["status"] in _DOT_BAD else ""}"></span><span><span class="d">{esc(_short(c["detail"], 140))}'
+                                                         f'{(" &middot; " + esc(c["interface"])) if c["interface"] not in ("-", "") else ""}</span></span></div>', layer,
+                             "blocked" if c["status"] in _DOT_BAD else "") for c in items)
+            out.append(f'<div class="ag-band"><div class="ag-band-h">{esc(title)}</div><div class="ag-cards">{cards}</div></div>')
+    return "".join(out)

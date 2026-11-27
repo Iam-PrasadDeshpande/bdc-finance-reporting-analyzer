@@ -1,7 +1,7 @@
 """BDC Transition Agent Suite - router (Streamlit). SYNTHETIC data, DEMO mode only.
 
 Two entries:
-  * Agent Suite (default): a two-level agent cockpit (Home -> Workbench apps | Agents | Architecture & operations), v0.13.
+  * Agent Suite (default): a two-level agent cockpit (Home -> Delta journey | Agents | Architecture & operations), v0.13: five stages, three agents.
   * Old demo: the v0.12 reporting analyzer, clubbed into one page (?view=old-demo, legacy ?page=<slug> links also open it).
 The suite renders its own shell bar, so the Streamlit sidebar is not used.
 """

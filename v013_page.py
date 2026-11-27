@@ -1,8 +1,11 @@
 """BDC Transition Agent Suite (v0.13) - Streamlit cockpit. SYNTHETIC data only, DEMO mode only.
 
-Two-level topology modelled on a finance-agent cockpit:
-  Level 1  Home: "Ask the transition agents" (scenario + request + example chips) and three launch tabs.
-  Level 2  Spaces: Workbench apps (14 apps) | Agents (Ask, Catalog, Technical options) | Architecture & operations.
+The story is the delta: what the customer changed in standard SAP, how it was found, how it is solved and how the result is proven.
+Five stages, three agents (see bdcwb.delta):
+  1 Find the delta  2 Solution the delta   -> S/4HANA agent
+  3 Datasphere activities                   -> BDC & Datasphere agent
+  4 Compare and reconcile  5 End-to-end result -> Utility agent
+Two-level topology: Home (ask the agents) -> spaces: Delta journey | Agents | Architecture & operations.
 Everything shown derives from the persisted/cached result set produced by bdcwb.run; no figure is hardcoded.
 Navigation changes only happen in callbacks (never by writing a widget's session key after it was instantiated).
 """
@@ -14,25 +17,18 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import agents, arch
+from bdcwb import agents, arch, delta, landscape
 from bdcwb.run import run_all
 
-AREAS = ["1 Architecture and scenario", "2 Source systems", "3 SAP object discovery", "4 Dependency graph", "5 Data product catalog",
-         "6 Mapping and delta analysis", "7 Extensibility decisions", "8 Customer-managed product engineering", "9 Business rules",
-         "10 Datasphere modelling", "11 Execution plan", "12 Technical validation", "13 Finance reconciliation", "14 Evidence and release readiness"]
-AREA_INFO = {1: "Scenario metrics, topology and mode.", 2: "Systems, release, client and FI source of truth.", 3: "P2P object inventory and discovered SAP objects.",
-             4: "Recursive dependency graph; unresolved objects shown.", 5: "Data-product catalog with evidence classes.", 6: "16-dimension delta against catalog candidates.",
-             7: "Deterministic reuse / extend / build decisions.", 8: "Generated customer-managed product packages (templates).", 9: "Rule book; AI cannot approve a rule.",
-             10: "Five-layer model, grain check, SQL fan-out guard.", 11: "Execution plan per mode; writes stay blocked.", 12: "Offline technical validation checks.",
-             13: "Golden transaction, three levels, injected defects.", 14: "Status dimensions and gates G01-G15."}
-GROUPS = [("Discover", [1, 2, 3, 4, 5]), ("Decide", [6, 7, 9]), ("Engineer", [8, 10, 12]), ("Reconcile", [13]), ("Plan and release", [11, 14])]
+STAGES = delta.STAGES
+STAGE_LABELS = [f"{s['id']} {s['name']}" for s in STAGES]
 SCEN = {"A": "A - single S/4HANA system", "B": "B - multi-system with Central Finance"}
-SPACES = ["Workbench apps", "Agents", "Architecture & operations"]
-HOME_TABS = ["How it works", "Workbench apps", "Agents & architecture"]
+SPACES = ["Delta journey", "Agents", "Architecture & operations"]
+HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Tool hosting", "Agent hosting", "Registry", "Selection & cost", "Decision brief", "Ontology", "Diagrams"]
-INTENT_APP = {"full": 14, "readiness": 14, "recon": 13, "engineering": 8, "rules": 9, "gap": 6, "discovery": 3, "write": 11}
-FAMILY_EXAMPLE = {"discovery": 1, "gap": 2, "engineering": 5, "recon": 4, "governance": 7}
+INTENT_STAGE = {"delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
+AGENT_EXAMPLE = {"s4": 0, "bdc": 4, "utility": 5}
 _KEEP = object()
 
 
@@ -49,21 +45,31 @@ def badge(text: str, warn: bool = False) -> str:
     return T.badge(text, "warn" if warn else "")
 
 
+def _agent(agent_id: str) -> dict:
+    return next(a for a in agents.AGENTS if a["id"] == agent_id)
+
+
 # ---------------------------------------------------------------------------------------------------- navigation
-def _go(view: str = "space", space: str | None = None, area=_KEEP, agents_tab: str | None = None, arch_tab: str | None = None,
+def _go(view: str = "space", space: str | None = None, stage: int | None = None, agents_tab: str | None = None, arch_tab: str | None = None,
         home_tab: str | None = None) -> None:
     ss = st.session_state
     ss["nav_view"] = view
     if space:
         ss["tabs_space"] = space
-    if area is not _KEEP:
-        ss["ag_area"] = area
+    if stage:
+        ss["tabs_stage"] = STAGE_LABELS[stage - 1]
     if agents_tab:
         ss["tabs_agents"] = agents_tab
     if arch_tab:
         ss["tabs_arch"] = arch_tab
     if home_tab:
         ss["tabs_home"] = home_tab
+
+
+def _step(n: int) -> None:
+    """Previous / next stage inside the journey."""
+    cur = int(st.session_state.get("tabs_stage", STAGE_LABELS[0]).split()[0])
+    st.session_state["tabs_stage"] = STAGE_LABELS[min(5, max(1, cur + n)) - 1]
 
 
 def _effective(request: str, selected: str) -> tuple[str, str]:
@@ -101,27 +107,22 @@ def shell(mode: str) -> None:
     ss = st.session_state
     title = {"home": "My Home", "space": "BDC Transition Agent Cockpit", "old": "Old demo - v0.12 reporting analyzer"}[mode]
     crumb = {"home": "BDC transition agent suite / local demo", "space": "Home / BDC / agent cockpit", "old": "Home / old demo"}[mode]
-    widths = {"home": [.5, 1.3, 4.0, 3.0, 3.0, 2.0], "space": [.5, 1.3, 3.4, 1.0, 2.8, 2.0, 2.9, 1.9], "old": [.5, 1.3, 5.3, 2.4]}[mode]
+    widths = {"home": [.5, 1.3, 3.6, 2.0, 1.5, 2.9, 2.0], "space": [.5, 1.3, 3.7, .1, 1.5, 2.6, 2.0, 3.0, 2.0], "old": [.5, 1.3, 5.3, 2.4]}[mode]
     with st.container(key="shell"):
         c = st.columns(widths, vertical_alignment="center")
         c[0].button("", icon=":material/home:", key="nav_home", on_click=_go, kwargs={"view": "home"}, help="My Home")
         with c[1].popover("Menu", icon=":material/apps:"):
             st.caption("BDC TRANSITION WORKSPACE")
             st.button("My Home", key="m_home", icon=":material/home:", on_click=_go, kwargs={"view": "home"}, width="stretch")
-            st.button("Discovery and scope", key="m_disc", icon=":material/travel_explore:", on_click=_go,
-                      kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[2]}, width="stretch")
-            st.button("Gaps and decisions", key="m_gap", icon=":material/rule:", on_click=_go,
-                      kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[6]}, width="stretch")
-            st.button("Engineering", key="m_eng", icon=":material/construction:", on_click=_go,
-                      kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[7]}, width="stretch")
-            st.button("Reconciliation", key="m_rec", icon=":material/balance:", on_click=_go,
-                      kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[12]}, width="stretch")
+            for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
+                st.button(f"{n} {STAGES[n - 1]['name']}", key=f"m_stage{n}", icon=f":material/{icon}:", on_click=_go,
+                          kwargs={"view": "space", "space": "Delta journey", "stage": n}, width="stretch")
+            st.button("Ask the BDC agents", key="m_ask", icon=":material/smart_toy:", on_click=_go,
+                      kwargs={"view": "space", "space": "Agents", "agents_tab": "Ask the agents"}, width="stretch")
             st.button("Live architecture", key="m_live", icon=":material/lan:", on_click=_go,
                       kwargs={"view": "space", "space": "Architecture & operations", "arch_tab": "Live run"}, width="stretch")
             st.button("Complete architecture", key="m_arch", icon=":material/schema:", on_click=_go,
                       kwargs={"view": "space", "space": "Architecture & operations", "arch_tab": "Complete architecture"}, width="stretch")
-            st.button("Ask the BDC agents", key="m_ask", icon=":material/smart_toy:", on_click=_go,
-                      kwargs={"view": "space", "space": "Agents", "agents_tab": "Ask the agents"}, width="stretch")
             st.divider()
             st.button("Old demo (v0.12 pages)", key="m_old", icon=":material/history:", on_click=_go, kwargs={"view": "old"}, width="stretch")
         c[2].markdown(f'<div class="ag-brand"><div class="ag-logo">B</div><div><div class="ag-crumb">{T.esc(crumb)}</div>'
@@ -130,12 +131,13 @@ def shell(mode: str) -> None:
             c[3].button("Open the Agent Suite", key="old_to_suite", type="primary", on_click=_go, kwargs={"view": "home"}, width="stretch")
             return
         saved = ss.get("theme_saved", T.DEFAULT_THEME)
-        # c[3] is an empty spacer column that pushes the controls to the right edge
-        c[4].selectbox("Theme", list(T.THEMES), index=list(T.THEMES).index(saved) if saved in T.THEMES else 0, key="ag_theme", on_change=_save_theme)
-        c[5].markdown(T.badge("SYNTHETIC - LOCAL DEMO"), unsafe_allow_html=True)
+        # c[3] is an empty spacer column that pushes the controls to the right edge; c[4] is the always-visible link to the old demo
+        c[4].button("Old demo", icon=":material/history:", key="shell_old", on_click=_go, kwargs={"view": "old"}, help="The v0.12 analyzer pages, clubbed on one page")
+        c[5].selectbox("Theme", list(T.THEMES), index=list(T.THEMES).index(saved) if saved in T.THEMES else 0, key="ag_theme", on_change=_save_theme)
+        c[6].markdown(T.badge("SYNTHETIC - LOCAL DEMO"), unsafe_allow_html=True)
         if mode == "space":
-            c[6].selectbox("Scenario", list(SCEN), format_func=lambda k_: SCEN[k_], key="ag_scn")
-            c[7].checkbox("Technical details", key="ag_tech")
+            c[7].selectbox("Scenario", list(SCEN), format_func=lambda k_: SCEN[k_], key="ag_scn")
+            c[8].checkbox("Technical details", key="ag_tech")
 
 
 def render() -> None:
@@ -155,7 +157,7 @@ def render() -> None:
             tech = bool(ss.get("ag_tech"))
             st.radio("Space", SPACES, horizontal=True, key="tabs_space", label_visibility="collapsed")
             _status_strip(res)
-            {"Workbench apps": _apps, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
+            {"Delta journey": _journey, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
     st.markdown(T.footer(), unsafe_allow_html=True)
 
 
@@ -167,6 +169,10 @@ def _status_strip(res: dict) -> None:
                 + T.badge("LIVE SAP VALIDATION: " + x["LIVE_SAP_VALIDATION"], "warn") + " " + T.badge("LIVE BDC VALIDATION: " + x["LIVE_BDC_VALIDATION"], "warn") + " "
                 + T.badge("FINANCE VALIDATION: " + x["FINANCE_VALIDATION"], "warn") + " "
                 + T.badge("PUBLICATION AUTHORIZATION (live evidence): " + x["PUBLICATION_AUTHORIZATION"], "warn") + "</div>", unsafe_allow_html=True)
+
+
+def _scn_select() -> None:
+    st.selectbox("Scenario", list(SCEN), format_func=lambda k: SCEN[k], key="ag_scn")
 
 
 def _ask_box(prefix: str) -> None:
@@ -185,52 +191,62 @@ def _ask_box(prefix: str) -> None:
         for i, ex in enumerate(agents.EXAMPLES):
             chips[i].button(ex, key=f"ex{i}" if home else f"ax{i}", on_click=_pick, args=(ex,))
     scn, src = _effective(ss["ag_q_input"], ss.get("ag_scn", "A"))
-    route = agents.route(ss["ag_q_input"])
-    fam = next(f for f in agents.FAMILIES if f["id"] == route["family"])
+    ag = _agent(agents.route(ss["ag_q_input"])["agent"])
     agree = "selector and request agree" if scn == ss.get("ag_scn", "A") else "the request overrides the selector"
-    st.markdown(f'<span class="ag-note">Effective scenario: <b>{scn}</b> &nbsp;{agree} &nbsp;</span><span class="ag-pill">Routed to {T.esc(fam["name"])} agent</span>', unsafe_allow_html=True)
+    st.markdown(f'<span class="ag-note">Effective scenario: <b>{scn}</b> &nbsp;{agree} &nbsp;</span><span class="ag-pill">Routed to the {T.esc(ag["name"])}</span>', unsafe_allow_html=True)
 
 
-def _scn_select() -> None:
-    st.selectbox("Scenario", list(SCEN), format_func=lambda k: SCEN[k], key="ag_scn")
+def _stage_kpis(res: dict, scn: str) -> list[str]:
+    j = delta.journey(res, scn)
+    d = j["delta"]
+    rt = d["routes"]
+    ext = sum(v for k, v in rt.items() if k.startswith("Extend"))
+    new = sum(v for k, v in rt.items() if k.startswith("New backend"))
+    dsp = sum(v for k, v in rt.items() if k.startswith("Solve in Datasphere"))
+    return [f"{d['objects']} SAP objects compared; {d['no_delta']} no delta; {d['customizations']} customization(s)",
+            f"{ext} extend the product; {new} new CDS view + customer-managed model; {dsp} solved in Datasphere",
+            f"{len(j['plan']['replication_flows'])} replication flows; {len(j['plan']['harmonization']) + len(j['plan']['transformation'])} views; simulation {j['plan']['simulation']['sql']}",
+            f"Levels: " + ", ".join(f"{k} {v}" for k, v in j["recon"].items() if v != "-") + f"; defects detected {j['defects']}",
+            f"Gates {j['gates']} pass; live SAP / BDC / Finance validation HOLD"]
 
 
-def _app_tiles(prefix: str) -> None:
-    for gname, nums in GROUPS:
-        st.markdown(f'<div class="ag-kicker" style="margin:.9rem 0 .35rem">{T.esc(gname)}</div>', unsafe_allow_html=True)
-        cols = st.columns(4)
-        for j, n in enumerate(nums):
-            with cols[j % 4]:
-                with st.container(key=f"tile_{prefix}_{n}"):
-                    st.markdown(f'<div class="ag-kicker">App {n}</div><h4 style="margin:.1rem 0 .25rem;font-size:.98rem">{T.esc(AREAS[n - 1].split(" ", 1)[1])}</h4>'
-                                f'<div class="ag-note" style="min-height:2.4em">{T.esc(AREA_INFO[n])}</div>', unsafe_allow_html=True)
-                    st.button("Open →", key=f"open_{prefix}_{n}", on_click=_go, kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[n - 1]})
+def _stage_cards(res: dict, scn: str, prefix: str) -> None:
+    kp = _stage_kpis(res, scn)
+    cols = st.columns(5)
+    for i, stg in enumerate(STAGES):
+        with cols[i]:
+            with st.container(key=f"tile_{prefix}_s{stg['id']}"):
+                st.markdown(f'<div class="ag-kicker">Stage {stg["id"]} &middot; {T.esc(_agent(stg["agent"])["name"])}</div>'
+                            f'<h4 style="margin:.1rem 0 .25rem;font-size:1rem">{T.esc(stg["name"])}</h4>'
+                            f'<div class="ag-note" style="min-height:3.6em">{T.esc(kp[i])}</div>', unsafe_allow_html=True)
+                st.button("Open →", key=f"open_{prefix}_s{stg['id']}", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": stg["id"]})
 
 
 # ---------------------------------------------------------------------------------------------------- Level 1: Home
 def _home(res: dict) -> None:
     with st.container(key="home_body"):
-        st.markdown('<div class="ag-kicker">BDC transition / agents</div><div class="ag-h1">Ask the transition agents</div>'
-                    '<div class="ag-lead">An orchestrator plans your request, routes it to the right agent family and calls its specialist agents with MCP-style '
-                    'tool calls. They read the persisted synthetic results; people approve and nothing is written to SAP.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="ag-kicker">BDC transition / the delta</div><div class="ag-h1">Ask the transition agents</div>'
+                    '<div class="ag-lead">What did the customer change in standard SAP, how was it found, and what is the next step? Three agents answer from the '
+                    'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. People approve and nothing is written to SAP.</div>',
+                    unsafe_allow_html=True)
         _ask_box("h")
         st.radio("Home tabs", HOME_TABS, horizontal=True, key="tabs_home", label_visibility="collapsed")
         tab = st.session_state["tabs_home"]
+        scn = st.session_state.get("ag_scn", "A")
         if tab == "How it works":
-            st.markdown(T.flow([("You ask", "Plain request", "Type a transition question or pick an example; the scenario you choose applies."),
-                                ("Orchestrator", "Tool client - plans and calls", "Routes the request to the right agent family and plans the tool calls."),
-                                ("Specialist agents", "Tool providers - typed tools", "Each agent has typed tools and a fixed authority class; people approve and nothing is written to SAP."),
-                                ("Application layers", "Domain engines and evidence store", "Simulated layers answer the tool calls; no SAP, BDC or Datasphere system is connected.")]),
-                        unsafe_allow_html=True)
+            st.markdown(T.flow([(f"{s['id']} {s['name']}", _agent(s["agent"])["name"], s["question"]) for s in STAGES], selected=0), unsafe_allow_html=True)
+            cols = st.columns(3)
+            for col, a in zip(cols, agents.catalog_view()):
+                col.markdown(T.card(f"{a['icon']} {a['name']}", f"Stages {', '.join(str(x) for x in a['stages'])}. {a['blurb']}"), unsafe_allow_html=True)
             st.markdown('<div class="ag-dashed"><b>Run it on your laptop</b><br><span class="ag-note">The code is public and synthetic-only. Python is needed.</span><br>'
                         '<code>git clone https://github.com/Iam-PrasadDeshpande/bdc-finance-reporting-analyzer</code><br>'
                         '<code>pip install -r requirements.txt &amp;&amp; streamlit run app.py</code></div>', unsafe_allow_html=True)
-        elif tab == "Workbench apps":
-            _app_tiles("home")
+        elif tab == "Delta journey":
+            _stage_cards(res, scn, "home")
         else:
-            cols = st.columns(5)
-            for col, f in zip(cols, agents.catalog_view()):
-                col.markdown(T.card(f"{f['icon']} {f['name']}", f"{len(f['agents'])} agents. {f['blurb']}"), unsafe_allow_html=True)
+            cols = st.columns(3)
+            for col, a in zip(cols, agents.catalog_view()):
+                col.markdown(T.card(f"{a['icon']} {a['name']}", f"{a['tool_count']} typed tools. Stages {', '.join(str(x) for x in a['stages'])}. {a['blurb']}"), unsafe_allow_html=True)
             b = st.columns(4)
             b[0].button("Ask the agents →", key="h_ask", on_click=_go, kwargs={"view": "space", "space": "Agents", "agents_tab": "Ask the agents"}, width="stretch")
             b[1].button("Agent catalog →", key="h_cat", on_click=_go, kwargs={"view": "space", "space": "Agents", "agents_tab": "Agent catalog"}, width="stretch")
@@ -239,6 +255,10 @@ def _home(res: dict) -> None:
             b[3].button("Complete architecture →", key="h_arch", on_click=_go,
                         kwargs={"view": "space", "space": "Architecture & operations", "arch_tab": "Complete architecture"}, width="stretch")
         _status_strip(res)
+        o1, o2 = st.columns([6, 2], vertical_alignment="center")
+        o1.markdown('<span class="ag-note">Looking for the earlier v0.12 analyzer (Vision &amp; Approach, AR Aging, Architecture, Evidence, Methodology)? '
+                    'It is kept, unchanged, as one page.</span>', unsafe_allow_html=True)
+        o2.button("Open the Old demo →", key="home_old", on_click=_go, kwargs={"view": "old"}, width="stretch")
 
 
 # ---------------------------------------------------------------------------------------------------- Level 2: Agents space
@@ -257,34 +277,33 @@ def _ask_tab(res, tech):
     ss = st.session_state
     with st.container(border=True):
         left, right = st.columns([2, 5])
-        left.markdown('<div class="ag-kicker">Agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3>'
-                      '<div class="ag-note">Every agent is a tile below, grouped by family. Ask in plain words, or pick a tile to see what the agent does. '
-                      'The orchestrator plans and calls the specialists; the technical detail (orchestration graph, tool calls, execution options, tool catalog) is in Technical options.</div>',
-                      unsafe_allow_html=True)
+        left.markdown('<div class="ag-kicker">Three agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3>'
+                      '<div class="ag-note">Ask about the delta in plain words, or pick an agent below to see what it does. The orchestrator plans and calls the agents\' typed tools; '
+                      'the technical detail (orchestration graph, tool calls, execution options, tool catalog) is in Technical options.</div>', unsafe_allow_html=True)
         with right:
             _ask_box("a")
     r = ss.get("ag_run")
     if r:
-        fam = next(f for f in agents.FAMILIES if f["id"] == r["route"]["family"])
+        ag = _agent(r["route"]["agent"])
         scn_used, src = ss.get("ag_run_scn", ("A", "from the selector"))
-        st.markdown(f'<span class="ag-pill">Handled by {T.esc(fam["name"])} agent</span>', unsafe_allow_html=True)
+        st.markdown(f'<span class="ag-pill">Handled by the {T.esc(ag["name"])}</span>', unsafe_allow_html=True)
         if r["refusal"]:
-            st.markdown(f'<div class="ag-status warn"><b>{T.esc(fam["name"])}</b> &nbsp;Request refused - draft only.</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ag-status warn"><b>{T.esc(ag["name"])}</b> &nbsp;Request refused - draft only.</div>', unsafe_allow_html=True)
             st.warning(r["refusal"])
         else:
-            st.markdown(f'<div class="ag-status"><b>{T.esc(fam["name"])}</b> &nbsp;Plan complete.</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ag-status"><b>{T.esc(ag["name"])}</b> &nbsp;Plan complete.</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="ag-note">Your request: <b>&ldquo;{T.esc(r["request"])}&rdquo;</b></div><div class="ag-note" style="margin:.35rem 0 .6rem">'
                     f'Plan scenario: <b>{T.esc(scn_used)}</b> &middot; {T.esc(src)}</div>', unsafe_allow_html=True)
         found = " ".join(t["summary"].rstrip(".") + "." for t in r["trace"][:3])
-        agents_used = sorted({t["agent"] for t in r["trace"]})
+        used = sorted({t["agent"] for t in r["trace"]})
         st.markdown(f'<div class="ag-panel"><div class="ag-kicker">What the agents found</div>{T.esc(found)}<br>'
-                    f'<b>The orchestrator planned {len(r["trace"])} tool call(s) across {len(agents_used)} agent(s):</b> {T.esc(", ".join(agents_used))}. '
+                    f'<b>The orchestrator planned {len(r["trace"])} tool call(s) across {len(used)} agent(s):</b> {T.esc(", ".join(used))}. '
                     f'No SAP write was made; a person decides on any proposal.</div>', unsafe_allow_html=True)
-        app_no = INTENT_APP.get(r["route"]["intent"], 14)
+        stage = INTENT_STAGE.get(r["route"]["intent"], 1)
         st.markdown('<div class="ag-panel" style="margin-bottom:.3rem"><div class="ag-kicker">Full output of this run</div></div>', unsafe_allow_html=True)
-        b1, b2, _ = st.columns([2.4, 2.4, 4])
-        b1.button(f"Open in {AREAS[app_no - 1].split(' ', 1)[1]} →", key="open_app", type="primary", on_click=_go,
-                  kwargs={"view": "space", "space": "Workbench apps", "area": AREAS[app_no - 1]}, width="stretch")
+        b1, b2, _ = st.columns([2.6, 2.4, 4])
+        b1.button(f"Open stage {stage}: {STAGES[stage - 1]['name']} →", key="open_app", type="primary", on_click=_go,
+                  kwargs={"view": "space", "space": "Delta journey", "stage": stage}, width="stretch")
         b2.button("Open the detailed trace →", key="open_trace", on_click=_go, kwargs={"view": "space", "space": "Agents", "agents_tab": "Technical options"}, width="stretch")
         table([{"#": t["step"], "agent": t["agent"], "tool": t["tool"], "authority": t["authority"], "status": t["status"], "result": t["summary"]} for t in r["trace"]], 760)
         st.markdown('<div class="ag-note"><b>Layers reached:</b> ' + " &rarr; ".join(T.esc(x) for x in r["layers_reached"]) + "</div>", unsafe_allow_html=True)
@@ -299,41 +318,39 @@ def _ask_tab(res, tech):
 def _agent_tiles():
     ss = st.session_state
     sel = ss.get("ag_sel")
-    fams = agents.catalog_view()
+    cv = agents.catalog_view()
     if sel:
-        a = next((x for f in fams for x in f["agents"] if x["id"] == sel), None)
+        a = next((x for x in cv if x["id"] == sel), None)
         if a:
             tools = [t for t in agents.tool_catalog() if t["agent"] == a["name"]]
-            st.markdown(f'<div class="ag-panel"><div class="ag-kicker">{T.esc(a["role"])} &middot; {T.esc(a["authority_label"])}</div><h3 style="margin:.1rem 0 .3rem">{T.esc(a["name"])}</h3>'
-                        f'{T.esc(a["blurb"])}</div>', unsafe_allow_html=True)
-            if tools:
-                table([{"tool": t["tool"], "authority": t["authority"], "layer": t["layer"], "description": t["description"]} for t in tools], 220)
-            c1, c2, _ = st.columns([2, 1.2, 5])
-            c1.button("Try a request for this family →", key="agent_try", on_click=_pick, args=(agents.EXAMPLES[FAMILY_EXAMPLE[a["family"]]],), width="stretch")
+            st.markdown(f'<div class="ag-panel"><div class="ag-kicker">{T.esc(a["authority_label"])} &middot; stages {", ".join(str(x) for x in a["stages"])}</div>'
+                        f'<h3 style="margin:.1rem 0 .3rem">{T.esc(a["name"])}</h3>{T.esc(a["blurb"])}</div>', unsafe_allow_html=True)
+            table([{"tool": t["tool"], "authority": t["authority"], "layer": t["layer"], "description": t["description"]} for t in tools], 420)
+            c1, c2, _ = st.columns([2.4, 1.2, 5])
+            c1.button("Try a request for this agent →", key="agent_try", on_click=_pick, args=(agents.EXAMPLES[AGENT_EXAMPLE[a["id"]]],), width="stretch")
             c2.button("Close", key="agent_close", on_click=_select_agent, args=(None,), width="stretch")
-    for f in fams:
-        st.markdown(f'<div class="ag-kicker" style="margin:1rem 0 .35rem">{T.esc(f["icon"])} {T.esc(f["name"])} &middot; {T.esc(f["blurb"])}</div>', unsafe_allow_html=True)
-        cols = st.columns(3)
-        for i, a in enumerate(f["agents"]):
-            with cols[i % 3]:
-                with st.container(key=f"tile_ag_{a['id']}"):
-                    st.markdown(f'<div class="ag-kicker">{T.esc(a["role"])}</div><h4 style="margin:.1rem 0 .25rem;font-size:.98rem">{T.esc(a["name"])}</h4>'
-                                f'<div class="ag-note" style="min-height:2.6em">{T.esc(a["blurb"])}</div>'
-                                f'<span class="ag-tag">{T.esc(a["authority_label"])}</span><span class="ag-tag">{a["tool_count"]} tool(s)</span>', unsafe_allow_html=True)
-                    st.button("What does it do? →", key=f"sel_{a['id']}", on_click=_select_agent, args=(a["id"],))
+    st.markdown('<div class="ag-kicker" style="margin:1rem 0 .35rem">The three agents</div>', unsafe_allow_html=True)
+    cols = st.columns(3)
+    for col, a in zip(cols, cv):
+        with col:
+            with st.container(key=f"tile_ag_{a['id']}"):
+                st.markdown(f'<div class="ag-kicker">{T.esc(a["icon"])} Stages {", ".join(str(x) for x in a["stages"])}</div><h4 style="margin:.1rem 0 .25rem;font-size:1.05rem">{T.esc(a["name"])}</h4>'
+                            f'<div class="ag-note" style="min-height:5.2em">{T.esc(a["blurb"])}</div>'
+                            f'<span class="ag-tag">{T.esc(a["authority_label"])}</span><span class="ag-tag">{a["tool_count"]} tool(s)</span>', unsafe_allow_html=True)
+                st.button("What does it do? →", key=f"sel_{a['id']}", on_click=_select_agent, args=(a["id"],))
 
 
 def _catalog_tab():
-    fams = agents.catalog_view()
-    st.markdown(f'<div class="ag-note">{len(agents.AGENTS)} agents in {len(fams)} families; each family has one orchestrator that only plans. '
-                'Authority classes: plans only &middot; read &middot; read (simulated) &middot; local draft &middot; draft only. No agent can write to SAP, activate, transport, deploy or publish.</div>',
-                unsafe_allow_html=True)
-    pick = st.radio("Family", ["All"] + [f["name"] for f in fams], horizontal=True, key="ag_fam")
+    cv = agents.catalog_view()
+    st.markdown(f'<div class="ag-note">{len(cv)} agents and {len(agents.TOOLS)} typed tools. Authority classes: read &middot; read (simulated) &middot; read + local draft &middot; draft only. '
+                'No agent can write to SAP, activate, transport, deploy or publish.</div>', unsafe_allow_html=True)
+    pick = st.radio("Agent", ["All"] + [a["name"] for a in cv], horizontal=True, key="ag_fam")
     rows = []
-    for f in fams:
-        if pick in ("All", f["name"]):
-            rows += [{"family": f["name"], "agent": a["name"], "role": a["role"], "authority": a["authority_label"], "tools": ", ".join(a["tools"]), "does": a["blurb"]} for a in f["agents"]]
-    table(rows, 560)
+    for a in cv:
+        if pick in ("All", a["name"]):
+            rows += [{"agent": a["name"], "stage": ", ".join(a["stage_names"]) or "all stages", "tool": t["tool"], "authority": t["authority"], "does": t["description"]}
+                     for t in agents.tool_catalog() if t["agent"] == a["name"]]
+    table(rows, 600)
 
 
 def _technical_tab(res, scn):
@@ -358,37 +375,151 @@ def _technical_tab(res, scn):
     table(agents.tool_catalog(), 460)
 
 
-# ---------------------------------------------------------------------------------------------------- Level 2: Workbench apps
-def _apps(res, s, scn, tech):
+# ---------------------------------------------------------------------------------------------------- Level 2: Delta journey
+def _journey(res, s, scn, tech):
     ss = st.session_state
-    c1, c2 = st.columns([4, 1.4], vertical_alignment="bottom")
-    area = c1.selectbox("Open a workbench app", AREAS, index=None, placeholder="Open a workbench app", key="ag_area")
-    if area is None:
-        st.markdown('<div class="ag-kicker" style="margin-top:.4rem">Workbench apps &middot; 14 apps in 5 groups</div>', unsafe_allow_html=True)
-        _app_tiles("space")
-        return
-    c2.button("← All apps", key="apps_back", on_click=_go, kwargs={"view": "space", "area": None}, width="stretch")
-    n = int(area.split()[0])
-    st.markdown(f'<div class="ag-kicker">Workbench app {n} of 14 &middot; Scenario {T.esc(scn)}</div><h2 style="margin:.1rem 0 .2rem">{T.esc(area.split(" ", 1)[1])}</h2>'
-                f'<div class="ag-note" style="margin-bottom:.8rem">{T.esc(AREA_INFO[n])}</div>', unsafe_allow_html=True)
-    {1: _a1, 2: _a2, 3: _a3, 4: _a4, 5: _a5, 6: _a6, 7: _a7, 8: _a8, 9: _a9, 10: _a10, 11: _a11, 12: _a12, 13: _a13, 14: _a14}[n](res, s, tech)
+    st.radio("Stage", STAGE_LABELS, horizontal=True, key="tabs_stage", label_visibility="collapsed")
+    n = int(ss["tabs_stage"].split()[0])
+    stg = STAGES[n - 1]
+    lead, sup = _agent(stg["agent"]), _agent(stg["support"])
+    kp = _stage_kpis(res, scn)[n - 1]
+    st.markdown(f'<div class="ag-panel"><div class="ag-kicker">Stage {n} of 5 &middot; Lead: {T.esc(lead["name"])} &middot; Supported by: {T.esc(sup["name"])} &middot; Scenario {T.esc(scn)}</div>'
+                f'<h2 style="margin:.1rem 0 .3rem">{T.esc(stg["name"])}</h2><div>{T.esc(stg["question"])}</div></div>', unsafe_allow_html=True)
+    c1, c2 = st.columns([3, 2])
+    c1.markdown('<div class="ag-kicker">How it is done</div>' + "<ol style='margin:.3rem 0 .6rem 1.1rem;padding:0;font-size:.86rem;line-height:1.5'>" +
+                "".join(f"<li>{T.esc(x)}</li>" for x in stg["how"]) + "</ol>", unsafe_allow_html=True)
+    c2.markdown(f'<div class="ag-kicker">What you get</div><div style="font-size:.86rem;margin:.3rem 0">{T.esc(stg["output"])}</div>'
+                f'<div class="ag-kicker" style="margin-top:.6rem">This scenario</div><div style="font-size:.86rem;margin:.3rem 0"><b>{T.esc(kp)}</b></div>', unsafe_allow_html=True)
+    {1: _stage1, 2: _stage2, 3: _stage3, 4: _stage4, 5: _stage5}[n](res, s, scn, tech)
+    b1, b2, _ = st.columns([1.4, 1.4, 6])
+    if n > 1:
+        b1.button(f"← Stage {n - 1}", key="stage_prev", on_click=_step, args=(-1,), width="stretch")
+    if n < 5:
+        b2.button(f"Stage {n + 1} →", key="stage_next", on_click=_step, args=(1,), width="stretch", type="primary")
 
 
-def _a1(res, s, tech):
-    m = s["metrics"]
-    st.caption(f"All figures derive from the persisted run (seed {s['seed']}, mode {s['mode']}, evidence {s['evidence_mode']}).")
-    cols = st.columns(4)
-    items = [("Source systems", m["source_systems"]), ("Discovered objects", m["discovered_objects"]), ("Dependent objects", m["dependent_objects"]),
-             ("Assessed requirements", m["assessed_requirements"]), ("Verified SAP-managed products", m["verified_sap_managed_products"]),
-             ("Synthetic fixture products", m["synthetic_fixture_products"]), ("Unverified candidates", m["unverified_product_candidates"]),
-             ("Reusable products", m["reusable_products"]), ("Required extensions", m["required_extensions"]), ("Proposed customer-managed", m["proposed_customer_managed_products"]),
-             ("Unresolved rules (before → after)", f"{m['unresolved_business_rules_before']} → {m['unresolved_business_rules_after']}"),
-             ("Generated artifacts", m["generated_artifacts"]), ("Executed artifacts", m["executed_artifacts"]),
-             ("Technical validation", m["technical_validation"]), ("Finance reconciliation", m["finance_reconciliation"]), ("Mode", "DEMO (synthetic)")]
-    for i, (k, v) in enumerate(items):
-        cols[i % 4].metric(k, v)
-    st.markdown("##### Topology (derived from the scenario configuration)")
-    st.graphviz_chart(arch.dot_topology(s))
+def _more(title: str):
+    return st.expander(title)
+
+
+def _stage1(res, s, scn, tech):
+    rows = delta.register(s)
+    sm = delta.summary(s)
+    m = st.columns(5)
+    m[0].metric("SAP objects compared", sm["objects"])
+    m[1].metric("No delta", sm["no_delta"])
+    m[2].metric("Customizations in standard SAP", sm["customizations"])
+    m[3].metric("Business-rule differences", sm["rule_differences"])
+    m[4].metric("Product coverage gaps", sm["coverage_gaps"])
+    st.markdown("##### Delta register")
+    st.caption("One row per SAP object, compared with the data product SAP delivers. A customization is a customer field or object that the standard product does not contain; "
+               "a coverage gap is where the delivered product itself is narrower than the SAP object.")
+    flt = st.selectbox("Show", ["All rows", "Customizations only", "Any delta (hide 'no delta')", "No delta"], key="ag_delta_filter")
+    keep = {"All rows": lambda r: True, "Customizations only": lambda r: r["kind"] == "Customization", "Any delta (hide 'no delta')": lambda r: r["delta_type"] != "NO_DELTA",
+            "No delta": lambda r: r["delta_type"] == "NO_DELTA"}[flt]
+    shown = [r for r in rows if keep(r)]
+    table([{"SAP object": r["label"], "system": r["system"], "SAP-delivered data product": r["product"], "delta": r["delta_type"], "customization": r["customization"],
+            "how it was found": r["how_found"], "next step": r["route"]} for r in shown], 560)
+    if shown:
+        opts = [f"{r['label']} - {r['sap_object']}" for r in shown]
+        pick = st.selectbox("Open one delta", opts, key="ag_delta_pick")
+        r = shown[opts.index(pick)] if pick in opts else shown[0]
+        st.markdown(f'<div class="ag-panel"><div class="ag-kicker">{T.esc(r["kind"])} &middot; {T.esc(delta.DELTA_TYPES[r["delta_type"]][0])}</div>'
+                    f'<h3 style="margin:.1rem 0 .3rem">{T.esc(r["label"])} <span class="ag-note">{T.esc(r["sap_object"])}</span></h3>'
+                    f'<b>What it is:</b> {T.esc(delta.DELTA_TYPES[r["delta_type"]][1])}<br><b>Compared with:</b> {T.esc(r["product"])} (catalog state {T.esc(r["catalog_state"])}; coverage {T.esc(r["coverage"])})<br>'
+                    f'<b>How it was found:</b> {T.esc(r["how_found"])}<br>' + (f'<b>Also:</b> {T.esc("; ".join(r["notes"]))}<br>' if r["notes"] else "") +
+                    f'<b>Next step:</b> {T.esc(r["route"])} - {T.esc(r["next_step"])}' + (f'<br><b>Approvals:</b> {T.esc(", ".join(r["approvals"]))}' if r["approvals"] else "") + '</div>', unsafe_allow_html=True)
+    with st.expander("What the delta types mean"):
+        table([{"delta": k, "label": v[0], "meaning": v[1]} for k, v in delta.DELTA_TYPES.items()], 380)
+    with st.expander("Customizations found (custom fields, customer objects, custom logic)"):
+        _customizations(s, tech)
+    # heavy detail views load on request: a collapsed expander still renders all of its tables in the browser
+    if st.toggle("Show the comparison with the SAP data products (16 dimensions) and the catalog", key="ag_show_compare"):
+        _a6(res, s, tech)
+        st.markdown("**SAP data-product catalog (synthetic snapshot)**")
+        _a5(res, s, tech)
+    if st.toggle("Show SAP objects, systems and dependencies", key="ag_show_objects"):
+        _a2(res, s, tech)
+        _a3(res, s, tech)
+        _a4(res, s, tech)
+
+
+def _customizations(s, tech):
+    c = delta.customizations(s)
+    st.markdown("**How customizations are found:** custom fields are fields marked custom in the discovered object metadata; customer objects are objects in the customer namespace in the "
+                "report's dependency chain; custom logic is detected by a lexical scan of source (category A normalised, B needs review, C explicit rules).")
+    st.markdown("**Custom fields on standard objects**")
+    table(c["fields"] or [{"object": "none"}], 220)
+    st.markdown("**Customer-created objects**")
+    table(c["objects"] or [{"object": "none"}], 200)
+    st.markdown(f"**Custom logic:** {len(c['logic_A'])} normalised item(s) (category A), {len(c['logic_B'])} marker(s) needing review (category B: {c['logic_B_kinds']}), "
+                f"{len(c['logic_C'])} explicit rule(s) (category C). {c['note']}")
+
+
+def _stage2(res, s, scn, tech):
+    rows = [r for r in delta.register(s) if r["decision"] != "-"]
+    sm = delta.summary(s)
+    cols = st.columns(max(1, len(sm["routes"])))
+    for col, (route, n) in zip(cols, sorted(sm["routes"].items(), key=lambda kv: -kv[1])):
+        col.markdown(T.card(route, f"{n} object(s)"), unsafe_allow_html=True)
+    st.markdown("##### Solution per delta")
+    table([{"SAP object": r["label"], "delta": r["delta_type"], "solution route": r["route"], "first step": r["next_step"], "approvals needed": ", ".join(r["approvals"]) or "-"} for r in rows], 560)
+    st.caption("Extend the SAP product when the missing fields are eligible custom attributes; build a new backend CDS view and a customer-managed data model when the structure differs or no product exists. "
+               "Everything generated is a template: never activated, never transported.")
+    with st.expander("New backend CDS view and customer-managed data model (generated templates)"):
+        _a8(res, s, tech)
+    with st.expander("Decision detail, implementation steps and blocked requests"):
+        _a7(res, s, tech)
+
+
+def _stage3(res, s, scn, tech):
+    p = delta.dsp_plan(s)
+    sem, sim = p["semantic"], p["simulation"]
+    m = st.columns(5)
+    m[0].metric("Replication flows", len(p["replication_flows"]))
+    m[1].metric("Harmonization views", len(p["harmonization"]))
+    m[2].metric("Transformation views", len(p["transformation"]))
+    m[3].metric("Facts / dimensions", f"{len(sem['facts'])} / {len(sem['dimensions'])}")
+    m[4].metric("Analytic models", len(sem["analytic_models"]))
+    st.markdown("##### Replication flows and acquisition")
+    st.caption("Acquisition types: " + ", ".join(f"{k} {v}" for k, v in sorted(p["acq_types"].items())) + ". Replication flows are planned for customer-managed products; none is deployed.")
+    table([{k: v for k, v in a.items() if k in ("requirement", "type", "replication_flow", "note")} for a in p["replication_flows"]] or [{"requirement": "none"}], 260)
+    st.markdown("##### Harmonization and transformation")
+    table([{"view": v["view"], "adds": v.get("adds", "")} for v in p["harmonization"]] + [{"view": v["view"], "adds": "transformation"} for v in p["transformation"]], 300)
+    st.markdown("##### Semantic model")
+    table([{"fact": f["name"], "grain": f["grain"], "measures": ", ".join(f["measures"]), "dimensions": ", ".join(f["dims"])} for f in sem["facts"]], 300)
+    st.markdown("##### Offline simulation (nothing is deployed to Datasphere)")
+    st.markdown(f"Grain check **{sim['grain']}** &middot; SQL functional check **{sim['sql']}** ({sim['mode']})", unsafe_allow_html=True)
+    fo = sim["fan_out"]
+    st.warning(f"Fan-out guard: a naive fact-to-fact join would report PO value {fo['naive_join_po_value']:,.2f} instead of {fo['correct_po_value']:,.2f}.")
+    with st.expander("Business rules (AI can propose, never approve)"):
+        _a9(res, s, tech)
+    if st.toggle("Show all five Datasphere model layers", key="ag_show_layers"):
+        _a10(res, s, tech)
+
+
+def _stage4(res, s, scn, tech):
+    _a13(res, s, tech)
+    with st.expander("Technical validation of the generated artifacts and model (offline)"):
+        _a12(res, s, tech)
+
+
+def _stage5(res, s, scn, tech):
+    j = delta.journey(res, scn)
+    d = j["delta"]
+    st.markdown("##### End-to-end result (synthetic)")
+    table([{"stage": "1 Find the delta", "result": f"{d['objects']} SAP objects compared with SAP-delivered products; {d['no_delta']} no delta; {d['customizations']} customization(s); {d['rule_differences']} rule difference(s); {d['coverage_gaps']} coverage gap(s)"},
+           {"stage": "2 Solution the delta", "result": "; ".join(f"{k}: {v}" for k, v in sorted(d["routes"].items(), key=lambda kv: -kv[1])) + f"; {j['packages']} customer-managed package template(s) generated"},
+           {"stage": "3 Datasphere activities", "result": f"{len(j['plan']['replication_flows'])} replication flow(s), {len(j['plan']['harmonization']) + len(j['plan']['transformation'])} views, offline simulation {j['plan']['simulation']['sql']}"},
+           {"stage": "4 Compare and reconcile", "result": ", ".join(f"{k} {v}" for k, v in j["recon"].items() if v != "-") + f"; golden transaction {j['golden_rows']}; injected defects detected {j['defects']}"},
+           {"stage": "5 Gates and status", "result": f"{j['gates']} gates pass ({j['release']}); live SAP, BDC and Finance validation HOLD"}], 360)
+    st.markdown("##### Next steps (need people and access this build does not have)")
+    st.markdown("\n".join(f"{i}. {x}" for i, x in enumerate(j["next_steps"], 1)))
+    st.info("Synthetic success shows the method works and can explain the delta to the SAP team. It is not evidence about any real system.")
+    with st.expander("Execution plan by mode (writes stay blocked)"):
+        _a11(res, s, tech)
+    with st.expander("Status dimensions and acceptance gates G01-G15"):
+        _a14(res, s, tech)
 
 
 def _a2(res, s, tech):
@@ -411,7 +542,8 @@ def _a3(res, s, tech):
 def _a4(res, s, tech):
     d = s["dependencies"]
     st.write(f"{len(d['nodes'])} nodes, {len(d['edges'])} edges; cycles: {len(d['cycles'])}; truncated: {d['truncated']}. Red nodes are **unresolved** (reported, never guessed).")
-    st.graphviz_chart(arch.dot_dependencies(s))
+    if st.checkbox("Draw the dependency graph (renders in the browser; may take a moment)", key="ag_dep_graph"):
+        st.graphviz_chart(arch.dot_dependencies(s))
     st.markdown("**Unresolved objects**")
     table(d["unresolved"] or [{"object": "none"}])
 
@@ -557,14 +689,7 @@ def _architecture(res, s, scn, tech):
         table([{"#": i + 1, "from": e["from"], "to": e["to"], "event": e["label"], "state": e["state"]} for i, e in enumerate(ev[:max(step, 1)])])
         st.caption("Events are produced from the real orchestrator trace. The last event shows that SAP connectors are not reached in DEMO mode.")
     elif tab == "Complete architecture":
-        opt = st.radio("Option", list(arch.OPTIONS), format_func=lambda k: f"{k} · {arch.OPTIONS[k]['name']}", horizontal=True, key="ag_opt")
-        o = arch.OPTIONS[opt]
-        st.markdown(badge(arch.BADGE, True) + f" &nbsp; Execution mode: `{o['mode']}` · {o['tag']}", unsafe_allow_html=True)
-        st.graphviz_chart(arch.dot_chain(opt))
-        c1, c2, c3 = st.columns(3)
-        c1.markdown("**Who owns what**\n\n" + "\n".join(f"- **{k}:** {v}" for k, v in o["owns"].items()))
-        c2.markdown("**Advantages**\n\n" + "\n".join(f"- {x}" for x in o["advantages"]))
-        c3.markdown("**Assumptions and limits**\n\n" + "\n".join(f"- {x}" for x in o["assumptions"] + o["limits"]))
+        _complete_architecture(res, s, scn)
     elif tab == "Tool hosting":
         table([{"decision": k, **{o: v[o] for o in arch.OPTIONS}} for k, v in arch.HOSTING if k in ("Tool (MCP-style) exposure", "SAP-facing access", "Credential handling")])
     elif tab == "Agent hosting":
@@ -579,12 +704,14 @@ def _architecture(res, s, scn, tech):
         st.markdown(arch.BRIEF)
         st.markdown(badge(arch.BADGE, True), unsafe_allow_html=True)
     elif tab == "Ontology":
-        fam = st.radio("Concepts", ["all"] + [f["id"] for f in agents.FAMILIES], horizontal=True, key="ag_onto")
+        fam = st.radio("Concepts", ["all"] + sorted({c["family"] for c in arch.concepts()} - {"shared"}), horizontal=True, key="ag_onto")
         cs = [c for c in arch.concepts() if fam in ("all", c["family"], ) or c["family"] == "shared"]
         st.write(f"{len(cs)} concepts and {len(arch.relations())} relations in the full model. Dashed = project concept; solid = SAP term (not source-checked). This is the suite's own model, not an SAP-published ontology.")
         st.graphviz_chart(arch.dot_ontology(fam))
         table([{k: c[k] for k in ("label", "kind", "family", "grounding", "desc")} for c in cs], 520)
     else:
+        st.markdown("**Complete landscape (all components across systems)**")
+        st.markdown(T.landscape_html(landscape.build(res, scn), "Full landscape"), unsafe_allow_html=True)
         st.markdown("**Scenario topology**")
         st.graphviz_chart(arch.dot_topology(s))
         st.markdown("**Dependency graph**")
@@ -592,3 +719,76 @@ def _architecture(res, s, scn, tech):
         for k in arch.OPTIONS:
             st.markdown(f"**{k} chain**")
             st.graphviz_chart(arch.dot_chain(k))
+
+
+# ---------------------------------------------------------------------------------------------------- Complete architecture (all components across systems)
+LAND_VIEWS = ["Landscape diagram", "Component inventory", "System drill-down", "Flows", "Deployment options"]
+LAND_FILTERS = ["Full landscape", "Data landscape", "Agent suite and governance"]
+LEGEND = ('<div class="ag-note" style="margin:.3rem 0 .6rem">'
+          '<span style="color:#1a73c8">&#9644; data flow</span> &nbsp; <span style="color:#7a5ca8">&#9644; Finance (FI) replication / mapped FI</span> &nbsp; '
+          '<span style="color:#2e7d32">&#9548; reconciliation level and its synthetic verdict</span> &nbsp; <span style="color:#888">&#9548; reference only / optional</span> &nbsp; '
+          '<span style="color:#555">&#9644; control (request, plan, typed calls)</span> &nbsp; <span style="color:#c77700">&#9644; governance</span> &nbsp; '
+          '<span style="color:#b3261e">&#9548; blocked: SAP connectors are not reached</span> &nbsp; Dashed boxes: no live interface or optional.</div>')
+
+
+def _complete_architecture(res, s, scn):
+    L = landscape.build(res, scn)
+    comps = L["components"]
+    n_sys = len([c for c in comps if c["kind"] == "System"])
+    st.markdown(badge(landscape.BADGE, True) + f" &nbsp; <span class='ag-note'>Scenario {T.esc(scn)}: every component below is derived from the synthetic scenario run; "
+                "SAP product names are generic terms and nothing is tenant-verified.</span>", unsafe_allow_html=True)
+    m = st.columns(5)
+    m[0].metric("Systems", n_sys)
+    m[1].metric("Components", len(comps))
+    m[2].metric("Flows", len(L["flows"]))
+    m[3].metric("Reconciliation levels", len([f for f in L["flows"] if f["plane"] == "recon"]))
+    m[4].metric("Live interfaces reached", 0)
+    st.radio("Architecture view", LAND_VIEWS, horizontal=True, key="tabs_archview", label_visibility="collapsed")
+    view = st.session_state["tabs_archview"]
+    if view == "Landscape diagram":
+        flt = st.radio("Show", LAND_FILTERS, horizontal=True, key="ag_land_view")
+        st.markdown(T.landscape_html(L, flt), unsafe_allow_html=True)
+        st.caption("Columns run from source systems through Finance consolidation (Central Finance, BW), SAP Business Data Cloud and Datasphere to consumption; the agent suite, governance and the SAP "
+                   "connectors (none reached in DEMO mode) are shown below. Hover a component for its full detail; the Flows view lists every edge.")
+        d = landscape.dot(L, flt)
+        c1, c2 = st.columns([2, 3], vertical_alignment="center")
+        c1.download_button("Download diagram source (DOT)", d, f"bdc_landscape_scenario_{scn}.dot", mime="text/plain", key="ag_dl_dot")
+        if c2.checkbox("Also draw as a graph (Graphviz; slower to render)", key="ag_land_graph"):
+            st.markdown(LEGEND, unsafe_allow_html=True)
+            st.graphviz_chart(d)
+    elif view == "Component inventory":
+        names = [n for _, n in L["layers"]]
+        c1, c2 = st.columns(2)
+        layer = c1.selectbox("Layer", ["(all)"] + names, key="ag_inv_layer")
+        syss = ["(all)"] + sorted({c["system"] for c in comps})
+        system = c2.selectbox("System", syss, key="ag_inv_sys")
+        rows = [r for r in landscape.inventory(L) if layer in ("(all)", r["layer"]) and system in ("(all)", r["system"])]
+        st.caption(f"{len(rows)} of {len(comps)} components")
+        table(rows, 640)
+    elif view == "System drill-down":
+        opts = [x for x in L["systems"]] + ["Suite"]
+        sysid = st.selectbox("System", opts, key="ag_drill", format_func=lambda x: x if x != "Suite" else "Suite (agent suite, governance)")
+        mine = [c for c in comps if c["system"] == sysid]
+        head = next((c for c in mine if c["kind"] == "System"), None)
+        if head:
+            st.markdown(f'<div class="ag-panel"><div class="ag-kicker">{T.esc(dict(L["layers"])[head["layer"]])}</div><h3 style="margin:.1rem 0 .3rem">{T.esc(head["name"])}</h3>{T.esc(head["detail"])}</div>', unsafe_allow_html=True)
+        st.markdown("**Components**")
+        table([{"component": c["name"], "kind": c["kind"], "detail": c["detail"], "interface": c["interface"], "status": c["status"], "evidence": c["evidence"]} for c in mine], 420)
+        is_source = bool(head) and head["layer"] == "source"
+        rel = [f for f in L["flows"] if sysid in (f["from"], f["to"]) or (is_source and "source systems" in (f["from"], f["to"]))]
+        st.markdown("**Flows touching this system**")
+        table([{"plane": f["plane"], "from": f["from"], "to": f["to"], "label": f["label"], "status": f["status"]} for f in rel] or [{"plane": "-", "from": "-", "to": "-", "label": "none", "status": "-"}], 320)
+    elif view == "Flows":
+        table([{"plane": f["plane"], "from": f["from"], "to": f["to"], "label": f["label"], "status": f["status"]} for f in L["flows"]], 640)
+        st.caption("Planes: data, fi (Finance), ref (reference or optional), recon (reconciliation), control, gov (governance), blocked (not reached in DEMO). "
+                   "Reconciliation statuses are synthetic verdicts, not live validation.")
+    else:
+        st.markdown("##### Deployment options for the suite itself (proposed, not tenant-verified)")
+        opt = st.radio("Option", list(arch.OPTIONS), format_func=lambda k: f"{k} · {arch.OPTIONS[k]['name']}", horizontal=True, key="ag_opt")
+        o = arch.OPTIONS[opt]
+        st.markdown(badge(arch.BADGE, True) + f" &nbsp; Execution mode: `{o['mode']}` · {o['tag']}", unsafe_allow_html=True)
+        st.graphviz_chart(arch.dot_chain(opt))
+        c1, c2, c3 = st.columns(3)
+        c1.markdown("**Who owns what**\n\n" + "\n".join(f"- **{k}:** {v}" for k, v in o["owns"].items()))
+        c2.markdown("**Advantages**\n\n" + "\n".join(f"- {x}" for x in o["advantages"]))
+        c3.markdown("**Assumptions and limits**\n\n" + "\n".join(f"- {x}" for x in o["assumptions"] + o["limits"]))

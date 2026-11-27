@@ -1,9 +1,12 @@
-"""BDC Transition Agent Suite: families, specialist agents, MCP-style typed tools, a deterministic orchestrator.
+"""BDC Transition Agent Suite: three agents, MCP-style typed tools, a deterministic orchestrator.
 
-Design follows the finance-agent cockpit topology: an orchestrator plans a plain-language request, routes it to an agent family,
-calls specialist agents through typed tools, and a person approves. Agents READ persisted results or draft locally; none can
-write to SAP, activate, transport, deploy or publish. The router is rule-based (deterministic); an LLM can later replace it
-behind the same tool contract without widening any authority.
+  S/4HANA agent            customizations in standard SAP, the delta register, the solution (extend, or a new backend CDS view)
+  BDC & Datasphere agent   SAP-delivered data products, comparison with SAP objects, flows, transformation, semantic model
+  Utility agent            rules and approvals, validation, reconciliation, execution plan, gates, end-to-end result, refusal of writes
+
+The orchestrator plans a plain-language request, routes it to the lead agent and calls typed tools. Agents READ persisted results or draft
+locally; none can write to SAP, activate, transport, deploy or publish. The router is rule-based (deterministic); an LLM can later replace
+it behind the same tool contract without widening any authority.
 """
 from __future__ import annotations
 
@@ -11,46 +14,11 @@ import json
 import re
 from typing import Any, Callable
 
+from . import delta
+
 AUTHORITY = {"PLANS_ONLY": "plans only", "READ": "read", "READ_SIMULATED": "read (simulated)", "LOCAL_DRAFT": "read + local draft",
              "DRAFT_ONLY": "draft only"}
-FAMILIES = [
-    {"id": "discovery", "name": "Discovery & Scope", "icon": "◆", "blurb": "Scope, SAP objects, dependency graph, catalog evidence, synthetic data."},
-    {"id": "gap", "name": "Gap & Decision", "icon": "▦", "blurb": "Field/semantic delta, extensibility decision, business rules and logic."},
-    {"id": "engineering", "name": "Engineering", "icon": "◧", "blurb": "Customer-managed product artifacts, Datasphere model, technical validation."},
-    {"id": "recon", "name": "Reconciliation", "icon": "◍", "blurb": "Source-to-acquisition, model, end-to-end Finance and Central Finance reconciliation."},
-    {"id": "governance", "name": "Governance & Release", "icon": "⬡", "blurb": "Execution plan, approvals, evidence, gates, security."},
-]
-
-
-def _a(id_, family, name, role, blurb, authority, tools):
-    return {"id": id_, "family": family, "name": name, "role": role, "blurb": blurb, "authority": authority, "tools": tools}
-
-
-AGENTS = [
-    _a("orch.discovery", "discovery", "Discovery Orchestrator", "ORCHESTRATOR", "Plans discovery requests and calls the specialists.", "PLANS_ONLY", ["scope.resolve_request"]),
-    _a("scope", "discovery", "Scope & Intake", "SPECIALIST", "Turns a request into scenario, systems, mode and route.", "READ", ["scope.resolve_request"]),
-    _a("objects", "discovery", "Object Discovery", "SPECIALIST", "Lists discovered SAP objects with type, release, API state, evidence.", "READ_SIMULATED", ["discovery.inventory", "discovery.list_objects"]),
-    _a("graph", "discovery", "Dependency Mapper", "SPECIALIST", "Resolves dependencies recursively with cycle detection and unresolved reporting.", "READ_SIMULATED", ["discovery.dependency_graph"]),
-    _a("catalog", "discovery", "Catalog Scout", "SPECIALIST", "Classifies product evidence; unknown stays unknown.", "READ_SIMULATED", ["catalog.lookup"]),
-    _a("synth", "discovery", "Synthetic Data Steward", "SPECIALIST", "Describes the seeded, reproducible synthetic datasets.", "READ", ["data.synthetic_summary"]),
-    _a("orch.gap", "gap", "Gap Orchestrator", "ORCHESTRATOR", "Plans gap analysis and remediation requests.", "PLANS_ONLY", ["gap.analyze"]),
-    _a("delta", "gap", "Delta Analyst", "SPECIALIST", "Field, key, grain, relationship, extraction and security gaps with coverage numerator/denominator.", "READ", ["gap.analyze"]),
-    _a("advisor", "gap", "Extensibility Advisor", "SPECIALIST", "Deterministic reuse / extend / customer-managed recommendation.", "READ", ["decision.recommend"]),
-    _a("rules", "gap", "Business Rule Steward", "SPECIALIST", "Lists rules and drafts proposals; only a named human approves.", "LOCAL_DRAFT", ["rules.list", "rules.draft"]),
-    _a("logic", "gap", "Logic Discoverer", "SPECIALIST", "Categorises business logic as discoverable, partially discoverable or explicit.", "READ", ["logic.discover"]),
-    _a("orch.eng", "engineering", "Engineering Orchestrator", "ORCHESTRATOR", "Plans engineering requests.", "PLANS_ONLY", ["artifacts.generate"]),
-    _a("producteng", "engineering", "Data Product Engineer", "SPECIALIST", "Generates inspectable, traceable, never-activated artifact packages.", "LOCAL_DRAFT", ["artifacts.generate"]),
-    _a("modeler", "engineering", "Datasphere Modeler", "SPECIALIST", "Five-layer model specification, grain checks and SQL functional check.", "LOCAL_DRAFT", ["model.layers"]),
-    _a("validator", "engineering", "Technical Validator", "SPECIALIST", "Offline validation; live-only checks reported as not run.", "READ", ["validation.run"]),
-    _a("orch.recon", "recon", "Reconciliation Orchestrator", "ORCHESTRATOR", "Plans reconciliation requests.", "PLANS_ONLY", ["recon.level"]),
-    _a("recon123", "recon", "Level Reconciler", "SPECIALIST", "Source-to-acquisition, acquisition-to-model, end-to-end.", "READ", ["recon.level", "recon.golden"]),
-    _a("cfin", "recon", "Central Finance Guard", "SPECIALIST", "Source-to-CFIN, BW-to-BDC and duplicate-posting prevention.", "READ", ["recon.cfin_guard"]),
-    _a("investigator", "recon", "Variance Investigator", "SPECIALIST", "Injects or reads a difference and drills to source and target records.", "READ_SIMULATED", ["recon.investigate"]),
-    _a("orch.gov", "governance", "Governance Orchestrator", "ORCHESTRATOR", "Plans governance requests; refuses write actions.", "PLANS_ONLY", ["exec.plan"]),
-    _a("planner", "governance", "Execution Planner", "SPECIALIST", "15-step dependency-aware plan per mode with states.", "READ", ["exec.plan"]),
-    _a("gatekeeper", "governance", "Approval Gatekeeper", "SPECIALIST", "Drafts a proposal only; refuses deploy, activate, transport, publish, post.", "DRAFT_ONLY", ["approvals.draft"]),
-    _a("auditor", "governance", "Evidence & Release Auditor", "SPECIALIST", "Gates, status dimensions and what is still HOLD.", "READ", ["gates.status"]),
-]
+AGENTS = [{**x, "role": "AGENT"} for x in delta.AGENT3]
 _AGENT = {a["id"]: a for a in AGENTS}
 
 
@@ -205,6 +173,41 @@ def t_gates(res, a):
     return {"summary": f"{ok}/{len(g)} gates PASS; {res['overall_release']}; live SAP/BDC validation HOLD; Finance validation HOLD / INSUFFICIENT_EVIDENCE", "data": {"gates": {x["id"]: x["status"] for x in g}, "status": res["status"]}}
 
 
+def t_delta(res, a):
+    s = _scn(res, a)
+    sm = delta.summary(s)
+    parts = ", ".join(f"{delta.DELTA_TYPES[k][0].lower()} {v}" for k, v in sorted(sm["by_type"].items(), key=lambda kv: -kv[1]))
+    return {"summary": f"{sm['objects']} standard SAP objects compared with SAP-delivered products: {sm['no_delta']} with no delta; {sm['customizations']} customization(s) found "
+                       f"(custom fields, customer objects), {sm['rule_differences']} business-rule difference(s), {sm['coverage_gaps']} product coverage gap(s); "
+                       f"{sm['logic_markers']} custom-logic marker(s) to review. By type: {parts}", "data": {"by_type": sm["by_type"], "customizations": sm["customizations"]}}
+
+
+def t_solution(res, a):
+    s = _scn(res, a)
+    sm = delta.summary(s)
+    rows = delta.register(s)
+    appr = sorted({x for r in rows for x in r["approvals"]})
+    parts = "; ".join(f"{k}: {v}" for k, v in sorted(sm["routes"].items(), key=lambda kv: -kv[1]))
+    return {"summary": f"Solution routes - {parts}", "data": {"routes": sm["routes"]}, "needs_approval": appr}
+
+
+def t_dsp(res, a):
+    s = _scn(res, a)
+    p = delta.dsp_plan(s)
+    sem, sim = p["semantic"], p["simulation"]
+    return {"summary": f"{len(p['replication_flows'])} replication flow(s), {len(p['harmonization'])} harmonization and {len(p['transformation'])} transformation view(s), semantic model "
+                       f"{len(sem['facts'])} facts / {len(sem['dimensions'])} dimensions / {len(sem['analytic_models'])} analytic models; offline simulation: grain {sim['grain']}, "
+                       f"SQL check {sim['sql']}; nothing deployed", "data": {"flows": len(p["replication_flows"]), "simulation": sim["sql"]}}
+
+
+def t_journey(res, a):
+    j = delta.journey(res, _scn(res, a)["scenario"])
+    rc = ", ".join(f"{k} {v}" for k, v in j["recon"].items() if v != "-")
+    return {"summary": f"End to end (synthetic): {j['delta']['objects']} objects compared, {j['delta']['no_delta']} no delta, {j['delta']['customizations']} customization(s); {j['packages']} package(s) generated; "
+                       f"reconciliation {rc}; golden {j['golden_rows']}; defects detected {j['defects']}; gates {j['gates']}. Live SAP/BDC validation HOLD; Finance validation HOLD / INSUFFICIENT_EVIDENCE",
+            "data": {"recon": j["recon"], "gates": j["gates"]}}
+
+
 TOOLS: dict[str, dict] = {}
 
 
@@ -213,56 +216,62 @@ def _t(name, agent, desc, schema, authority, layer, fn: Callable):
 
 
 _S = {"scenario": "A|B"}
-_t("scope.resolve_request", "scope", "Resolve scenario, mode and route from plain text", {"request": "string"}, "READ", "Orchestrator", t_scope)
-_t("discovery.inventory", "objects", "The 20 P2P object groups as discovery references", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_inventory)
-_t("discovery.list_objects", "objects", "Discovered objects with release, API state and evidence", {**_S, "system": "string?"}, "READ_SIMULATED", "SAP metadata (synthetic)", t_objects)
-_t("discovery.dependency_graph", "graph", "Bounded recursive dependency resolution", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_graph)
-_t("catalog.lookup", "catalog", "Catalog candidates and evidence state for a requirement", {**_S, "requirement": "string"}, "READ_SIMULATED", "Catalog (synthetic)", t_catalog)
-_t("data.synthetic_summary", "synth", "Seed, counts and evidence mode", _S, "READ", "Evidence store", t_synth)
-_t("gap.analyze", "delta", "Gap classes and coverage", {**_S, "group": "string?"}, "READ", "Domain engine", t_gap)
-_t("decision.recommend", "advisor", "Deterministic extensibility decision", {**_S, "requirement": "string"}, "READ", "Domain engine", t_decide)
-_t("rules.list", "rules", "Business rules and approval state", _S, "READ", "Domain engine", t_rules_list)
-_t("rules.draft", "rules", "Draft a PROPOSED rule (cannot approve)", {**_S, "rule": "object"}, "LOCAL_DRAFT", "Domain engine", t_rules_draft)
-_t("logic.discover", "logic", "Category A/B/C logic discovery", _S, "READ", "Domain engine", t_logic)
-_t("artifacts.generate", "producteng", "Engineering package for a customer-managed decision", {**_S, "requirement": "string"}, "LOCAL_DRAFT", "Domain engine", t_artifacts)
-_t("model.layers", "modeler", "Datasphere layers, grain check, SQL functional check", _S, "LOCAL_DRAFT", "Domain engine", t_model)
-_t("validation.run", "validator", "Technical validation results", _S, "READ", "Domain engine", t_validation)
-_t("recon.level", "recon123", "Reconciliation levels 1-3 (+B1/B4)", _S, "READ", "Domain engine", t_recon_level)
-_t("recon.golden", "recon123", "Golden transaction check", _S, "READ", "Domain engine", t_golden)
-_t("recon.cfin_guard", "cfin", "Central Finance and duplicate-posting guard", _S, "READ", "Domain engine", t_cfin)
-_t("recon.investigate", "investigator", "Injected-defect detection and drill-down", {**_S, "defect": "string?"}, "READ_SIMULATED", "Domain engine", t_investigate)
-_t("exec.plan", "planner", "15-step plan for a mode", {**_S, "mode": "DEMO|CONNECTED_READ_ONLY|CONTROLLED_EXECUTION"}, "READ", "Domain engine", t_plan)
-_t("approvals.draft", "gatekeeper", "Draft a proposal; never executes", {"action": "string"}, "DRAFT_ONLY", "Approval queue", t_draft)
-_t("gates.status", "auditor", "Acceptance gates and status dimensions", {}, "READ", "Evidence store", t_gates)
+_t("scope.resolve_request", "s4", "Resolve scenario, mode and route from plain text", {"request": "string"}, "READ", "Orchestrator", t_scope)
+_t("discovery.inventory", "s4", "The 20 P2P object groups as discovery references", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_inventory)
+_t("discovery.list_objects", "s4", "Discovered objects with release, API state and evidence", {**_S, "system": "string?"}, "READ_SIMULATED", "SAP metadata (synthetic)", t_objects)
+_t("discovery.dependency_graph", "s4", "Bounded recursive dependency resolution", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_graph)
+_t("catalog.lookup", "bdc", "Catalog candidates and evidence state for a requirement", {**_S, "requirement": "string"}, "READ_SIMULATED", "Catalog (synthetic)", t_catalog)
+_t("data.synthetic_summary", "s4", "Seed, counts and evidence mode", _S, "READ", "Evidence store", t_synth)
+_t("gap.analyze", "bdc", "Gap classes and coverage", {**_S, "group": "string?"}, "READ", "Domain engine", t_gap)
+_t("decision.recommend", "s4", "Deterministic extensibility decision", {**_S, "requirement": "string"}, "READ", "Domain engine", t_decide)
+_t("rules.list", "utility", "Business rules and approval state", _S, "READ", "Domain engine", t_rules_list)
+_t("rules.draft", "utility", "Draft a PROPOSED rule (cannot approve)", {**_S, "rule": "object"}, "LOCAL_DRAFT", "Domain engine", t_rules_draft)
+_t("logic.discover", "s4", "Category A/B/C logic discovery", _S, "READ", "Domain engine", t_logic)
+_t("artifacts.generate", "s4", "Engineering package for a customer-managed decision", {**_S, "requirement": "string"}, "LOCAL_DRAFT", "Domain engine", t_artifacts)
+_t("model.layers", "bdc", "Datasphere layers, grain check, SQL functional check", _S, "LOCAL_DRAFT", "Domain engine", t_model)
+_t("validation.run", "utility", "Technical validation results", _S, "READ", "Domain engine", t_validation)
+_t("recon.level", "utility", "Reconciliation levels 1-3 (+B1/B4)", _S, "READ", "Domain engine", t_recon_level)
+_t("recon.golden", "utility", "Golden transaction check", _S, "READ", "Domain engine", t_golden)
+_t("recon.cfin_guard", "utility", "Central Finance and duplicate-posting guard", _S, "READ", "Domain engine", t_cfin)
+_t("recon.investigate", "utility", "Injected-defect detection and drill-down", {**_S, "defect": "string?"}, "READ_SIMULATED", "Domain engine", t_investigate)
+_t("exec.plan", "utility", "15-step plan for a mode", {**_S, "mode": "DEMO|CONNECTED_READ_ONLY|CONTROLLED_EXECUTION"}, "READ", "Domain engine", t_plan)
+_t("approvals.draft", "utility", "Draft a proposal; never executes", {"action": "string"}, "DRAFT_ONLY", "Approval queue", t_draft)
+_t("gates.status", "utility", "Acceptance gates and status dimensions", {}, "READ", "Evidence store", t_gates)
+
+_t("delta.register", "s4", "Delta register: customizations in standard SAP vs the SAP-delivered data products", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_delta)
+_t("delta.solution", "s4", "Solution route per delta: extend the product, or new backend CDS view + customer-managed model", _S, "READ", "Domain engine", t_solution)
+_t("dsp.plan", "bdc", "Datasphere plan: replication flows, transformation, semantic model, offline simulation", _S, "LOCAL_DRAFT", "Domain engine", t_dsp)
+_t("result.journey", "utility", "End-to-end result of the delta journey", _S, "READ", "Evidence store", t_journey)
 
 WRITE_INTENT = re.compile(r"\b(deploy\w*|activat\w*|transport\w*|publish\w*|post(ing)?|release to|push|install\w*|delete|execute in sap|write)\b", re.I)
 INTENTS = [
-    ("write", WRITE_INTENT, "governance", ["approvals.draft", "exec.plan"]),
-    ("full", re.compile(r"\b(end[- ]to[- ]end|walkthrough|full demo|everything)\b", re.I), "discovery",
-     ["scope.resolve_request", "discovery.dependency_graph", "catalog.lookup", "gap.analyze", "decision.recommend", "artifacts.generate", "model.layers",
-      "validation.run", "recon.level", "recon.golden", "gates.status"]),
-    ("readiness", re.compile(r"\b(ready|readiness|gate|status|evidence|release)\b", re.I), "governance", ["gates.status", "exec.plan"]),
-    ("recon", re.compile(r"\b(reconcil\w*|recon|golden|variance|difference|inject|detect|drill|duplicate|central finance|cfin|bw)\b", re.I), "recon",
+    ("write", WRITE_INTENT, "utility", ["approvals.draft", "exec.plan"]),
+    ("full", re.compile(r"\b(end[- ]to[- ]end|walkthrough|full demo|everything|overall result)\b", re.I), "s4",
+     ["scope.resolve_request", "delta.register", "catalog.lookup", "gap.analyze", "delta.solution", "artifacts.generate", "dsp.plan", "model.layers",
+      "validation.run", "recon.level", "recon.golden", "result.journey"]),
+    ("readiness", re.compile(r"\b(ready|readiness|gate|status|evidence|release)\b", re.I), "utility", ["gates.status", "exec.plan"]),
+    ("recon", re.compile(r"\b(reconcil\w*|recon|golden|variance|difference|inject|detect|drill|duplicate|central finance|cfin|bw)\b", re.I), "utility",
      ["recon.level", "recon.golden", "recon.cfin_guard", "recon.investigate"]),
-    ("engineering", re.compile(r"\b(generat\w*|artifact\w*|cds|odp|datasource|model\w*|datasphere|semantic|validat\w*|technical)\b", re.I), "engineering",
-     ["artifacts.generate", "model.layers", "validation.run"]),
-    ("rules", re.compile(r"\b(rule\w*|logic|approve\w*|approval\w*)\b", re.I), "gap", ["rules.list", "logic.discover", "rules.draft"]),
-    ("gap", re.compile(r"\b(gap\w*|delta|coverage|field\w*|compare|extend|extension\w*|decision\w*|decide|recommend\w*|reuse)\b", re.I), "gap",
-     ["gap.analyze", "decision.recommend"]),
-    ("discovery", re.compile(r"\b(discover\w*|object\w*|dependenc\w*|graph|catalog|product\w*|scope|synthetic|data)\b", re.I), "discovery",
+    ("datasphere", re.compile(r"\b(datasphere|replication|flows?|semantic|transformation\w*|harmoni\w*|model\w*|simulat\w*)\b", re.I), "bdc", ["dsp.plan", "model.layers"]),
+    ("solution", re.compile(r"\b(generat\w*|artifact\w*|cds|odp|datasource|solution\w*|solv\w*|extend|extension\w*|key-user|customer-managed|build|decision\w*|decide|recommend\w*|reuse)\b", re.I), "s4",
+     ["delta.solution", "decision.recommend", "artifacts.generate"]),
+    ("validation", re.compile(r"\b(validat\w*|technical)\b", re.I), "utility", ["validation.run"]),
+    ("rules", re.compile(r"\b(rule\w*|logic|approve\w*|approval\w*)\b", re.I), "utility", ["rules.list", "logic.discover", "rules.draft"]),
+    ("delta", re.compile(r"\b(delta|custom\w*|gap\w*|coverage|field\w*|compare|standard)\b", re.I), "s4", ["delta.register", "catalog.lookup", "gap.analyze"]),
+    ("discovery", re.compile(r"\b(discover\w*|object\w*|dependenc\w*|graph|catalog|product\w*|scope|synthetic|data)\b", re.I), "s4",
      ["scope.resolve_request", "discovery.inventory", "discovery.dependency_graph", "catalog.lookup", "data.synthetic_summary"]),
 ]
-EXAMPLES = ["Run the end-to-end walkthrough for scenario A", "Show dependencies and catalog evidence for the purchase order item",
-            "Which gaps exist and what should we extend?", "Reconcile scenario B and prove duplicate Finance postings are prevented",
-            "Inject an amount difference and investigate it", "Generate the customer-managed product package for the invoice item",
-            "Deploy the artifacts to the S/4HANA system", "Are we release ready?"]
+EXAMPLES = ["Show the delta: what is customized in standard SAP and how was it found?", "Compare the purchase order item with the SAP-delivered data product",
+            "How should we solve each delta: extend the product or build a new CDS view?", "Generate the customer-managed product package for the invoice item",
+            "Which Datasphere flows and models are needed?", "Reconcile scenario B and prove duplicate Finance postings are prevented",
+            "Give me the end-to-end result for scenario A", "Deploy the artifacts to the S/4HANA system"]
 
 
 def route(request: str) -> dict:
-    for name, rx, fam, tools in INTENTS:
+    for name, rx, agent, tools in INTENTS:
         if rx.search(request):
-            return {"intent": name, "family": fam, "tools": tools, "refused": name == "write"}
-    return {"intent": "discovery", "family": "discovery", "tools": ["scope.resolve_request", "gates.status"], "refused": False}
+            return {"intent": name, "agent": agent, "tools": tools, "refused": name == "write"}
+    return {"intent": "discovery", "agent": "s4", "tools": ["scope.resolve_request", "gates.status"], "refused": False}
 
 
 def _args(request: str, tool: str, res: dict) -> dict:
@@ -303,7 +312,7 @@ def run_request(request: str, res: dict, scenario: str | None = None) -> dict:
         if tool["layer"] not in layers:
             layers.append(tool["layer"])
         approvals += out.get("needs_approval", [])
-        trace.append({"step": i, "agent": agent["name"], "agent_id": agent["id"], "family": agent["family"], "tool": tname, "authority": AUTHORITY[tool["authority"]],
+        trace.append({"step": i, "agent": agent["name"], "agent_id": agent["id"], "tool": tname, "authority": AUTHORITY[tool["authority"]],
                       "args": {k: v for k, v in args.items() if k not in ("request", "action")}, "status": status, "summary": out["summary"], "layer": tool["layer"], "data": out.get("data", {})})
     if "Evidence store" not in layers:
         layers.append("Evidence store")
@@ -316,8 +325,10 @@ def run_request(request: str, res: dict, scenario: str | None = None) -> dict:
 
 def catalog_view() -> list[dict]:
     out = []
-    for f in FAMILIES:
-        out.append({**f, "agents": [{**a, "authority_label": AUTHORITY[a["authority"]], "tool_count": len(a["tools"])} for a in AGENTS if a["family"] == f["id"]]})
+    for ag in AGENTS:
+        tools = [t for t in TOOLS.values() if t["agent"] == ag["id"]]
+        out.append({**ag, "authority_label": AUTHORITY[ag["authority"]], "tool_count": len(tools), "tools": [t["name"] for t in tools],
+                    "stage_names": [st["name"] for st in delta.STAGES if st["agent"] == ag["id"]]})
     return out
 
 
