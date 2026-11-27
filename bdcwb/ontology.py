@@ -123,3 +123,31 @@ def build(res: dict, scn: str) -> dict:
 
 def relations_table() -> list[dict]:
     return [{"relation": k, "from": v[0], "to": v[1]} for k, v in RELATIONS.items()]
+
+
+def product_view(res: dict, scn: str) -> dict:
+    """Start from the data product and drive through the five stages: delta, solution, Datasphere, proof, readiness for an authorized deployment request."""
+    s = res["scenarios"][scn]
+    bp = delta.by_product(s)
+    lin = {x["requirement"]: x for x in build(res, scn)["lineage"]}
+    out = {}
+    for pid, p in bp["products"].items():
+        ls = [lin[x["requirement"]] for x in p["objects"] if x["requirement"] in lin]
+        acq = Counter(x["acq_type"] for x in ls if x["acq_type"] != "-")
+        created = [a for x in ls for a in x["creates"] if not a.startswith("nothing created")]
+        blockers = [x for x in ls if x["decision"] not in ("CREATE_CUSTOMER_MANAGED_PRODUCT", "KEY_USER_EXTENSION", "DEVELOPER_EXTENSION", "DATA_PRODUCT_EXTENSION",
+                                                           "REUSE_STANDARD", "DATASPHERE_ENRICHMENT")]
+        proof = sorted({q for x in ls for q in x["proof"]})
+        if not ls:
+            readiness, nxt = "NOT_USED", "No customer object maps to this product; confirm whether any report needs it."
+        elif blockers:
+            readiness, nxt = "NOT_READY", f"{len(blockers)} object(s) unresolved: " + ", ".join(sorted({b['route'] for b in blockers}))
+        else:
+            readiness, nxt = "READY_FOR_AUTHORIZED_EXECUTION", "Request authorized execution in a non-production system (not available in this build); live validation stays HOLD."
+        out[pid] = {**{k: v for k, v in p.items() if k != "objects"}, "objects": p["objects"],
+                    "stage1": f"{p['counts']['objects']} object(s) mapped; {p['counts']['customizations']} customization(s), {p['counts']['rule_differences']} rule difference(s), {p['counts']['coverage_gaps']} coverage gap(s)",
+                    "stage2": "; ".join(f"{k}: {v}" for k, v in p["routes"].items()) or "none",
+                    "created": created, "stage3": ", ".join(f"{k.split('_')[0].lower()} {v}" for k, v in sorted(acq.items())) or "none",
+                    "views": sorted({v for x in ls for v in x["harmonize"] + x["transform"]}), "targets": sorted({x["target"] for x in ls if x["target"] != "-"}),
+                    "models": sorted({m for x in ls for m in x["models"]}), "proof": proof, "readiness": readiness, "next": nxt}
+    return {"products": out, "unmapped": bp["unmapped"]}

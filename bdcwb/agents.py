@@ -15,7 +15,7 @@ import re
 import unicodedata
 from typing import Any, Callable
 
-from . import delta, ontology
+from . import adapters, delta, ontology
 
 AUTHORITY = {"PLANS_ONLY": "plans only", "READ": "read", "READ_SIMULATED": "read (simulated)", "LOCAL_DRAFT": "read + local draft",
              "DRAFT_ONLY": "draft only"}
@@ -218,6 +218,24 @@ def t_onto(res, a):
             "data": {"counts": c, "by_relation": o["by_relation"]}}
 
 
+def t_by_product(res, a):
+    s = _scn(res, a)
+    bp = delta.by_product(s)
+    prods = bp["products"]
+    pid = a.get("product")
+    if pid in prods:
+        p = prods[pid]
+        c = p["counts"]
+        return {"summary": f"Data product {pid} ({p['name']}, {p['evidence']}): {c['objects']} customer object(s) mapped, {c['no_delta']} with no delta, {c['customizations']} customization(s), "
+                           f"{c['rule_differences']} rule difference(s), {c['coverage_gaps']} coverage gap(s); entities used {', '.join(p['entities_used']) or 'none'}; status {p['status']}",
+                "data": {"status": p["status"], "counts": c}}
+    cov = sum(1 for p in prods.values() if p["status"] == "COVERS_AS_IS")
+    dl = sum(1 for p in prods.values() if p["status"] == "COVERS_WITH_DELTA")
+    nu = sum(1 for p in prods.values() if p["status"] == "NOT_USED")
+    return {"summary": f"{len(prods)} SAP-delivered data products: {cov} cover the mapped objects as is, {dl} with a delta, {nu} not used by any mapped object; "
+                       f"{len(bp['unmapped'])} object(s) have no delivered product or an unverified one", "data": {"products": len(prods), "as_is": cov, "with_delta": dl, "not_used": nu}}
+
+
 TOOLS: dict[str, dict] = {}
 
 
@@ -251,6 +269,7 @@ _t("gates.status", "utility", "Acceptance gates and status dimensions", {}, "REA
 _t("delta.register", "s4", "Delta register: customizations in standard SAP vs the SAP-delivered data products", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_delta)
 _t("delta.solution", "s4", "Solution route per delta: extend the product, or new backend CDS view + customer-managed model", _S, "READ", "Domain engine", t_solution)
 _t("dsp.plan", "bdc", "Datasphere plan: replication flows, transformation, semantic model, offline simulation", _S, "LOCAL_DRAFT", "Domain engine", t_dsp)
+_t("delta.by_product", "bdc", "Delta seen from the data product: mapped objects, customizations, solution routes, readiness", {**_S, "product": "string?"}, "READ", "SAP metadata (synthetic)", t_by_product)
 _t("ontology.lineage", "bdc", "Ontology: how data flows from the SAP object to the proof, and how the components are wired", _S, "READ", "Evidence store", t_onto)
 _t("result.journey", "utility", "End-to-end result of the delta journey", _S, "READ", "Evidence store", t_journey)
 
@@ -280,6 +299,7 @@ INTENTS = [
     ("readiness", re.compile(r"\b(ready|readiness|gate|status|evidence|release)\b", re.I), "utility", ["gates.status", "exec.plan"]),
     ("recon", re.compile(r"\b(reconcil\w*|recon|golden|variance|difference|inject|detect|drill|duplicate|central finance|cfin|bw)\b", re.I), "utility",
      ["recon.level", "recon.golden", "recon.cfin_guard", "recon.investigate"]),
+    ("product", re.compile(r"\b(start(ing)? from the (sap )?(delivered )?(data )?product|data[- ]product[- ]first|by data product|per data product|from the data product|sim_dp_\w+)", re.I), "bdc", ["delta.by_product", "ontology.lineage"]),
     ("ontology", re.compile(r"\b(ontolog\w*|lineage|wiring|wired|data flows?|trace)\b", re.I), "bdc", ["ontology.lineage"]),
     ("datasphere", re.compile(r"\b(datasphere|replication|flows?|semantic|transformation\w*|harmoni\w*|model\w*|simulat\w*)\b", re.I), "bdc", ["dsp.plan", "model.layers"]),
     ("solution", re.compile(r"\b(generat\w*|artifact\w*|cds|odp|datasource|solution\w*|solv\w*|extend|extension\w*|key-user|customer-managed|build|decision\w*|decide|recommend\w*|reuse)\b", re.I), "s4",
@@ -290,14 +310,14 @@ INTENTS = [
     ("discovery", re.compile(r"\b(discover\w*|object\w*|dependenc\w*|graph|catalog|product\w*|scope|synthetic|data)\b", re.I), "s4",
      ["scope.resolve_request", "discovery.inventory", "discovery.dependency_graph", "catalog.lookup", "data.synthetic_summary"]),
 ]
-EXAMPLES = ["Show the delta: what is customized in standard SAP and how was it found?", "Compare the purchase order item with the SAP-delivered data product",
+EXAMPLES = ["Show the delta: what is customized in standard SAP and how was it found?", "Start from the data product SIM_DP_PURCHASE_ORDER: which of our S/4HANA objects and customizations does it cover?",
             "How should we solve each delta: extend the product or build a new CDS view?", "Generate the customer-managed product package for the invoice item",
             "Which Datasphere flows and models are needed?", "Reconcile scenario B and prove duplicate Finance postings are prevented",
             "Give me the end-to-end result for scenario A", "Show how data flows from the SAP object to the report (ontology)", "Deploy the artifacts to the S/4HANA system"]
 
 
-def route(request: str) -> dict:
-    """Deterministic, rule-based routing (no LLM). Write-like requests are refused first; a request that matches nothing is not executed."""
+def _plan_deterministic(request: str) -> dict:
+    """The demo planner: deterministic, so every answer is reproducible and testable. Write-like requests are refused first; unmatched requests execute nothing."""
     if _is_write(request):
         return {"intent": "write", "agent": "utility", "tools": ["approvals.draft", "exec.plan"], "refused": True}
     t = _normalise(request)
@@ -305,6 +325,34 @@ def route(request: str) -> dict:
         if rx is not None and rx.search(t):
             return {"intent": name, "agent": agent, "tools": tools, "refused": False}
     return {"intent": "unrecognized", "agent": "s4", "tools": ["scope.resolve_request"], "refused": False}
+
+
+class DeterministicPlanner:
+    name = "deterministic (demo)"
+
+    def plan(self, request: str) -> dict:
+        return _plan_deterministic(request)
+
+
+PLANNERS = {"deterministic": DeterministicPlanner()}  # an LLM planner would be registered here; none is configured
+ACTIVE_PLANNER = "deterministic"
+PLANNER_CONTRACT = adapters.PLANNER_CONTRACT
+
+
+def validate_plan(plan: dict) -> dict:
+    """Deterministic validation of any planner's output (this is what keeps an LLM planner, if one is added, inside the same boundaries)."""
+    if plan.get("refused"):
+        return plan
+    for t in plan.get("tools", []):
+        tool = TOOLS.get(t)
+        if tool is None or tool["authority"] not in ALLOWED_AUTHORITY:
+            return {"intent": "unrecognized", "agent": "s4", "tools": ["scope.resolve_request"], "refused": False}
+    return plan
+
+
+def route(request: str) -> dict:
+    """Plan a request: the active planner proposes, the validator decides."""
+    return validate_plan(PLANNERS[ACTIVE_PLANNER].plan(request))
 
 
 def _args(request: str, tool: str, res: dict) -> dict:
@@ -315,6 +363,9 @@ def _args(request: str, tool: str, res: dict) -> dict:
            "goods movement": "MATDOC", "journal": "ACDOCA", "universal journal": "ACDOCA", "po history": "POHIST", "bp": "BP", "supplier": "BP"}
     a["group"] = grp.get(m.group(1).lower(), "POI") if m else ("INVI" if tool == "artifacts.generate" else "POI")
     a["requirement"] = f"REQ-{'S4A'}-{a['group']}"
+    pm = re.search(r"\bsim_dp_\w+", request, re.I)
+    if pm:
+        a["product"] = pm.group(0).upper()
     for d in ("AMOUNT_TAMPER", "DROPPED_INVOICE", "DUPLICATED_JOURNAL_LINE", "WRONG_CURRENCY", "DELAYED_CFIN_REPLICATION", "MISSING_SUPPLIER_MAPPING"):
         if d.replace("_", " ").lower() in request.lower() or d.lower() in request.lower():
             a["defect"] = d

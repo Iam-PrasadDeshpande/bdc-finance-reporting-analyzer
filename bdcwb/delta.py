@@ -224,3 +224,25 @@ def journey(res: dict, scn: str) -> dict:
                        "Finance owner approves the business rules and tolerance policy used in Stage 3 and 4.",
                        "Run Stage 4 on aggregated extracts from S/4HANA and BDC for the same scope and key date."],
     }
+
+
+def by_product(s: dict) -> dict:
+    """The delta seen from the data product: each SAP-delivered product with the customer objects mapped to it and what differs."""
+    rows = register(s)
+    prods = {p["product_id"]: {"product_id": p["product_id"], "name": p["name"], "version": p["version"], "evidence": p["evidence"], "entities": list(p["entities"]),
+                               "extension": p.get("extension") or {}, "objects": []} for p in s["catalog"]["products"]}
+    unmapped = []
+    for r in rows:
+        pid = r["product"].split(" / ")[0]
+        (prods[pid]["objects"] if pid in prods else unmapped).append(r)
+    for p in prods.values():
+        objs = p["objects"]
+        kinds = Counter(o["kind"] for o in objs)
+        p["counts"] = {"objects": len(objs), "no_delta": kinds.get("None", 0), "customizations": kinds.get("Customization", 0),
+                       "rule_differences": kinds.get("Business rule difference", 0), "coverage_gaps": kinds.get("Product coverage gap", 0)}
+        p["routes"] = dict(Counter(o["route"] for o in objs if o["decision"] != "-"))
+        used = sorted({o["product"].split(" / ")[1] for o in objs if " / " in o["product"]})
+        p["entities_used"] = used
+        p["entities_unused"] = [e for e in p["entities"] if e not in used]
+        p["status"] = "NOT_USED" if not objs else "COVERS_AS_IS" if all(o["delta_type"] == "NO_DELTA" for o in objs) else "COVERS_WITH_DELTA"
+    return {"products": prods, "unmapped": unmapped}

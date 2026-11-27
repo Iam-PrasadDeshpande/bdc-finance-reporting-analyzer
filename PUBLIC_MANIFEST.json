@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-27",
- "source_build_manifest_sha256": "32b0ec5d684462da10659552259a6db167770704640274f3a81e165008585359",
+ "source_build_manifest_sha256": "7cdededaf0feafe9c0297ce5ced2f590d822770ecc19f496063b557406320e4b",
  "files": [
   {
    "path": ".gitignore",
@@ -33,9 +33,14 @@
    "bytes": 168
   },
   {
+   "path": "bdcwb/adapters.py",
+   "sha256": "a4e71a145e637c1595141e0153437dd6318b27fbfbefc9492c54aa5a821687bc",
+   "bytes": 6362
+  },
+  {
    "path": "bdcwb/agents.py",
-   "sha256": "24f59da096db663d3e751b0b9ad7c7d2c3c91bc258abd90e68ebf183e435ae61",
-   "bytes": 25273
+   "sha256": "0463875cf6fed6e03c8d04cc35ce8dbf0c8f9346d6ee6bac1e53e21ce4970018",
+   "bytes": 28157
   },
   {
    "path": "bdcwb/arch.py",
@@ -69,8 +74,8 @@
   },
   {
    "path": "bdcwb/delta.py",
-   "sha256": "d8dd92bfa2b68c716a86408a90d50b2db460a124f942151c1304d952b4ac842e",
-   "bytes": 17223
+   "sha256": "042405f2477e8e9a71d040110b65430e288eb271d5a3fa711e71854ece638aa9",
+   "bytes": 18708
   },
   {
    "path": "bdcwb/dsp_model.py",
@@ -99,8 +104,8 @@
   },
   {
    "path": "bdcwb/ontology.py",
-   "sha256": "488d3c2fe7758d1f1b38abd4eea272cab1471611904ec6bf38797971046abad4",
-   "bytes": 9046
+   "sha256": "d0d2b74c54972be48e894d10d340eb3ec8c160bb1d7cbe9a46d6c683c599f72b",
+   "bytes": 11414
   },
   {
    "path": "bdcwb/recon.py",
@@ -109,7 +114,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "248b2ec41500b2e47202c4694a51698c662c3da185f340d0b96d31207b7fe058",
+   "sha256": "ac27a4d3cd2108524cfc1cb02cf93d2ccff282ebe2fde5a60e05aaa3576656fc",
    "bytes": 696
   },
   {
@@ -189,17 +194,17 @@
   },
   {
    "path": "suite_theme.py",
-   "sha256": "3beb956a416c99aa4e529eb1db6d2a9f3f734f6bcb275370c4a8176fa20ec487",
-   "bytes": 24966
+   "sha256": "0b0def56c48bb922e18d399426e0adb704e761b06c31b436eaaec3280872c4a5",
+   "bytes": 25031
   },
   {
    "path": "v013_page.py",
-   "sha256": "ca85fc38bd7d83b1bbd1c2339b5ecf777bbe9bd540ecc6200b9e13b127f645b0",
-   "bytes": 64127
+   "sha256": "e5bf1ed82ec04227d8cf864365c43db1e87e5a3fc0f9cc12af91cec91e40bca5",
+   "bytes": 69403
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.3"
+ "release": "v0.13.4"
 }
