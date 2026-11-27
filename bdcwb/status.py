@@ -28,7 +28,7 @@ def release_status(res: dict) -> dict:
     syn_fin = "PASS" if all(s["recon"]["overall"] == "SYNTHETIC_PASS" and s["recon"]["golden"]["status"] == "SYNTHETIC_PASS" for s in scs) else "FAIL"
     return {"engineering_acceptance": "PENDING_GATES", "synthetic_technical_validation": syn_tech, "synthetic_finance_validation": syn_fin,
             "connected_sap_validation": "NOT_RUN", "bdc_runtime_validation": "HOLD", "live_finance_validation": "HOLD / INSUFFICIENT_EVIDENCE",
-            "architect_review": "PENDING", "publication_approval": ev.get("publication_approval", "NOT_GRANTED"), **LIVE_HOLD}
+            "architect_review": "AI_REVIEWS_DONE_HUMAN_REVIEW_PENDING", "synthetic_demo_publication": ev.get("publication_approval", "NOT_GRANTED"), **LIVE_HOLD}
 
 
 def _g(id_, name, ok, evidence, not_run=False):
@@ -99,5 +99,5 @@ def evaluate_gates(res: dict) -> list[dict]:
     g.append(_g("G15", "Security, regression and repository publication restrictions are preserved",
                 not leaked and ctl and ro and res["mode"] == "DEMO" and pub == "PASS",
                 f"no credential patterns in results: {not leaked}; controlled-execution blocked without authorization: {ctl}; read-only blocks writes: {ro}; "
-                f"public build audit (recorded): {pub}", not_run=pub is None))
+                f"public build audit (recorded evidence, not a live check; recorded {ev.get('recorded', 'unknown')}): {pub}", not_run=pub is None))
     return g

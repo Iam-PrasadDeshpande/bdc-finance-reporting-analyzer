@@ -4,22 +4,22 @@ from __future__ import annotations
 
 BADGE = "PROPOSED DESIGN FOR EVALUATION - NOT TENANT-VERIFIED"
 OPTIONS = {
-    "P1": {"name": "Local workbench", "tag": "preferred for demo and offline", "preferred": True, "mode": "DEMO",
+    "P1": {"name": "Local workbench", "tag": "the choice for demonstrations and offline use", "preferred": True, "mode": "DEMO",
            "chain": ["UI (Streamlit)", "Orchestrator", "Specialist agents", "Typed tool layer", "Domain engines", "Evidence store", "Synthetic metadata + data"],
            "owns": {"UI, orchestrator, agents, tools, engines": "This project (one Python process)", "Data": "Seeded synthetic fixtures", "SAP access": "None by design"},
-           "advantages": ["Reproducible and safe for external architecture demonstrations", "No credentials, no network dependency, nothing to leak", "Same tool contract as P2 and P3"],
+           "advantages": ["Reproducible and safe for external architecture demonstrations", "No credentials, no network dependency, nothing to leak", "Intended to share one tool contract with P2 and P3 (P2 and P3 are not built)"],
            "assumptions": ["Synthetic data only", "Rule-based router (deterministic)", "Evidence in the persisted result set"],
            "limits": ["Cannot prove live SAP behaviour", "Cannot validate tenant entitlement or activation"]},
-    "P2": {"name": "Customer-hosted suite with read-only SAP adapters", "tag": "preferred for connected validation", "preferred": True, "mode": "CONNECTED_READ_ONLY",
+    "P2": {"name": "Customer-hosted suite with read-only SAP adapters", "tag": "next step if read-only access is authorized", "preferred": False, "mode": "CONNECTED_READ_ONLY",
            "chain": ["UI", "Orchestrator", "Specialist agents", "Typed tool layer", "Read-only adapters (ADT metadata, catalog import, reporting reads)", "SAP source / BDC / Datasphere"],
            "owns": {"Hosting": "Customer-controlled runtime in the non-production network zone", "Credentials": "Customer secret store; never in code, fixtures or logs",
                     "Scope": "Least-privilege read roles; metadata, catalog and report reads only"},
-           "advantages": ["Collects real discovery and catalog evidence", "Writes are structurally impossible for the adapters", "Audit log per tool call"],
+           "advantages": ["Collects real discovery and catalog evidence", "Design intent, not implemented: adapters expose no write operation", "Design intent, not implemented: audit log per tool call"],
            "assumptions": ["Verified interfaces exist and are authorized", "Adapter schemas are inspected before use"],
            "limits": ["No adapter is configured in this build (ADT/catalog adapters report UNAVAILABLE)", "Customer approval for hosting and access required"]},
     "P3": {"name": "Gateway-fronted hybrid with registry and approval service", "tag": "conditional, not approved", "preferred": False, "mode": "CONTROLLED_EXECUTION",
            "chain": ["UI", "Orchestrator", "Agent runtime", "Enterprise tool gateway", "Approval service", "Controlled executors (ADT, Datasphere CLI/API)", "Non-production SAP systems"],
-           "owns": {"Gateway": "Enterprise platform team", "Approvals": "Named human approvers; per-action, per-session", "Executors": "Only verified interfaces; idempotent and resumable"},
+           "owns": {"Gateway": "Enterprise platform team", "Approvals": "Named human approvers; per-action, per-session", "Executors": "Only verified interfaces; design intent: idempotent and resumable (not implemented)"},
            "advantages": ["Central policy, quota and audit", "Separates agent registration from execution", "Enables authorized engineering changes in non-production"],
            "assumptions": ["Explicit authorization recorded per change", "Environment separation enforced; production never targeted"],
            "limits": ["Not built or approved in this release", "Needs enterprise gateway, registry and approval-service decisions"]},
@@ -30,12 +30,20 @@ HOSTING = [("Agent runtime hosting", {"P1": "Local Python process", "P2": "Custo
            ("SAP-facing access", {"P1": "None", "P2": "Read-only adapters", "P3": "Controlled executors after approval"}),
            ("Credential handling", {"P1": "None required", "P2": "Customer secret store", "P3": "Secret store + approval-scoped tokens"}),
            ("Registration never decides hosting", {"P1": "n/a", "P2": "Registry holds metadata only", "P3": "Registry holds metadata only; execution stays in the runtime"})]
-CRITERIA = ["Safety (no unintended SAP change)", "Evidence strength", "Time to demonstrate", "Operational effort", "Customer approval effort", "Scalability across systems"]
-SCORES = {"P1": ["High", "Low (synthetic)", "High", "Low", "None", "Low"], "P2": ["High", "Medium (live metadata)", "Medium", "Medium", "Medium", "Medium"],
-          "P3": ["Medium (needs strong controls)", "High (runtime evidence)", "Low", "High", "High", "High"]}
-BRIEF = ("**Recommendation (proposed, not approved):** use P1 now for architecture demonstrations; use P2 for connected discovery and catalog validation once a customer "
-         "authorizes read-only access; treat P3 as conditional until a gateway, registry and approval service are approved. All options share one typed tool contract and "
-         "one authority model, so moving up the ladder changes hosting and evidence strength, never what an agent may do without a person.")
+CRITERIA = ["Safety (no unintended SAP change)", "Evidence strength", "Time to demonstrate", "Operational effort", "Customer approval effort", "Scalability across systems",
+            "Security posture", "Identity and SSO", "Data residency", "Licensing and entitlement", "Upgrade lifecycle", "Ownership and support"]
+SCORES = {"P1": ["High", "Low (synthetic)", "High", "Low", "None", "Low",
+                 "Assumed: strongest (no credentials, no SAP network access)", "Assumed: none (public synthetic demo, no authentication)", "Assumed: public app host; synthetic data only",
+                 "Assumed: none (open prototype)", "Assumed: Python and Streamlit dependency upkeep", "Assumed: the project owner"],
+          "P2": ["High", "Medium (live metadata)", "Medium", "Medium", "Medium", "Medium",
+                 "Assumed: depends on the customer secret store and read roles", "Assumed: customer IdP and SSO required", "Assumed: customer-controlled zone",
+                 "Assumed: SAP entitlement needed for any live read", "Assumed: adapter contracts follow SAP release changes", "Assumed: customer platform and SAP Basis teams"],
+          "P3": ["Medium (needs strong controls)", "High (runtime evidence)", "Low", "High", "High", "High",
+                 "Assumed: depends on gateway, approval service and executor hardening", "Assumed: enterprise IdP plus approver identities", "Assumed: customer or enterprise platform region",
+                 "Assumed: SAP entitlement plus gateway and platform licences", "Assumed: executor and gateway contracts follow SAP release changes", "Assumed: enterprise platform team plus SAP teams"]}
+BRIEF = ("**Recommendation (proposed, not approved):** use P1 now for architecture demonstrations; P2 is the next step for connected discovery and catalog validation once a customer "
+         "authorizes read-only access; treat P3 as conditional until a gateway, registry and approval service are approved. All options are intended to share one typed tool contract and "
+         "one authority model (only P1 exists), so moving up the ladder changes hosting and evidence strength, never what an agent may do without a person.")
 
 
 def concepts() -> list[dict]:

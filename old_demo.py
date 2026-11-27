@@ -195,5 +195,5 @@ def render() -> None:
 
         st.divider()
         st.caption("Independent assessment prototype, not affiliated with SAP. No SAP connection, customer data or authentication on this site. " + HOLD + ".")
-        st.caption(TRADEMARK)
+        st.markdown(T.legal_html(), unsafe_allow_html=True)
     st.markdown(T.footer(), unsafe_allow_html=True)

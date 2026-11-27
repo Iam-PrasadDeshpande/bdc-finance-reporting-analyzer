@@ -48,8 +48,9 @@ def _steps(decision: str, req: dict, analysis: dict, extra: dict) -> dict:
         "REUSE_STANDARD": dict(steps=["Install/activate the verified product if not installed", "Consume entity in the Datasphere acquisition layer",
                                       "Do not create an additional replication flow for an installed SAP-managed product"],
                                prerequisites=["Entitlement and activation confirmed in the tenant"], approvals=["Architect review"]),
-        "KEY_USER_EXTENSION": dict(steps=[f"Create custom field(s) {extra.get('fields')} in the supported key-user app for the business context",
-                                          "Publish the field to the data product extension", "Re-run delta analysis"],
+        "KEY_USER_EXTENSION": dict(steps=[f"Create or expose custom field(s) {extra.get('fields')} through the supported key-user extensibility for the business context "
+                                          "(a field that already exists as an append may need an extension view instead)",
+                                          "Verify in the tenant that the field propagates to the installed product version (not verified here)", "Re-run delta analysis"],
                                    prerequisites=["Field eligible in the business context", "Product extension capability verified"],
                                    approvals=["Key-user owner", "Change management"],
                                    security=["Confirm authorization coverage for the new field"]),
@@ -131,7 +132,8 @@ def decide(analysis: dict, req: dict, rulebook: RuleBook | None = None, prefs: d
         product_ext = _product_extension(analysis)
         fdefs = {n: req["fields"][n] for n in fields if n in req["fields"]}
         eligible = [n for n, f in fdefs.items() if f["custom"] and f["type"] in KEY_USER_TYPES and not f["key"]]
-        all_eligible = bool(fdefs) and len(eligible) == len(fdefs)
+        unknown_fields = [n for n in fields if n not in req["fields"]]  # a field we cannot describe is never eligible
+        all_eligible = bool(fdefs) and not unknown_fields and len(eligible) == len(fdefs)
         ku_ok = caps.get("key_user_ext") and product_ext["key_user"] and all_eligible
         dev_ok = caps.get("developer_ext") and product_ext["developer"]
         dpe_ok = product_ext["data_product_extension"]

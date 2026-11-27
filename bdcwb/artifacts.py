@@ -35,29 +35,42 @@ def cds_interface_view(req: dict, obj: SapObject, verified: bool, complex_join: 
     g = GROUPS[req["group"]]
     table = g["table"].split("/")[0].lower()
     name = f"ZI_{req['group']}_EXTRACT"
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+        return (f"// SOURCE UNRESOLVED: group {req['group']} has no single source object ('{g['table']}'); no DDL is generated.\n", [])
+    elems = {f.name.lower() for f in obj.fields}
+    notes: list[str] = []
     delta_ok = req["needs_delta"] and not complex_join
     ann = ["@AbapCatalog.viewEnhancementCategory: [#NONE]", "@AccessControl.authorizationCheck: #CHECK",
-           f"@EndUserText.label: '{req['label'][:60]}'", "@Analytics.dataExtraction.enabled: true"]
+           f"@EndUserText.label: '{req['label'][:60].replace(chr(39), '')}'", "@Analytics.dataExtraction.enabled: true"]
     if delta_ok:
         ann.append("@Analytics.dataExtraction.delta.changeDataCapture.automatic: true")
     ann.append("@ObjectModel.usageType: { serviceQuality: #B, sizeCategory: #L, dataClass: #TRANSACTIONAL }")
     head = "" if verified else ("// TEMPLATE - generated from SYNTHETIC metadata; NOT deployable. Verify field names, release contract\n"
                                 "// and annotations against the source system (ADT syntax check) before any use.\n")
+    head += ("// Offline template: no ADT syntax check, activation or ATC has run.\n"
+             "// Clean-core note: this template reads the table directly; a production design must build on released interface views or a released extraction view.\n"
+             "// Access control: no DCL is generated; define authorization before any use.\n")
     if not delta_ok and req["needs_delta"]:
-        head += ("// CDC annotation intentionally omitted: complex joins do not qualify for automatic change data capture.\n"
-                 "// Delta design: use a verified timestamp/watermark approach in the acquisition layer instead.\n")
+        head += ("// CDC annotation omitted: automatic change data capture on a view with joins may not be supported for this release (verify).\n"
+                 "// Alternatives to evaluate: CDS-native delta by a change-timestamp element, or a watermark in the acquisition layer.\n")
     lines = []
     trace = []
     for f in obj.fields:
         sem = ""
         if f.type == "CURR" and f.currency_ref:
-            sem = f"@Semantics.amount.currencyCode: '{f.currency_ref.lower()}' "
+            if f.currency_ref.lower() in elems:
+                sem = f"@Semantics.amount.currencyCode: '{f.currency_ref.lower()}' "
+            else:
+                notes.append(f"// {f.name}: currency reference {f.currency_ref} is not in this view; add the reference element before use")
         if f.type == "QUAN" and f.unit_ref:
-            sem = f"@Semantics.quantity.unitOfMeasure: '{f.unit_ref.lower()}' "
+            if f.unit_ref.lower() in elems:
+                sem = f"@Semantics.quantity.unitOfMeasure: '{f.unit_ref.lower()}' "
+            else:
+                notes.append(f"// {f.name}: unit reference {f.unit_ref} is not in this view; add the reference element before use")
         lines.append(f"  {sem}{'key ' if f.key else ''}{table}.{f.name.lower()} as {f.name}")
         trace.append({"requirement_field": f.name, "artifact": name, "line": len(lines)})
     body = f"{_KW_DEFINE} {name}\n  as select from {table}\n{{\n" + ",\n".join(lines) + "\n}\n"
-    return head + "\n".join(ann) + "\n" + body, trace
+    return head + "".join(n + "\n" for n in notes) + "\n".join(ann) + "\n" + body, trace
 
 
 def odp_design(req: dict, obj: SapObject, verified: bool) -> str:
@@ -129,7 +142,13 @@ def lint_cds(text: str) -> dict:
             problems.append(f"annotation not in allowlist: @{a}")
     if "changeDataCapture" in text and re.search(r"\bjoin\b", text, re.I):
         problems.append("CDC annotation on a view with joins")
-    if "key " not in text:
+    if not re.search(r"(?m)(^|\s)key\s+\w+\.\w+", text):
         problems.append("no key element")
+    m = re.search(re.escape(_KW_DEFINE) + r"\s+(\w+)", text)
+    if m and len(m.group(1)) > 30:
+        problems.append("view name longer than 30 characters")
+    aliases = re.findall(r"(?m)\bas\s+(\w+),?\s*$", text)
+    if len(aliases) != len(set(a.lower() for a in aliases)):
+        problems.append("duplicate element alias")
     return {"status": "OFFLINE_VALIDATED" if not problems else "FAILED", "problems": problems, "mode": "OFFLINE_LEXICAL",
             "note": "not an SAP syntax check, activation or ATC"}

@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from typing import Any, Callable
 
-from . import delta
+from . import delta, ontology
 
 AUTHORITY = {"PLANS_ONLY": "plans only", "READ": "read", "READ_SIMULATED": "read (simulated)", "LOCAL_DRAFT": "read + local draft",
              "DRAFT_ONLY": "draft only"}
@@ -208,6 +209,15 @@ def t_journey(res, a):
             "data": {"recon": j["recon"], "gates": j["gates"]}}
 
 
+def t_onto(res, a):
+    o = ontology.build(res, _scn(res, a)["scenario"])
+    c = o["counts"]
+    rel = ", ".join(f"{k} {v}" for k, v in sorted(o["by_relation"].items(), key=lambda kv: -kv[1])[:5])
+    return {"summary": f"Ontology (data flow) for {c['objects']} SAP objects: {c['reused']} reused, {c['extended']} extended, {c['created']} new backend view / customer-managed product, "
+                       f"{c['datasphere']} solved in Datasphere, {c['unresolved']} unresolved; {o['nodes']} nodes and {len(o['edges'])} typed relations ({rel}) from SAP object to proof",
+            "data": {"counts": c, "by_relation": o["by_relation"]}}
+
+
 TOOLS: dict[str, dict] = {}
 
 
@@ -241,17 +251,36 @@ _t("gates.status", "utility", "Acceptance gates and status dimensions", {}, "REA
 _t("delta.register", "s4", "Delta register: customizations in standard SAP vs the SAP-delivered data products", _S, "READ_SIMULATED", "SAP metadata (synthetic)", t_delta)
 _t("delta.solution", "s4", "Solution route per delta: extend the product, or new backend CDS view + customer-managed model", _S, "READ", "Domain engine", t_solution)
 _t("dsp.plan", "bdc", "Datasphere plan: replication flows, transformation, semantic model, offline simulation", _S, "LOCAL_DRAFT", "Domain engine", t_dsp)
+_t("ontology.lineage", "bdc", "Ontology: how data flows from the SAP object to the proof, and how the components are wired", _S, "READ", "Evidence store", t_onto)
 _t("result.journey", "utility", "End-to-end result of the delta journey", _S, "READ", "Evidence store", t_journey)
 
-WRITE_INTENT = re.compile(r"\b(deploy\w*|activat\w*|transport\w*|publish\w*|post(ing)?|release to|push|install\w*|delete|execute in sap|write)\b", re.I)
+_WRITE_WORDS = (r"deploy\w*|activat\w*|transport\w*|publish\w*|post(ing)?(?![-\w])|release (to|the|into)|push\w*|install\w*|delete\w*|remov\w*|drop|execute|execution in|write|"
+                r"ship\w*|promot\w*|appl(y|ies|ied)|roll ?out|go live|go-live|import\w*|commit\w*|migrat\w*|provision\w*|create (it |them |the \w+ )?in (sap|datasphere|bdc|s/?4)|"
+                r"run (it )?in prod\w*|bereitstell\w*|aktivier\w*|freigeb\w*|loesch\w*|veroeffentlich\w*|transportier\w*|despleg\w*|activar|publicar|deployer|activer|publier")
+WRITE_INTENT = re.compile(r"\b(" + _WRITE_WORDS + r")", re.I)
+_ZERO_WIDTH = re.compile("[\u200b-\u200f\u2060\ufeff]")
+_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "\u00e4": "ae", "\u00f6": "oe", "\u00fc": "ue"})
+ALLOWED_AUTHORITY = {"READ", "READ_SIMULATED", "LOCAL_DRAFT", "DRAFT_ONLY"}  # a tool with any other authority is refused at call time
+
+
+def _normalise(text: str) -> str:
+    return _ZERO_WIDTH.sub("", unicodedata.normalize("NFKC", text)).lower()
+
+
+def _is_write(text: str) -> bool:
+    t = _normalise(text)
+    return bool(WRITE_INTENT.search(t) or WRITE_INTENT.search(t.translate(_LEET)))
+
+
 INTENTS = [
-    ("write", WRITE_INTENT, "utility", ["approvals.draft", "exec.plan"]),
+    ("write", None, "utility", ["approvals.draft", "exec.plan"]),  # matched by _is_write (normalised, fail closed)
     ("full", re.compile(r"\b(end[- ]to[- ]end|walkthrough|full demo|everything|overall result)\b", re.I), "s4",
-     ["scope.resolve_request", "delta.register", "catalog.lookup", "gap.analyze", "delta.solution", "artifacts.generate", "dsp.plan", "model.layers",
+     ["scope.resolve_request", "delta.register", "catalog.lookup", "gap.analyze", "delta.solution", "artifacts.generate", "dsp.plan", "model.layers", "ontology.lineage",
       "validation.run", "recon.level", "recon.golden", "result.journey"]),
     ("readiness", re.compile(r"\b(ready|readiness|gate|status|evidence|release)\b", re.I), "utility", ["gates.status", "exec.plan"]),
     ("recon", re.compile(r"\b(reconcil\w*|recon|golden|variance|difference|inject|detect|drill|duplicate|central finance|cfin|bw)\b", re.I), "utility",
      ["recon.level", "recon.golden", "recon.cfin_guard", "recon.investigate"]),
+    ("ontology", re.compile(r"\b(ontolog\w*|lineage|wiring|wired|data flows?|trace)\b", re.I), "bdc", ["ontology.lineage"]),
     ("datasphere", re.compile(r"\b(datasphere|replication|flows?|semantic|transformation\w*|harmoni\w*|model\w*|simulat\w*)\b", re.I), "bdc", ["dsp.plan", "model.layers"]),
     ("solution", re.compile(r"\b(generat\w*|artifact\w*|cds|odp|datasource|solution\w*|solv\w*|extend|extension\w*|key-user|customer-managed|build|decision\w*|decide|recommend\w*|reuse)\b", re.I), "s4",
      ["delta.solution", "decision.recommend", "artifacts.generate"]),
@@ -264,18 +293,22 @@ INTENTS = [
 EXAMPLES = ["Show the delta: what is customized in standard SAP and how was it found?", "Compare the purchase order item with the SAP-delivered data product",
             "How should we solve each delta: extend the product or build a new CDS view?", "Generate the customer-managed product package for the invoice item",
             "Which Datasphere flows and models are needed?", "Reconcile scenario B and prove duplicate Finance postings are prevented",
-            "Give me the end-to-end result for scenario A", "Deploy the artifacts to the S/4HANA system"]
+            "Give me the end-to-end result for scenario A", "Show how data flows from the SAP object to the report (ontology)", "Deploy the artifacts to the S/4HANA system"]
 
 
 def route(request: str) -> dict:
+    """Deterministic, rule-based routing (no LLM). Write-like requests are refused first; a request that matches nothing is not executed."""
+    if _is_write(request):
+        return {"intent": "write", "agent": "utility", "tools": ["approvals.draft", "exec.plan"], "refused": True}
+    t = _normalise(request)
     for name, rx, agent, tools in INTENTS:
-        if rx.search(request):
-            return {"intent": name, "agent": agent, "tools": tools, "refused": name == "write"}
-    return {"intent": "discovery", "agent": "s4", "tools": ["scope.resolve_request", "gates.status"], "refused": False}
+        if rx is not None and rx.search(t):
+            return {"intent": name, "agent": agent, "tools": tools, "refused": False}
+    return {"intent": "unrecognized", "agent": "s4", "tools": ["scope.resolve_request"], "refused": False}
 
 
 def _args(request: str, tool: str, res: dict) -> dict:
-    sc = "B" if re.search(r"\b(scenario b|\bb\b|cfin|central finance|multi|ecc|bw)\b", request, re.I) and "B" in res["scenarios"] else "A"
+    sc = "B" if re.search(r"\b(scenario b|cfin|central finance|multi|ecc|bw)\b", request, re.I) and "B" in res["scenarios"] else "A"
     a: dict[str, Any] = {"scenario": sc, "request": request}
     m = re.search(r"\b(invoice item|supplier invoice|purchase order item|po item|goods receipt|goods movement|journal|universal journal|po history|bp|supplier)\b", request, re.I)
     grp = {"invoice item": "INVI", "supplier invoice": "INVI", "purchase order item": "POI", "po item": "POI", "goods receipt": "MATDOC",
@@ -289,7 +322,7 @@ def _args(request: str, tool: str, res: dict) -> dict:
         a["defect"] = "AMOUNT_TAMPER"
     a["action"] = request
     if tool == "exec.plan":
-        a["mode"] = "CONTROLLED_EXECUTION" if WRITE_INTENT.search(request) else "DEMO"
+        a["mode"] = "CONTROLLED_EXECUTION" if _is_write(request) else "DEMO"
     return a
 
 
@@ -299,28 +332,37 @@ def run_request(request: str, res: dict, scenario: str | None = None) -> dict:
     trace, approvals = [], []
     layers = ["UI", "Orchestrator"]
     for i, tname in enumerate(r["tools"], 1):
-        tool = TOOLS[tname]
+        tool = TOOLS.get(tname)
+        if tool is None:
+            trace.append({"step": i, "agent": "-", "agent_id": "-", "tool": tname, "authority": "-", "args": {}, "status": "ERROR", "summary": "unknown tool refused", "layer": "-", "data": {}})
+            continue
         agent = _AGENT[tool["agent"]]
         args = _args(request, tname, res)
         if scenario:
             args["scenario"] = scenario
-        try:
-            out = tool["fn"](res, args)
-            status = "OK"
-        except Exception as e:  # noqa: BLE001 - surfaced in the trace
-            out, status = {"summary": f"tool error: {e}", "data": {}}, "ERROR"
+        if tool["authority"] not in ALLOWED_AUTHORITY:
+            out, status = {"summary": f"refused: authority {tool['authority']} is not allowed for any tool", "data": {}}, "REFUSED"
+        else:
+            try:
+                out = tool["fn"](res, args)
+                status = "OK"
+            except Exception as e:  # noqa: BLE001 - surfaced in the trace without the exception text
+                out, status = {"summary": f"tool error ({type(e).__name__}); details are not shown", "data": {}}, "ERROR"
         if tool["layer"] not in layers:
             layers.append(tool["layer"])
         approvals += out.get("needs_approval", [])
-        trace.append({"step": i, "agent": agent["name"], "agent_id": agent["id"], "tool": tname, "authority": AUTHORITY[tool["authority"]],
+        trace.append({"step": i, "agent": agent["name"], "agent_id": agent["id"], "tool": tname, "authority": AUTHORITY.get(tool["authority"], tool["authority"]),
                       "args": {k: v for k, v in args.items() if k not in ("request", "action")}, "status": status, "summary": out["summary"], "layer": tool["layer"], "data": out.get("data", {})})
     if "Evidence store" not in layers:
         layers.append("Evidence store")
     layers.append("SAP connectors: NOT REACHED (DEMO mode, no live interface)")
     refusal = ("Write-type request recognised. This suite can draft a proposal and show the plan, but cannot execute SAP writes, activation, transports, "
                "deployment or publication. A named human must authorize those separately.") if r["refused"] else None
+    notice = ("Request not recognised: nothing was executed beyond resolving the scope. Rephrase it as a question about the delta, the solution, the Datasphere plan, "
+              "the reconciliation or the ontology.") if r["intent"] == "unrecognized" else None
     return {"request": request, "route": r, "plan": [f"{t['agent']} -> {t['tool']}" for t in trace], "trace": trace, "layers_reached": layers,
-            "approvals_needed": sorted(set(approvals)), "refusal": refusal, "answer": " | ".join(t["summary"] for t in trace)[:1800]}
+            "approvals_needed": sorted(set(approvals)), "refusal": refusal, "notice": notice,
+            "answer": "SYNTHETIC DEMO, not tenant-verified. " + " | ".join(t["summary"] for t in trace)[:1700]}
 
 
 def catalog_view() -> list[dict]:

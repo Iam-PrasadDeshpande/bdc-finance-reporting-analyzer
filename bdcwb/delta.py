@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from collections import Counter
 
+from .decision import STRUCTURAL  # one definition shared with the decision engine
+
 STAGES = [
     {"id": 1, "name": "Find the delta", "agent": "s4", "support": "bdc",
      "question": "What did the customer change in standard SAP, and does the SAP-delivered data product already cover it?",
@@ -36,9 +38,9 @@ STAGES = [
              "Simulate offline: grain validator and SQL functional check (nothing is deployed to Datasphere)."],
      "output": "Datasphere plan: flows, views, semantic model and the offline simulation result."},
     {"id": 4, "name": "Compare and reconcile", "agent": "utility", "support": "bdc",
-     "question": "Once the solution is established, do two independent calculations agree?",
-     "how": ["Technical validation of the generated artifacts and model (offline checks; live-only checks are reported as not run).",
-             "Three reconciliation levels: source to acquisition, acquisition to semantic model, authoritative SAP result vs BDC result.",
+     "question": "Once the solution is established, do the technical comparison and the data-level comparison agree?",
+     "how": ["Technical comparison (metadata level): validate the generated artifacts and model offline; live-only checks are reported as not run.",
+             "Data-level comparison in three reconciliation levels: source to acquisition, acquisition to semantic model, authoritative SAP result vs BDC result.",
              "Central Finance guard: source FI and replicated FI are never summed.",
              "Injected-defect proof: every seeded difference must be detected."],
      "output": "Verdicts per level, the golden transaction check and the detection matrix (synthetic)."},
@@ -71,13 +73,24 @@ DELTA_TYPES = {
     "SECURITY": ("Authorization not enforced", "The product does not enforce the authorization objects the report needs."),
     "NO_STANDARD_PRODUCT": ("No SAP-delivered product", "The catalog is complete for the domain and has no product for this object."),
     "UNKNOWN_CATALOG": ("Catalog evidence incomplete", "Cannot conclude: the product may exist but is not established."),
+    "OTHER_GAP": ("Other product gap", "A gap class without its own delta type (for example availability); see the gap classes of the row."),
 }
+DETECTION_SCOPE = {
+    "detected": ["Fields flagged custom in the discovered object metadata (customer append and extension fields).",
+                 "Customer-namespace CDS views in the report's dependency chain.",
+                 "Custom-logic markers found by a lexical scan of source text (AMDP, ABAP routines, BAdI, calls to customer classes)."],
+    "not_detected": ["Implicit enhancements, enhancement spots and BAdI implementations that leave no marker in the scanned source.",
+                     "Append structures and modifications on objects that were not read.",
+                     "IMG configuration (document types, valuation, account determination) that changes meaning without changing structure.",
+                     "Runtime behaviour: the scan is lexical, not a parser."]}
 CUSTOMIZATION_KIND = {"CUSTOM_FIELD": "Customization", "CUSTOM_OBJECT": "Customization", "SEMANTIC_RULE": "Business rule difference", "NO_DELTA": "None"}
 ROUTES = {"REUSE_STANDARD": "Reuse the standard product", "KEY_USER_EXTENSION": "Extend the SAP product (key-user extension)",
           "DATA_PRODUCT_EXTENSION": "Extend the SAP product (data-product extension)",
+          "DEVELOPER_EXTENSION": "Extend the SAP product (developer extension)",
           "CREATE_CUSTOMER_MANAGED_PRODUCT": "New backend CDS view + customer-managed data model",
-          "DATASPHERE_ENRICHMENT": "Solve in Datasphere (stage 3)", "CATALOG_REVIEW_REQUIRED": "Verify the catalog first"}
-STRUCTURAL = {"KEY_GAP", "GRANULARITY_GAP", "RELATIONSHIP_GAP", "EXTRACTION_GAP"}
+          "BW_DATA_PRODUCT_ROUTE": "BW Data Product Generator route",
+          "DATASPHERE_ENRICHMENT": "Solve in Datasphere (stage 3)", "CATALOG_REVIEW_REQUIRED": "Verify the catalog first",
+          "MANUAL_BUSINESS_RULE": "Record and approve a business rule first", "EXECUTION_BLOCKED": "Blocked: needs a release, authority or entitlement"}
 
 
 def _fmt(detail) -> str:
@@ -103,21 +116,23 @@ def _classify(a: dict, custom_names: set[str]) -> tuple[str, list[str], list[str
     std = [f for f in miss if f not in custom_names]
     notes: list[str] = []
     if "PRODUCT_NOT_AVAILABLE" in g:
-        return "NO_STANDARD_PRODUCT", [], notes
+        return "NO_STANDARD_PRODUCT", cust, notes
     if "CATALOG_UNVERIFIED" in g:
-        return "UNKNOWN_CATALOG", [], notes
+        return "UNKNOWN_CATALOG", cust, notes
     if g & STRUCTURAL:
         notes = [f"{x['class'].replace('_', ' ').lower()}: {_fmt(x['detail'])}" for x in a["gaps"] if x["class"] in STRUCTURAL]
         return "STRUCTURAL", cust, notes
     if "FIELD_GAP" in g:
-        return ("CUSTOM_FIELD", cust, [f"standard fields also missing: {', '.join(std)}"] if std else []) if cust and not std else ("FIELD_GAP_STANDARD", cust, [f"standard fields missing: {', '.join(std)}"])
-    if "SEMANTIC_GAP" in g:
-        return "SEMANTIC_RULE", [], [f"{x['dimension']}: {_fmt(x['detail'])}" for x in a["gaps"] if x["class"] == "SEMANTIC_GAP"]
+        if cust and not std:
+            return "CUSTOM_FIELD", cust, []
+        return "FIELD_GAP_STANDARD", cust, [f"standard fields missing: {', '.join(std)}"]
+    if g & {"SEMANTIC_GAP", "BUSINESS_LOGIC_GAP"}:
+        return "SEMANTIC_RULE", [], [f"{x['dimension']}: {_fmt(x['detail'])}" for x in a["gaps"] if x["class"] in ("SEMANTIC_GAP", "BUSINESS_LOGIC_GAP")]
     if "SECURITY_GAP" in g:
         return "SECURITY", [], [f"{x['dimension']}: {_fmt(x['detail'])}" for x in a["gaps"] if x["class"] == "SECURITY_GAP"]
     other = [x for x in a["gaps"] if x["class"] != "NO_GAP"]
     if other:
-        return "SEMANTIC_RULE", [], [f"{x['dimension']}: {_fmt(x['detail'])}" for x in other]
+        return "OTHER_GAP", [], [f"{x['class'].replace('_', ' ').lower()}: {_fmt(x['detail'])}" for x in other]
     return "NO_DELTA", [], notes
 
 
@@ -133,15 +148,19 @@ def register(s: dict) -> list[dict]:
         d = dec.get(a["requirement"], {})
         cand = a["candidates"][0] if a["candidates"] else None
         first = next((x for x in a["gaps"] if x["class"] != "NO_GAP"), None)
+        miss = set(a.get("missing_fields") or [])
+        present = sorted(custom_names)  # customization is recorded whatever the delta type is
+        cust_txt = ", ".join(f"{n} ({'not in the delivered product' if n in miss else 'covered by the product'})" for n in present) or "-"
         how = f"{first['dimension']} check: {_fmt(first['detail'])}" if first else "all assessed dimensions match the delivered entity"
-        if cust:
-            how = f"field(s) {', '.join(cust)} carry the custom flag in the discovered object metadata and are not in the delivered entity; " + how
+        if present:
+            how = f"field(s) {', '.join(present)} carry the custom flag in the discovered object metadata; " + how
+        kind = "Customization" if present else ("None" if dtype == "NO_DELTA" else "Business rule difference" if dtype == "SEMANTIC_RULE" else "Product coverage gap")
         steps = d.get("implementation_steps", [])
         rows.append({
             "requirement": a["requirement"], "label": a["label"], "sap_object": a["object"], "system": a["system"],
             "product": (f"{cand['product']} / {cand['entity']}" if cand else "none"), "catalog_state": a["catalog_state"],
-            "delta_type": dtype, "delta": DELTA_TYPES[dtype][0], "kind": CUSTOMIZATION_KIND.get(dtype, "Product coverage gap"),
-            "customization": ", ".join(cust) or "-", "notes": notes, "how_found": how,
+            "delta_type": dtype, "delta": DELTA_TYPES[dtype][0], "kind": kind,
+            "customization": cust_txt, "notes": notes, "how_found": how,
             "gap_classes": [x["class"] for x in a["gaps"]], "coverage": f"{a['coverage']['numerator']}/{a['coverage']['denominator']}",
             "decision": d.get("decision", "-"), "route": ROUTES.get(d.get("decision", ""), d.get("decision", "-")),
             "next_step": steps[0] if steps else (d.get("reason") or "-"), "steps": steps, "approvals": d.get("approvals", []), "reason": d.get("reason", ""),
@@ -168,13 +187,12 @@ def customizations(s: dict) -> dict:
 def summary(s: dict) -> dict:
     rows = register(s)
     by = Counter(r["delta_type"] for r in rows)
+    kinds = Counter(r["kind"] for r in rows)
     routes = Counter(r["route"] for r in rows if r["decision"] != "-")
     return {"objects": len([r for r in rows if r["requirement"] != "-"]), "rows": len(rows), "by_type": dict(by),
-            "customizations": sum(1 for r in rows if r["kind"] == "Customization"),
-            "rule_differences": sum(1 for r in rows if r["kind"] == "Business rule difference"),
-            "coverage_gaps": sum(1 for r in rows if r["kind"] == "Product coverage gap"),
+            "customizations": kinds.get("Customization", 0), "rule_differences": kinds.get("Business rule difference", 0), "coverage_gaps": kinds.get("Product coverage gap", 0),
             "logic_markers": len(s["logic_discovery"]["category_B"]),
-            "no_delta": by.get("NO_DELTA", 0), "routes": dict(routes)}
+            "no_delta": kinds.get("None", 0), "routes": dict(routes)}
 
 
 def dsp_plan(s: dict) -> dict:
