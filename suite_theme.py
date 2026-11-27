@@ -31,7 +31,7 @@ header[data-testid="stHeader"],[data-testid="stToolbar"],[data-testid="stDecorat
 %(sidebar)s
 :where(.stApp) :where(p,li,label,h1,h2,h3,h4,h5,h6,span,div,td,th,summary,small,caption){color:var(--ink)}
 :where(.stApp) :where([data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *){color:var(--muted)}
-.stApp .block-container{max-width:none;padding:4.3rem 0 4.5rem}
+.stApp .block-container{max-width:none;padding:4.3rem 0 5.5rem}
 .st-key-page_body{width:100%%;max-width:1280px;margin-inline:auto;padding:0 1.5rem}
 h1,h2,h3,h4{letter-spacing:-.01em}
 /* shell bar */
@@ -139,6 +139,14 @@ table.ag-table tr:hover td{background:var(--accent-soft)}
 .ag-sys.blocked{border-color:var(--bad);border-top-color:var(--bad);border-style:dashed;background:var(--bad-soft)}
 .ag-recon{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}
 @media(max-width:1000px){.ag-land{grid-template-columns:1fr}.ag-lane:not(:last-child)::after{display:none}}
+
+/* legal block */
+.ag-legal{margin:2rem 0 .5rem;border-top:1px solid var(--line);padding-top:1rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4rem;font-size:.74rem;line-height:1.55;color:var(--muted)!important}
+.ag-legal b{color:var(--ink)!important;display:block;margin-bottom:.2rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
+.ag-legal a{color:var(--accent)!important}
+@media(max-width:900px){.ag-legal{grid-template-columns:1fr}}
+/* keyboard focus */
+[data-testid="stRadioOption"]:focus-within,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* footer */
 .ag-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-top:1px solid var(--line);padding:.35rem 1.2rem;font-size:.72rem;color:var(--muted)}
 .ag-foot b{color:var(--ink)}
@@ -168,9 +176,14 @@ def _cell(v) -> str:
     return f'<span class="ag-st {cls}">{esc(s)}</span>' if cls else esc(s)
 
 
+MAX_ROWS = 400  # keep the browser light: a table shows at most this many rows and says so
+
+
 def html_table(rows: list[dict], max_height: int = 420) -> str:
     if not rows:
         return '<div class="ag-note">No rows.</div>'
+    total = len(rows)
+    rows = rows[:MAX_ROWS]
     cols: list[str] = []
     for r in rows:
         for k in r:
@@ -178,7 +191,8 @@ def html_table(rows: list[dict], max_height: int = 420) -> str:
                 cols.append(k)
     head = "".join(f"<th>{esc(c)}</th>" for c in cols)
     body = "".join("<tr>" + "".join(f"<td>{_cell(r.get(c, ''))}</td>" for c in cols) + "</tr>" for r in rows)
-    return f'<div class="ag-tablewrap" style="max-height:{max_height}px"><table class="ag-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+    more = f'<div class="ag-note">Showing {MAX_ROWS} of {total} rows.</div>' if total > MAX_ROWS else ""
+    return f'<div class="ag-tablewrap" style="max-height:{max_height}px"><table class="ag-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>{more}'
 
 
 def badge(text: str, kind: str = "") -> str:
@@ -203,7 +217,20 @@ def flow(items: list[tuple[str, str, str]], selected: int = 1) -> str:
 
 def footer(extra: str = "") -> str:
     return ('<div class="ag-foot"><b>Demo and learning purposes only.</b> Synthetic finance data; no live SAP, BDC or Datasphere system is connected. '
-            'SYNTHETIC_PASS is not a live Finance validation. Independent prototype, not affiliated with SAP.' + extra + "</div>")
+            'SYNTHETIC_PASS is not a live Finance validation. Independent prototype, not affiliated with SAP. &copy; 2026 Prasad Deshpande &middot; Independent work &middot; '
+            '<a href="https://www.prasaddeshpande.com" target="_blank" rel="noopener noreferrer">www.prasaddeshpande.com</a>' + extra + "</div>")
+
+
+def legal_html() -> str:
+    """Disclaimer, trademarks and credits, credited to the owner (wording follows www.prasaddeshpande.com)."""
+    return ('<div class="ag-legal">'
+            '<div><b>Disclaimer</b>Independent assessment prototype by Prasad Deshpande, for demonstration and learning. It is not affiliated with, sponsored or endorsed by SAP SE. '
+            'All data is synthetic and no SAP, BDC or Datasphere system is connected. SYNTHETIC_PASS is not a customer Finance validation and nothing here is a recommendation for a customer system. '
+            'Provided as is, without warranty.</div>'
+            '<div><b>Trademarks</b>SAP, SAP S/4HANA, SAP Business Data Cloud, SAP Datasphere and other SAP products and services mentioned are trademarks or registered trademarks of SAP SE '
+            '(or an SAP affiliate company) in Germany and other countries. Streamlit, Databricks and other product names are trademarks of their respective owners. The SAP-style themes are inspired by public SAP design and use no SAP assets. Architected by Prasad&trade; is a mark of Prasad Deshpande.</div>'
+            '<div><b>Credits</b>&copy; 2026 Prasad Deshpande. All rights reserved. Architected, designed and developed by Prasad Deshpande. Independent work. '
+            'Reference: <a href="https://www.prasaddeshpande.com" target="_blank" rel="noopener noreferrer">www.prasaddeshpande.com</a></div></div>')
 
 
 _LANE_COLORS = {"source": "#2e7d32", "finance": "#7a5ca8", "bdc": "#0a6ed1", "dsp": "#00838f", "consume": "#888888", "agent": "#b8860b", "gov": "#c77700", "conn": "#bb0000"}

@@ -6,7 +6,7 @@ from collections import Counter
 from .artifacts import is_cds_file, lint_cds
 from .core import SapObject
 
-LIVE_ONLY = ["ABAP syntax check (SAP)", "Activation", "ATC", "Datasphere deploy status", "Runtime load evidence"]
+LIVE_ONLY = ["Released-API / clean-core check of every source object", "ABAP syntax check (SAP)", "Activation", "ATC", "Datasphere deploy status", "Runtime load evidence"]
 
 
 def _check(name: str, ok: bool | None, detail="", mode="OFFLINE") -> dict:
@@ -40,8 +40,8 @@ def technical_validation(ctx: dict) -> dict:
     checks.append(_check("Nullability of keys and amounts", not nulls, f"{len(nulls)} nulls"))
     checks.append(_check("Join cardinality / grain (model)", ctx["grain"]["status"] == "PASS", "; ".join(ctx["grain"]["problems"])))
     checks.append(_check("Datasphere SQL functional check (SQLite)", ctx["sqlite"]["status"] == "OFFLINE_VALIDATED", ctx["sqlite"]["note"], "OFFLINE_SQLITE"))
-    checks.append(_check("Authorization configuration declared", all(p["manifest"]["files"] for p in ctx["packages"]), "authorization objects listed per product"))
-    checks.append(_check("Schema compatibility with data product contract", all("data_product_contract.json" in p["files"] for p in ctx["packages"]), ""))
+    checks.append(_check("Artifact files present (authorization design is not checked)", all(p["manifest"]["files"] for p in ctx["packages"]), "no access control (DCL) is generated or compared; presence check only"))
+    checks.append(_check("Contract file present (schema is not compared)", all("data_product_contract.json" in p["files"] for p in ctx["packages"]), "presence check only; the contract is not compared with the CDS elements"))
     for n in LIVE_ONLY:
         checks.append(_check(n, None, "requires a verified live interface and authority; not run", "LIVE_REQUIRED"))
     offline = [c for c in checks if c["mode"] != "LIVE_REQUIRED"]

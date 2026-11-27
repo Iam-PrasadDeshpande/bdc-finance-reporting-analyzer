@@ -27,6 +27,10 @@ content: **reuse** delivered content, **extend** Datasphere modeling, build a **
 - Streamlit Community Cloud entrypoint: `app.py` (Python 3.12).
 - Locally: `pip install -r requirements.txt` then `streamlit run app.py`.
 
+## Credits
+(c) 2026 Prasad Deshpande. All rights reserved. Architected, designed and developed by Prasad Deshpande. Independent work.
+Architected by Prasad(tm) is a mark of Prasad Deshpande. Reference: https://www.prasaddeshpande.com
+
 ## Attribution and licensing status
 SAP, SAP S/4HANA, SAP Business Data Cloud, SAP Datasphere and other SAP products and services mentioned are trademarks
 or registered trademarks of SAP SE (or an SAP affiliate company) in Germany and other countries. This project is not

@@ -17,17 +17,21 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import agents, arch, delta, landscape
+from bdcwb import agents, arch, delta, landscape, ontology, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
 STAGE_LABELS = [f"{s['id']} {s['name']}" for s in STAGES]
 SCEN = {"A": "A - single S/4HANA system", "B": "B - multi-system with Central Finance"}
-SPACES = ["Delta journey", "Agents", "Architecture & operations"]
+SPACES = ["Delta journey", "Ontology", "Agents", "Architecture & operations"]
+ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
-ARCH_TABS = ["Live run", "Complete architecture", "Tool hosting", "Agent hosting", "Registry", "Selection & cost", "Decision brief", "Ontology", "Diagrams"]
-INTENT_STAGE = {"delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
+ARCH_TABS = ["Live run", "Complete architecture", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
+RELEASE = "0.13.3"
+SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
+SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
+INTENT_STAGE = {"ontology": 0, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
 AGENT_EXAMPLE = {"s4": 0, "bdc": 4, "utility": 5}
 _KEEP = object()
 
@@ -117,6 +121,8 @@ def shell(mode: str) -> None:
             for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
                 st.button(f"{n} {STAGES[n - 1]['name']}", key=f"m_stage{n}", icon=f":material/{icon}:", on_click=_go,
                           kwargs={"view": "space", "space": "Delta journey", "stage": n}, width="stretch")
+            st.button("Ontology: how data flows", key="m_onto", icon=":material/account_tree:", on_click=_go,
+                      kwargs={"view": "space", "space": "Ontology"}, width="stretch")
             st.button("Ask the BDC agents", key="m_ask", icon=":material/smart_toy:", on_click=_go,
                       kwargs={"view": "space", "space": "Agents", "agents_tab": "Ask the agents"}, width="stretch")
             st.button("Live architecture", key="m_live", icon=":material/lan:", on_click=_go,
@@ -150,15 +156,23 @@ def render() -> None:
     shell(view)
     with st.container(key="page_body"):
         if view == "home":
+            for k in ("space", "stage"):
+                if k in st.query_params:
+                    del st.query_params[k]
             _home(res)
         else:
             scn = ss.get("ag_scn", "A")
             s = res["scenarios"][scn]
             tech = bool(ss.get("ag_tech"))
             st.radio("Space", SPACES, horizontal=True, key="tabs_space", label_visibility="collapsed")
+            st.query_params["space"] = SPACE_SLUGS[ss["tabs_space"]]
+            if ss["tabs_space"] != "Delta journey" and "stage" in st.query_params:
+                del st.query_params["stage"]
             _status_strip(res)
-            {"Delta journey": _journey, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
-    st.markdown(T.footer(), unsafe_allow_html=True)
+            {"Delta journey": _journey, "Ontology": _ontology, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
+        st.markdown(T.legal_html(), unsafe_allow_html=True)
+    ev = status.load_evidence()
+    st.markdown(T.footer(f" &middot; v{RELEASE} &middot; evidence recorded {T.esc(ev.get('recorded', 'n/a'))}"), unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------------------------------- shared widgets
@@ -227,7 +241,7 @@ def _home(res: dict) -> None:
     with st.container(key="home_body"):
         st.markdown('<div class="ag-kicker">BDC transition / the delta</div><div class="ag-h1">Ask the transition agents</div>'
                     '<div class="ag-lead">What did the customer change in standard SAP, how was it found, and what is the next step? Three agents answer from the '
-                    'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. People approve and nothing is written to SAP.</div>',
+                    'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. Routing is rule-based (no LLM) and the tools are local functions. People approve and nothing is written to SAP.</div>',
                     unsafe_allow_html=True)
         _ask_box("h")
         st.radio("Home tabs", HOME_TABS, horizontal=True, key="tabs_home", label_visibility="collapsed")
@@ -277,7 +291,7 @@ def _ask_tab(res, tech):
     ss = st.session_state
     with st.container(border=True):
         left, right = st.columns([2, 5])
-        left.markdown('<div class="ag-kicker">Three agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3>'
+        left.markdown('<div class="ag-kicker">Three agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3><div style="margin:.1rem 0 .5rem">' + T.badge("RULE-BASED ROUTER, NO LLM - TOOLS ARE LOCAL FUNCTIONS") + '</div>'
                       '<div class="ag-note">Ask about the delta in plain words, or pick an agent below to see what it does. The orchestrator plans and calls the agents\' typed tools; '
                       'the technical detail (orchestration graph, tool calls, execution options, tool catalog) is in Technical options.</div>', unsafe_allow_html=True)
         with right:
@@ -294,6 +308,8 @@ def _ask_tab(res, tech):
             st.markdown(f'<div class="ag-status"><b>{T.esc(ag["name"])}</b> &nbsp;Plan complete.</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="ag-note">Your request: <b>&ldquo;{T.esc(r["request"])}&rdquo;</b></div><div class="ag-note" style="margin:.35rem 0 .6rem">'
                     f'Plan scenario: <b>{T.esc(scn_used)}</b> &middot; {T.esc(src)}</div>', unsafe_allow_html=True)
+        if r.get("notice"):
+            st.info(r["notice"])
         found = " ".join(t["summary"].rstrip(".") + "." for t in r["trace"][:3])
         used = sorted({t["agent"] for t in r["trace"]})
         st.markdown(f'<div class="ag-panel"><div class="ag-kicker">What the agents found</div>{T.esc(found)}<br>'
@@ -302,8 +318,11 @@ def _ask_tab(res, tech):
         stage = INTENT_STAGE.get(r["route"]["intent"], 1)
         st.markdown('<div class="ag-panel" style="margin-bottom:.3rem"><div class="ag-kicker">Full output of this run</div></div>', unsafe_allow_html=True)
         b1, b2, _ = st.columns([2.6, 2.4, 4])
-        b1.button(f"Open stage {stage}: {STAGES[stage - 1]['name']} →", key="open_app", type="primary", on_click=_go,
-                  kwargs={"view": "space", "space": "Delta journey", "stage": stage}, width="stretch")
+        if stage == 0:
+            b1.button("Open the Ontology →", key="open_app", type="primary", on_click=_go, kwargs={"view": "space", "space": "Ontology"}, width="stretch")
+        else:
+            b1.button(f"Open stage {stage}: {STAGES[stage - 1]['name']} →", key="open_app", type="primary", on_click=_go,
+                      kwargs={"view": "space", "space": "Delta journey", "stage": stage}, width="stretch")
         b2.button("Open the detailed trace →", key="open_trace", on_click=_go, kwargs={"view": "space", "space": "Agents", "agents_tab": "Technical options"}, width="stretch")
         table([{"#": t["step"], "agent": t["agent"], "tool": t["tool"], "authority": t["authority"], "status": t["status"], "result": t["summary"]} for t in r["trace"]], 760)
         st.markdown('<div class="ag-note"><b>Layers reached:</b> ' + " &rarr; ".join(T.esc(x) for x in r["layers_reached"]) + "</div>", unsafe_allow_html=True)
@@ -380,6 +399,7 @@ def _journey(res, s, scn, tech):
     ss = st.session_state
     st.radio("Stage", STAGE_LABELS, horizontal=True, key="tabs_stage", label_visibility="collapsed")
     n = int(ss["tabs_stage"].split()[0])
+    st.query_params["stage"] = str(n)
     stg = STAGES[n - 1]
     lead, sup = _agent(stg["agent"]), _agent(stg["support"])
     kp = _stage_kpis(res, scn)[n - 1]
@@ -412,8 +432,8 @@ def _stage1(res, s, scn, tech):
     m[3].metric("Business-rule differences", sm["rule_differences"])
     m[4].metric("Product coverage gaps", sm["coverage_gaps"])
     st.markdown("##### Delta register")
-    st.caption("One row per SAP object, compared with the data product SAP delivers. A customization is a customer field or object that the standard product does not contain; "
-               "a coverage gap is where the delivered product itself is narrower than the SAP object.")
+    st.caption("One row per SAP object, compared with the data product SAP delivers. A customization is a customer field or object found by the checks listed under "
+               "'Customizations found'; a coverage gap is where the delivered product itself is narrower than the SAP object. Detection is limited to those checks.")
     flt = st.selectbox("Show", ["All rows", "Customizations only", "Any delta (hide 'no delta')", "No delta"], key="ag_delta_filter")
     keep = {"All rows": lambda r: True, "Customizations only": lambda r: r["kind"] == "Customization", "Any delta (hide 'no delta')": lambda r: r["delta_type"] != "NO_DELTA",
             "No delta": lambda r: r["delta_type"] == "NO_DELTA"}[flt]
@@ -452,21 +472,29 @@ def _customizations(s, tech):
     table(c["fields"] or [{"object": "none"}], 220)
     st.markdown("**Customer-created objects**")
     table(c["objects"] or [{"object": "none"}], 200)
-    st.markdown(f"**Custom logic:** {len(c['logic_A'])} normalised item(s) (category A), {len(c['logic_B'])} marker(s) needing review (category B: {c['logic_B_kinds']}), "
+    st.markdown("**What is detected, and what is not**")
+    st.markdown("Detected:\n" + "\n".join(f"- {x}" for x in delta.DETECTION_SCOPE["detected"]) + "\n\nNot detected (needs authorized read-only metadata and review):\n" + "\n".join(f"- {x}" for x in delta.DETECTION_SCOPE["not_detected"]))
+    st.markdown(f"**Custom-logic markers:** {len(c['logic_A'])} normalised item(s) (category A), {len(c['logic_B'])} marker(s) needing review (category B: {c['logic_B_kinds']}), "
                 f"{len(c['logic_C'])} explicit rule(s) (category C). {c['note']}")
 
 
 def _stage2(res, s, scn, tech):
     rows = [r for r in delta.register(s) if r["decision"] != "-"]
     sm = delta.summary(s)
+    lin = {x["requirement"]: x for x in ontology.build(res, scn)["lineage"]}
+    st.markdown(T.flow([("Extend the SAP product", "key-user or data-product extension", "Only when the missing fields are eligible custom attributes and the product supports extension."),
+                        ("Create a new backend CDS view + customer-managed data model", "extraction view, product contract, Datasphere target", "When the structure differs (key, grain, relationships, extraction) or no SAP product exists. Generated as templates."),
+                        ("Solve in Datasphere", "approved rule or enrichment", "When the data is right but the meaning or authorization needs a rule.")], selected=1), unsafe_allow_html=True)
     cols = st.columns(max(1, len(sm["routes"])))
     for col, (route, n) in zip(cols, sorted(sm["routes"].items(), key=lambda kv: -kv[1])):
         col.markdown(T.card(route, f"{n} object(s)"), unsafe_allow_html=True)
-    st.markdown("##### Solution per delta")
-    table([{"SAP object": r["label"], "delta": r["delta_type"], "solution route": r["route"], "first step": r["next_step"], "approvals needed": ", ".join(r["approvals"]) or "-"} for r in rows], 560)
-    st.caption("Extend the SAP product when the missing fields are eligible custom attributes; build a new backend CDS view and a customer-managed data model when the structure differs or no product exists. "
+    st.markdown("##### Solution per delta and what gets created")
+    table([{"SAP object": r["label"], "delta": r["delta_type"], "solution route": r["route"],
+            "what gets created": "; ".join(x.split(" (")[0] for x in lin[r["requirement"]]["creates"][:3]) + (f" (+{len(lin[r['requirement']]['creates']) - 3} more)" if len(lin[r["requirement"]]["creates"]) > 3 else ""),
+            "approvals needed": ", ".join(r["approvals"]) or "-"} for r in rows if r["requirement"] in lin], 560)
+    st.caption("Extending is one route among several. A new backend CDS view and customer-managed data model is created when the delta is structural. "
                "Everything generated is a template: never activated, never transported.")
-    with st.expander("New backend CDS view and customer-managed data model (generated templates)"):
+    with st.expander("Generated files of a new backend CDS view and customer-managed data model"):
         _a8(res, s, tech)
     with st.expander("Decision detail, implementation steps and blocked requests"):
         _a7(res, s, tech)
@@ -499,9 +527,10 @@ def _stage3(res, s, scn, tech):
 
 
 def _stage4(res, s, scn, tech):
+    st.markdown("##### Technical comparison (metadata level, offline)")
+    _a12(res, s, tech)
+    st.markdown("##### Data-level comparison (reconciliation of results)")
     _a13(res, s, tech)
-    with st.expander("Technical validation of the generated artifacts and model (offline)"):
-        _a12(res, s, tech)
 
 
 def _stage5(res, s, scn, tech):
@@ -516,6 +545,7 @@ def _stage5(res, s, scn, tech):
     st.markdown("##### Next steps (need people and access this build does not have)")
     st.markdown("\n".join(f"{i}. {x}" for i, x in enumerate(j["next_steps"], 1)))
     st.info("Synthetic success shows the method works and can explain the delta to the SAP team. It is not evidence about any real system.")
+    st.button("Open the Ontology: how data flows and how the components are wired →", key="stage5_onto", on_click=_go, kwargs={"view": "space", "space": "Ontology"})
     with st.expander("Execution plan by mode (writes stay blocked)"):
         _a11(res, s, tech)
     with st.expander("Status dimensions and acceptance gates G01-G15"):
@@ -671,6 +701,92 @@ def _a14(res, s, tech):
     st.download_button("Download results (JSON)", json.dumps(res, default=str, indent=1), "bdc_v013_synthetic_results.json", mime="application/json")
 
 
+# ---------------------------------------------------------------------------------------------------- Level 2: Ontology
+def _ontology(res, s, scn, tech):
+    st.radio("Ontology", ONTO_VIEWS, horizontal=True, key="tabs_onto", label_visibility="collapsed")
+    view = st.session_state["tabs_onto"]
+    o = ontology.build(res, scn)
+    c = o["counts"]
+    st.markdown(badge("SYNTHETIC ONTOLOGY - DERIVED FROM THE SCENARIO RUN, NOT TENANT-VERIFIED", True), unsafe_allow_html=True)
+    m = st.columns(6)
+    m[0].metric("SAP objects", c["objects"])
+    m[1].metric("Reused", c["reused"])
+    m[2].metric("Extended", c["extended"])
+    m[3].metric("New view / product", c["created"])
+    m[4].metric("Solved in Datasphere", c["datasphere"])
+    m[5].metric("Unresolved", c["unresolved"])
+    if view == "How data flows":
+        _onto_flow(o, scn)
+    elif view == "How components are wired":
+        _onto_wired(o)
+    else:
+        _onto_concepts()
+
+
+def _onto_flow(o, scn):
+    c, rc = o["counts"], o["recon"]
+    acq = Counter_(x["acq_type"] for x in o["lineage"] if x["acq_type"] != "-")
+    st.markdown(T.flow([("SAP objects", f"{c['objects']} compared", "standard objects behind the report; customizations flagged"),
+                        ("Delta", f"{c['objects'] - sum(1 for x in o['lineage'] if x['delta_type'] == 'NO_DELTA')} with a delta", "what differs from the SAP-delivered data product"),
+                        ("Solution", f"{c['reused']} reuse / {c['extended']} extend / {c['created']} new / {c['datasphere']} Datasphere", "reuse, extend, create a new backend view, or solve in Datasphere"),
+                        ("Acquisition", ", ".join(f"{k.split('_')[0].lower()} {v}" for k, v in sorted(acq.items())) or "-", "installed product, replication flow or enrichment source"),
+                        ("Harmonize and transform", f"{c['views']} views", "system-qualified keys, currency, fiscal alignment, pre-aggregation"),
+                        ("Semantic model", f"{c['facts']} facts, {c['models']} analytic models", "facts side by side on shared dimensions"),
+                        ("Reconciliation", ", ".join(f"{k} {v}" for k, v in rc.items() if v != "-"), "scenario-level verdicts (synthetic); not a per-object proof")], selected=2), unsafe_allow_html=True)
+    flt = st.selectbox("Show", ["All objects", "With a delta", "New backend view / customer-managed product", "Extended SAP product", "Solved in Datasphere", "Unresolved", "No delta"], key="ag_onto_filter")
+    keep = {"All objects": lambda x: True, "With a delta": lambda x: x["delta_type"] != "NO_DELTA", "New backend view / customer-managed product": lambda x: x["decision"] == "CREATE_CUSTOMER_MANAGED_PRODUCT",
+            "Extended SAP product": lambda x: x["decision"] in ("KEY_USER_EXTENSION", "DATA_PRODUCT_EXTENSION"), "Solved in Datasphere": lambda x: x["decision"] == "DATASPHERE_ENRICHMENT",
+            "Unresolved": lambda x: x["decision"] in ("CATALOG_REVIEW_REQUIRED", "-"), "No delta": lambda x: x["delta_type"] == "NO_DELTA"}[flt]
+    rows = [x for x in o["lineage"] if keep(x)]
+    st.caption("One row per SAP object, left to right: the object, its delta, what is reused / extended / created, how it is acquired, which views it passes through, where it lands in the "
+               "semantic model, and which reconciliation levels prove it.")
+    table([{"SAP object": f"{x['label']} ({x['system']})", "delta": x["delta_type"], "solution": x["route"], "what is created": "; ".join(a.split(" (")[0] for a in x["creates"][:2]),
+            "acquired as": x["acquisition"], "harmonize": ", ".join(x["harmonize"]) or "-", "transform": ", ".join(x["transform"]) or "-", "lands in": x["target"],
+            "analytic model": ", ".join(x["models"]) or "-", "covered by scenario-level reconciliation": ", ".join(x["proof"]) or "-"} for x in rows], 640)
+    if rows:
+        opts = [f"{x['label']} - {x['sap_object']}" for x in rows]
+        pick = st.selectbox("Trace one object", opts, key="ag_onto_pick")
+        x = rows[opts.index(pick)] if pick in opts else rows[0]
+        steps = [("SAP object", f"{x['sap_object']}"), ("Delta", f"{x['delta']}" + (f" ({x['customization']})" if x["customization"] != "-" else "")), ("Compared with", x["product"]),
+                 ("Solution", x["route"]), ("Created", "; ".join(a.split(" (")[0] for a in x["creates"])), ("Acquired as", x["acquisition"]),
+                 ("Harmonized by", ", ".join(x["harmonize"]) or "-"), ("Transformed by", ", ".join(x["transform"]) or "-"), ("Lands in", x["target"]),
+                 ("Exposed in", ", ".join(x["models"]) or "-"), ("Covered by scenario-level reconciliation", ", ".join(x["proof"]) or "not yet (unresolved)")]
+        st.markdown('<div class="ag-panel"><div class="ag-kicker">Trace</div>' + "<br>".join(f"<b>{T.esc(k)}:</b> {T.esc(v)}" for k, v in steps) + "</div>", unsafe_allow_html=True)
+
+
+def Counter_(it):
+    d: dict[str, int] = {}
+    for x in it:
+        d[x] = d.get(x, 0) + 1
+    return d
+
+
+def _onto_wired(o):
+    st.markdown(f"**{o['nodes']} nodes and {len(o['edges'])} typed relations** connect the objects to the proof. Every relation is listed; none is inferred outside the scenario run.")
+    table([{"relation": k, "count": o["by_relation"].get(k, 0), "from": v[0], "to": v[1]} for k, v in ontology.RELATIONS.items()], 360)
+    rel = st.selectbox("List the edges of one relation", list(ontology.RELATIONS), key="ag_onto_rel")
+    es = [e for e in o["edges"] if e["rel"] == rel]
+    seen, uniq = set(), []
+    for e in es:
+        k = (e["from"], e["to"])
+        if k not in seen:
+            seen.add(k)
+            uniq.append(e)
+    st.caption(f"{len(es)} edge(s), {len(uniq)} distinct")
+    table([{"from": e["from"], "relation": e["rel"], "to": e["to"], "first seen in": e["ref"]} for e in uniq[:300]], 520)
+
+
+def _onto_concepts():
+    areas = sorted({c["family"] for c in arch.concepts()} - {"shared"})
+    fam = st.radio("Concepts", ["all"] + areas, horizontal=True, key="ag_onto")
+    cs = [c for c in arch.concepts() if fam in ("all", c["family"], ) or c["family"] == "shared"]
+    st.write(f"{len(cs)} concepts and {len(arch.relations())} relations in the full model. Dashed = project concept; solid = SAP term (not source-checked). This is the suite's own model, not an SAP-published ontology.")
+    if st.checkbox("Draw the concept graph (renders in the browser; may take a moment)", key="ag_onto_graph"):
+        st.graphviz_chart(arch.dot_ontology(fam))
+    table([{k: c[k] for k in ("label", "kind", "family", "grounding", "desc")} for c in cs], 520)
+
+
+
 # ---------------------------------------------------------------------------------------------------- Level 2: Architecture & operations
 def _architecture(res, s, scn, tech):
     st.radio("Architecture", ARCH_TABS, horizontal=True, key="tabs_arch", label_visibility="collapsed")
@@ -697,18 +813,12 @@ def _architecture(res, s, scn, tech):
     elif tab == "Registry":
         table([{"decision": k, **{o: v[o] for o in arch.OPTIONS}} for k, v in arch.HOSTING if k in ("Agent registration and discovery", "Registration never decides hosting")])
         st.caption("Registration is a control-plane decision; it never moves where an agent executes.")
-    elif tab == "Selection & cost":
+    elif tab == "Selection criteria":
         table([{"criterion": c, **{k: arch.SCORES[k][i] for k in arch.OPTIONS}} for i, c in enumerate(arch.CRITERIA)])
-        st.caption("Qualitative only. No cost figures are invented; commercial and operating cost need customer and vendor input.")
+        st.caption("All scores are qualitative assumptions for discussion, not measurements. No cost figures are given; commercial and operating cost need customer and vendor input. Only P1 exists in this build.")
     elif tab == "Decision brief":
         st.markdown(arch.BRIEF)
         st.markdown(badge(arch.BADGE, True), unsafe_allow_html=True)
-    elif tab == "Ontology":
-        fam = st.radio("Concepts", ["all"] + sorted({c["family"] for c in arch.concepts()} - {"shared"}), horizontal=True, key="ag_onto")
-        cs = [c for c in arch.concepts() if fam in ("all", c["family"], ) or c["family"] == "shared"]
-        st.write(f"{len(cs)} concepts and {len(arch.relations())} relations in the full model. Dashed = project concept; solid = SAP term (not source-checked). This is the suite's own model, not an SAP-published ontology.")
-        st.graphviz_chart(arch.dot_ontology(fam))
-        table([{k: c[k] for k in ("label", "kind", "family", "grounding", "desc")} for c in cs], 520)
     else:
         st.markdown("**Complete landscape (all components across systems)**")
         st.markdown(T.landscape_html(landscape.build(res, scn), "Full landscape"), unsafe_allow_html=True)
@@ -737,6 +847,8 @@ def _complete_architecture(res, s, scn):
     n_sys = len([c for c in comps if c["kind"] == "System"])
     st.markdown(badge(landscape.BADGE, True) + f" &nbsp; <span class='ag-note'>Scenario {T.esc(scn)}: every component below is derived from the synthetic scenario run; "
                 "SAP product names are generic terms and nothing is tenant-verified.</span>", unsafe_allow_html=True)
+    st.caption("Modelled landscape. Not shown: SAP BTP, network and Cloud Connector, identity provider, Datasphere spaces and connections, SAP Analytics Cloud as a consumer. "
+               "How ECC and BW reach BDC is modelled, not verified.")
     m = st.columns(5)
     m[0].metric("Systems", n_sys)
     m[1].metric("Components", len(comps))
