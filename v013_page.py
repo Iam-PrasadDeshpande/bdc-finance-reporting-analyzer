@@ -17,21 +17,22 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import agents, arch, delta, landscape, ontology, status
+from bdcwb import adapters, agents, arch, delta, landscape, ontology, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
 STAGE_LABELS = [f"{s['id']} {s['name']}" for s in STAGES]
 SCEN = {"A": "A - single S/4HANA system", "B": "B - multi-system with Central Finance"}
 SPACES = ["Delta journey", "Ontology", "Agents", "Architecture & operations"]
+START = ["All (objects and data products)", "S/4HANA object", "Data product"]
 ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
-ARCH_TABS = ["Live run", "Complete architecture", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.3"
+ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
+RELEASE = "0.13.4"
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
-INTENT_STAGE = {"ontology": 0, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
+INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
 AGENT_EXAMPLE = {"s4": 0, "bdc": 4, "utility": 5}
 _KEEP = object()
 
@@ -241,7 +242,7 @@ def _home(res: dict) -> None:
     with st.container(key="home_body"):
         st.markdown('<div class="ag-kicker">BDC transition / the delta</div><div class="ag-h1">Ask the transition agents</div>'
                     '<div class="ag-lead">What did the customer change in standard SAP, how was it found, and what is the next step? Three agents answer from the '
-                    'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. Routing is rule-based (no LLM) and the tools are local functions. People approve and nothing is written to SAP.</div>',
+                    'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. The orchestrator plans, each agent calls typed tools, and people approve; nothing is written to SAP. The demo planner is deterministic so every answer is reproducible; an LLM planner plugs in behind the same validated tool contract, and read-only system adapters supply live evidence once access is authorized. Start from an S/4HANA object or from a data product.</div>',
                     unsafe_allow_html=True)
         _ask_box("h")
         st.radio("Home tabs", HOME_TABS, horizontal=True, key="tabs_home", label_visibility="collapsed")
@@ -291,7 +292,7 @@ def _ask_tab(res, tech):
     ss = st.session_state
     with st.container(border=True):
         left, right = st.columns([2, 5])
-        left.markdown('<div class="ag-kicker">Three agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3><div style="margin:.1rem 0 .5rem">' + T.badge("RULE-BASED ROUTER, NO LLM - TOOLS ARE LOCAL FUNCTIONS") + '</div>'
+        left.markdown('<div class="ag-kicker">Three agents &middot; orchestrated with MCP-style tool calls</div><h3 style="margin:.2rem 0 .4rem">Agent launchpad</h3><div style="margin:.1rem 0 .5rem">' + T.badge("AGENTIC DESIGN - DEMO PLANNER IS DETERMINISTIC, ADAPTERS NOT CONNECTED") + '</div>'
                       '<div class="ag-note">Ask about the delta in plain words, or pick an agent below to see what it does. The orchestrator plans and calls the agents\' typed tools; '
                       'the technical detail (orchestration graph, tool calls, execution options, tool catalog) is in Technical options.</div>', unsafe_allow_html=True)
         with right:
@@ -390,6 +391,9 @@ def _technical_tab(res, scn):
         rows.append({"mode": mode, "steps": len(plan), "states": counts, "meaning": {"DEMO": "Synthetic only (default).", "CONNECTED_READ_ONLY": "Authorized reads only; no interface configured, so reads are BLOCKED.",
                                                                                     "CONTROLLED_EXECUTION": "Needs explicit authorization and a verified executor; none exists in this build."}[mode]})
     table(rows, 240)
+    st.markdown('<div class="ag-kicker" style="margin-top:.8rem">Planner contract (where an LLM planner plugs in)</div>', unsafe_allow_html=True)
+    st.caption(f"Active planner: {agents.PLANNERS[agents.ACTIVE_PLANNER].name}. No LLM is configured or called.")
+    table([{"part": k, "rule": v} for k, v in agents.PLANNER_CONTRACT], 320)
     st.markdown('<div class="ag-kicker" style="margin-top:.8rem">Tool catalog (MCP-style, typed)</div>', unsafe_allow_html=True)
     table(agents.tool_catalog(), 460)
 
@@ -431,7 +435,31 @@ def _stage1(res, s, scn, tech):
     m[2].metric("Customizations in standard SAP", sm["customizations"])
     m[3].metric("Business-rule differences", sm["rule_differences"])
     m[4].metric("Product coverage gaps", sm["coverage_gaps"])
-    st.markdown("##### Delta register")
+    st.radio("Start from", START, horizontal=True, key="ag_start")
+    st.caption("Start from an S/4HANA object to see what the customer changed and which delivered product covers it; start from a data product when reporting is built on data products "
+               "and you want to drive one product through solution, Datasphere, reconciliation and readiness. 'All' shows both.")
+    start = st.session_state["ag_start"]
+    if start != START[2]:
+        _delta_by_object(rows)
+    if start != START[1]:
+        _delta_by_product(res, scn)
+    with st.expander("What the delta types mean"):
+        table([{"delta": k, "label": v[0], "meaning": v[1]} for k, v in delta.DELTA_TYPES.items()], 380)
+    with st.expander("Customizations found (custom fields, customer objects, custom logic)"):
+        _customizations(s, tech)
+    # heavy detail views load on request: a collapsed expander still renders all of its tables in the browser
+    if st.toggle("Show the comparison with the SAP data products (16 dimensions) and the catalog", key="ag_show_compare"):
+        _a6(res, s, tech)
+        st.markdown("**SAP data-product catalog (synthetic snapshot)**")
+        _a5(res, s, tech)
+    if st.toggle("Show SAP objects, systems and dependencies", key="ag_show_objects"):
+        _a2(res, s, tech)
+        _a3(res, s, tech)
+        _a4(res, s, tech)
+
+
+def _delta_by_object(rows):
+    st.markdown("##### Delta register (from the S/4HANA object)")
     st.caption("One row per SAP object, compared with the data product SAP delivers. A customization is a customer field or object found by the checks listed under "
                "'Customizations found'; a coverage gap is where the delivered product itself is narrower than the SAP object. Detection is limited to those checks.")
     flt = st.selectbox("Show", ["All rows", "Customizations only", "Any delta (hide 'no delta')", "No delta"], key="ag_delta_filter")
@@ -449,19 +477,33 @@ def _stage1(res, s, scn, tech):
                     f'<b>What it is:</b> {T.esc(delta.DELTA_TYPES[r["delta_type"]][1])}<br><b>Compared with:</b> {T.esc(r["product"])} (catalog state {T.esc(r["catalog_state"])}; coverage {T.esc(r["coverage"])})<br>'
                     f'<b>How it was found:</b> {T.esc(r["how_found"])}<br>' + (f'<b>Also:</b> {T.esc("; ".join(r["notes"]))}<br>' if r["notes"] else "") +
                     f'<b>Next step:</b> {T.esc(r["route"])} - {T.esc(r["next_step"])}' + (f'<br><b>Approvals:</b> {T.esc(", ".join(r["approvals"]))}' if r["approvals"] else "") + '</div>', unsafe_allow_html=True)
-    with st.expander("What the delta types mean"):
-        table([{"delta": k, "label": v[0], "meaning": v[1]} for k, v in delta.DELTA_TYPES.items()], 380)
-    with st.expander("Customizations found (custom fields, customer objects, custom logic)"):
-        _customizations(s, tech)
-    # heavy detail views load on request: a collapsed expander still renders all of its tables in the browser
-    if st.toggle("Show the comparison with the SAP data products (16 dimensions) and the catalog", key="ag_show_compare"):
-        _a6(res, s, tech)
-        st.markdown("**SAP data-product catalog (synthetic snapshot)**")
-        _a5(res, s, tech)
-    if st.toggle("Show SAP objects, systems and dependencies", key="ag_show_objects"):
-        _a2(res, s, tech)
-        _a3(res, s, tech)
-        _a4(res, s, tech)
+
+
+def _delta_by_product(res, scn):
+    pv = ontology.product_view(res, scn)
+    prods = pv["products"]
+    st.markdown("##### Delta by data product (start from the SAP-delivered product)")
+    st.caption("Reporting is built on data products, so this view starts there: for each delivered product, which customer objects map to it, what differs, and how far it is from an "
+               "authorized deployment request. Evidence class is shown because a product that is not verified cannot be relied on.")
+    table([{"data product": pid, "name": p["name"], "version": p["version"], "evidence class": p["evidence"], "status": p["status"], "objects mapped": p["counts"]["objects"],
+            "no delta": p["counts"]["no_delta"], "customizations": p["counts"]["customizations"], "rule differences": p["counts"]["rule_differences"],
+            "coverage gaps": p["counts"]["coverage_gaps"], "solution routes": p["stage2"], "readiness": p["readiness"]} for pid, p in prods.items()], 460)
+    if pv["unmapped"]:
+        st.markdown(f"**{len(pv['unmapped'])} object(s) have no delivered product, or one that is not verified** - they cannot be driven from a product:")
+        table([{"SAP object": r["label"], "system": r["system"], "delta": r["delta_type"], "next step": r["route"]} for r in pv["unmapped"]], 300)
+    pid = st.selectbox("Drive one data product through the journey", list(prods), key="ag_prod_pick", format_func=lambda k: f"{k} - {prods[k]['name']}")
+    _product_journey(prods[pid])
+
+
+def _product_journey(p):
+    st.markdown(T.flow([("1 Find the delta", p["stage1"], f"entities used: {', '.join(p['entities_used']) or 'none'}; unused: {', '.join(p['entities_unused']) or 'none'}"),
+                        ("2 Solution", p["stage2"], ("creates: " + "; ".join(x.split(" (")[0] for x in p["created"][:3])) if p["created"] else "nothing new is created"),
+                        ("3 Datasphere", f"acquisition: {p['stage3']}", f"views: {', '.join(p['views']) or 'none'}; lands in: {', '.join(p['targets']) or '-'}"),
+                        ("4 Compare and reconcile", f"analytic models: {', '.join(p['models']) or 'none'}", f"scenario-level reconciliation: {', '.join(p['proof']) or 'not yet'}"),
+                        ("5 Result", p["readiness"].replace("_", " "), p["next"])], selected=4), unsafe_allow_html=True)
+    table([{"SAP object": r["label"], "system": r["system"], "entity": r["product"].split(" / ")[-1], "delta": r["delta_type"], "customization": r["customization"], "next step": r["route"]}
+           for r in p["objects"]] or [{"SAP object": "none mapped"}], 300)
+    st.caption("Deployment itself needs a separate, explicit authorization and a verified executor; neither exists in this build. Readiness here means the synthetic evidence is complete for an authorization request.")
 
 
 def _customizations(s, tech):
@@ -737,7 +779,9 @@ def _onto_flow(o, scn):
     keep = {"All objects": lambda x: True, "With a delta": lambda x: x["delta_type"] != "NO_DELTA", "New backend view / customer-managed product": lambda x: x["decision"] == "CREATE_CUSTOMER_MANAGED_PRODUCT",
             "Extended SAP product": lambda x: x["decision"] in ("KEY_USER_EXTENSION", "DATA_PRODUCT_EXTENSION"), "Solved in Datasphere": lambda x: x["decision"] == "DATASPHERE_ENRICHMENT",
             "Unresolved": lambda x: x["decision"] in ("CATALOG_REVIEW_REQUIRED", "-"), "No delta": lambda x: x["delta_type"] == "NO_DELTA"}[flt]
-    rows = [x for x in o["lineage"] if keep(x)]
+    pids = sorted({x["product"].split(" / ")[0] for x in o["lineage"] if x["product"] != "none"})
+    prod = st.selectbox("Data product", ["(all)"] + pids, key="ag_onto_prod")
+    rows = [x for x in o["lineage"] if keep(x) and (prod == "(all)" or x["product"].startswith(prod))]
     st.caption("One row per SAP object, left to right: the object, its delta, what is reused / extended / created, how it is acquired, which views it passes through, where it lands in the "
                "semantic model, and which reconciliation levels prove it.")
     table([{"SAP object": f"{x['label']} ({x['system']})", "delta": x["delta_type"], "solution": x["route"], "what is created": "; ".join(a.split(" (")[0] for a in x["creates"][:2]),
@@ -806,6 +850,8 @@ def _architecture(res, s, scn, tech):
         st.caption("Events are produced from the real orchestrator trace. The last event shows that SAP connectors are not reached in DEMO mode.")
     elif tab == "Complete architecture":
         _complete_architecture(res, s, scn)
+    elif tab == "Adapters":
+        _adapters_view(res, s, scn)
     elif tab == "Tool hosting":
         table([{"decision": k, **{o: v[o] for o in arch.OPTIONS}} for k, v in arch.HOSTING if k in ("Tool (MCP-style) exposure", "SAP-facing access", "Credential handling")])
     elif tab == "Agent hosting":
@@ -829,6 +875,18 @@ def _architecture(res, s, scn, tech):
         for k in arch.OPTIONS:
             st.markdown(f"**{k} chain**")
             st.graphviz_chart(arch.dot_chain(k))
+
+
+def _adapters_view(res, s, scn):
+    st.markdown(badge(adapters.BADGE, True), unsafe_allow_html=True)
+    st.markdown("Agents never reach a system directly. Each system is reached through **one read-only adapter** that returns evidence-class-tagged records; the cross-system comparison is only "
+                "as good as these adapters. None is configured in this build, so every stage runs on synthetic evidence.")
+    table(adapters.registry(res, scn), 520)
+    st.markdown("##### Adapter contract (common to every system)")
+    table([{"operation": a, "what it does": b} for a, b in adapters.CONTRACT], 300)
+    st.caption(adapters.PROVENANCE)
+    st.markdown("##### What makes comparing across systems hard, and what the design does about it")
+    table([{"challenge": a, "what the design does": b} for a, b in adapters.CHALLENGES], 420)
 
 
 # ---------------------------------------------------------------------------------------------------- Complete architecture (all components across systems)
