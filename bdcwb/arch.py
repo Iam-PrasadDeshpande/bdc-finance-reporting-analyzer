@@ -164,14 +164,20 @@ def dot_ontology(family: str | None = None) -> str:
     return "\n".join(L)
 
 
+def _clip(text: str, n: int) -> str:
+    if len(text) <= n:
+        return text
+    return text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "..."
+
+
 def live_events(run: dict) -> list[dict]:
     """Component-communication events derived from the real orchestrator trace of one request."""
-    ev = [{"from": "UI", "to": "Orchestrator", "label": run["request"][:60], "state": "REQUEST"}]
+    ev = [{"from": "UI", "to": "Orchestrator", "label": _clip(run["request"], 60), "state": "REQUEST"}]
     for t in run["trace"]:
         ev.append({"from": "Orchestrator", "to": t["agent"], "label": f"plan step {t['step']}", "state": "PLAN"})
         ev.append({"from": t["agent"], "to": "Typed tool layer", "label": t["tool"], "state": t["status"]})
         ev.append({"from": "Typed tool layer", "to": t["layer"], "label": t["authority"], "state": t["status"]})
-        ev.append({"from": t["layer"], "to": t["agent"], "label": t["summary"][:70], "state": "RESULT"})
+        ev.append({"from": t["layer"], "to": t["agent"], "label": _clip(t["summary"], 78), "state": "RESULT"})
     if run["refusal"]:
         ev.append({"from": "Orchestrator", "to": "Approval queue", "label": "write intent refused; proposal drafted", "state": "REFUSED"})
     ev.append({"from": "Orchestrator", "to": "UI", "label": "answer + trace", "state": "DONE"})

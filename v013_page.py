@@ -17,7 +17,7 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import adapters, agents, arch, delta, landscape, ontology, status
+from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, landscape, ontology, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
@@ -29,7 +29,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.4"
+RELEASE = "0.13.5"
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
@@ -40,6 +40,24 @@ _KEEP = object()
 @st.cache_data(show_spinner="Running the synthetic pipeline (Scenario A and B)...")
 def load() -> dict:
     return run_all()
+
+
+def diagram(html: str) -> None:
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def _dep_graph(s: dict) -> str:
+    d = s["dependencies"]
+    nodes = [{"id": k, "label": k.split(":")[-1], "sub": f"{v.get('system', '')} - {v.get('type', '')}".strip(" -"), "kind": ("UNRESOLVED" if not v.get("resolved") else v.get("type", ""))}
+             for k, v in d["nodes"].items()]
+    return AD.layered_svg(nodes, [(e["from"], e["to"]) for e in d["edges"]], "Dependency graph", {"UNRESOLVED": "dg-box dg-bad", "QUERY": "dg-box dg-sel", "CUBE": "dg-box dg-sel"}, 190)[0]
+
+
+def _concept_graph(fam: str) -> str:
+    cs = [c for c in arch.concepts() if fam in ("all", c["family"]) or c["family"] == "shared"]
+    ids = {c["id"] for c in cs}
+    return AD.layered_svg([{"id": c["id"], "label": c["label"], "sub": c["kind"], "kind": c["kind"]} for c in cs],
+                          [(a, b) for a, _, b in arch.relations() if a in ids and b in ids], "Concept model", {}, 190)[0]
 
 
 def table(rows, max_height: int = 420) -> None:
@@ -378,7 +396,7 @@ def _technical_tab(res, scn):
     r = ss.get("ag_run") or agents.run_request(agents.EXAMPLES[0], res, scn)
     st.markdown('<div class="ag-kicker">Orchestration graph (last run)</div>', unsafe_allow_html=True)
     ev = arch.live_events(r)
-    st.graphviz_chart(arch.dot_live(ev, len(ev)))
+    diagram(AD.sequence_svg(ev, len(ev))[0])
     st.markdown('<div class="ag-kicker" style="margin-top:.8rem">MCP-style tool calls (last run)</div>', unsafe_allow_html=True)
     table([{"#": t["step"], "agent": t["agent"], "tool": t["tool"], "authority": t["authority"], "args": t["args"], "status": t["status"]} for t in r["trace"]], 300)
     st.markdown('<div class="ag-kicker" style="margin-top:.8rem">Execution options</div>', unsafe_allow_html=True)
@@ -615,7 +633,7 @@ def _a4(res, s, tech):
     d = s["dependencies"]
     st.write(f"{len(d['nodes'])} nodes, {len(d['edges'])} edges; cycles: {len(d['cycles'])}; truncated: {d['truncated']}. Red nodes are **unresolved** (reported, never guessed).")
     if st.checkbox("Draw the dependency graph (renders in the browser; may take a moment)", key="ag_dep_graph"):
-        st.graphviz_chart(arch.dot_dependencies(s))
+        diagram(_dep_graph(s))
     st.markdown("**Unresolved objects**")
     table(d["unresolved"] or [{"object": "none"}])
 
@@ -758,23 +776,17 @@ def _ontology(res, s, scn, tech):
     m[4].metric("Solved in Datasphere", c["datasphere"])
     m[5].metric("Unresolved", c["unresolved"])
     if view == "How data flows":
-        _onto_flow(o, scn)
+        _onto_flow(res, o, scn)
     elif view == "How components are wired":
         _onto_wired(o)
     else:
         _onto_concepts()
 
 
-def _onto_flow(o, scn):
+def _onto_flow(res, o, scn):
     c, rc = o["counts"], o["recon"]
     acq = Counter_(x["acq_type"] for x in o["lineage"] if x["acq_type"] != "-")
-    st.markdown(T.flow([("SAP objects", f"{c['objects']} compared", "standard objects behind the report; customizations flagged"),
-                        ("Delta", f"{c['objects'] - sum(1 for x in o['lineage'] if x['delta_type'] == 'NO_DELTA')} with a delta", "what differs from the SAP-delivered data product"),
-                        ("Solution", f"{c['reused']} reuse / {c['extended']} extend / {c['created']} new / {c['datasphere']} Datasphere", "reuse, extend, create a new backend view, or solve in Datasphere"),
-                        ("Acquisition", ", ".join(f"{k.split('_')[0].lower()} {v}" for k, v in sorted(acq.items())) or "-", "installed product, replication flow or enrichment source"),
-                        ("Harmonize and transform", f"{c['views']} views", "system-qualified keys, currency, fiscal alignment, pre-aggregation"),
-                        ("Semantic model", f"{c['facts']} facts, {c['models']} analytic models", "facts side by side on shared dimensions"),
-                        ("Reconciliation", ", ".join(f"{k} {v}" for k, v in rc.items() if v != "-"), "scenario-level verdicts (synthetic); not a per-object proof")], selected=2), unsafe_allow_html=True)
+    diagram(AD.dataflow_svg(res, scn)[0])
     flt = st.selectbox("Show", ["All objects", "With a delta", "New backend view / customer-managed product", "Extended SAP product", "Solved in Datasphere", "Unresolved", "No delta"], key="ag_onto_filter")
     keep = {"All objects": lambda x: True, "With a delta": lambda x: x["delta_type"] != "NO_DELTA", "New backend view / customer-managed product": lambda x: x["decision"] == "CREATE_CUSTOMER_MANAGED_PRODUCT",
             "Extended SAP product": lambda x: x["decision"] in ("KEY_USER_EXTENSION", "DATA_PRODUCT_EXTENSION"), "Solved in Datasphere": lambda x: x["decision"] == "DATASPHERE_ENRICHMENT",
@@ -826,7 +838,7 @@ def _onto_concepts():
     cs = [c for c in arch.concepts() if fam in ("all", c["family"], ) or c["family"] == "shared"]
     st.write(f"{len(cs)} concepts and {len(arch.relations())} relations in the full model. Dashed = project concept; solid = SAP term (not source-checked). This is the suite's own model, not an SAP-published ontology.")
     if st.checkbox("Draw the concept graph (renders in the browser; may take a moment)", key="ag_onto_graph"):
-        st.graphviz_chart(arch.dot_ontology(fam))
+        diagram(_concept_graph(fam))
     table([{k: c[k] for k in ("label", "kind", "family", "grounding", "desc")} for c in cs], 520)
 
 
@@ -845,7 +857,7 @@ def _architecture(res, s, scn, tech):
         run = st.session_state.get("ag_live") or agents.run_request(q, res, scn)
         ev = arch.live_events(run)
         step = st.slider("Replay step", 0, len(ev), len(ev), key="ag_step")
-        st.graphviz_chart(arch.dot_live(ev, step))
+        diagram(AD.sequence_svg(ev, step)[0])
         table([{"#": i + 1, "from": e["from"], "to": e["to"], "event": e["label"], "state": e["state"]} for i, e in enumerate(ev[:max(step, 1)])])
         st.caption("Events are produced from the real orchestrator trace. The last event shows that SAP connectors are not reached in DEMO mode.")
     elif tab == "Complete architecture":
@@ -866,15 +878,15 @@ def _architecture(res, s, scn, tech):
         st.markdown(arch.BRIEF)
         st.markdown(badge(arch.BADGE, True), unsafe_allow_html=True)
     else:
-        st.markdown("**Complete landscape (all components across systems)**")
-        st.markdown(T.landscape_html(landscape.build(res, scn), "Full landscape"), unsafe_allow_html=True)
-        st.markdown("**Scenario topology**")
-        st.graphviz_chart(arch.dot_topology(s))
-        st.markdown("**Dependency graph**")
-        st.graphviz_chart(arch.dot_dependencies(s))
+        st.markdown("**Landscape across systems**")
+        diagram(AD.landscape_svg(landscape.build(res, scn), agents.catalog_view(), len(agents.TOOLS))[0])
+        st.markdown("**Agent suite architecture**")
+        diagram(AD.agent_arch_svg(res, scn)[0])
+        st.markdown("**End-to-end data flow and wiring**")
+        diagram(AD.dataflow_svg(res, scn)[0])
         for k in arch.OPTIONS:
-            st.markdown(f"**{k} chain**")
-            st.graphviz_chart(arch.dot_chain(k))
+            st.markdown(f"**Deployment option {k}**")
+            diagram(AD.deployment_svg(k, res)[0])
 
 
 def _adapters_view(res, s, scn):
@@ -890,21 +902,13 @@ def _adapters_view(res, s, scn):
 
 
 # ---------------------------------------------------------------------------------------------------- Complete architecture (all components across systems)
-LAND_VIEWS = ["Landscape diagram", "Component inventory", "System drill-down", "Flows", "Deployment options"]
-LAND_FILTERS = ["Full landscape", "Data landscape", "Agent suite and governance"]
-LEGEND = ('<div class="ag-note" style="margin:.3rem 0 .6rem">'
-          '<span style="color:#1a73c8">&#9644; data flow</span> &nbsp; <span style="color:#7a5ca8">&#9644; Finance (FI) replication / mapped FI</span> &nbsp; '
-          '<span style="color:#2e7d32">&#9548; reconciliation level and its synthetic verdict</span> &nbsp; <span style="color:#888">&#9548; reference only / optional</span> &nbsp; '
-          '<span style="color:#555">&#9644; control (request, plan, typed calls)</span> &nbsp; <span style="color:#c77700">&#9644; governance</span> &nbsp; '
-          '<span style="color:#b3261e">&#9548; blocked: SAP connectors are not reached</span> &nbsp; Dashed boxes: no live interface or optional.</div>')
-
-
+LAND_VIEWS = ["Landscape diagram", "Agent suite architecture", "Data flow", "Component inventory", "System drill-down", "Flows", "Deployment options"]
 def _complete_architecture(res, s, scn):
     L = landscape.build(res, scn)
     comps = L["components"]
     n_sys = len([c for c in comps if c["kind"] == "System"])
-    st.markdown(badge(landscape.BADGE, True) + f" &nbsp; <span class='ag-note'>Scenario {T.esc(scn)}: every component below is derived from the synthetic scenario run; "
-                "SAP product names are generic terms and nothing is tenant-verified.</span>", unsafe_allow_html=True)
+    st.markdown(badge(landscape.BADGE, True) + f"<div class='ag-note' style='margin-top:.4rem'>Scenario {T.esc(scn)}: every component below is derived from the synthetic scenario run; "
+                "SAP product names are generic terms and nothing is tenant-verified.</div>", unsafe_allow_html=True)
     st.caption("Modelled landscape. Not shown: SAP BTP, network and Cloud Connector, identity provider, Datasphere spaces and connections, SAP Analytics Cloud as a consumer. "
                "How ECC and BW reach BDC is modelled, not verified.")
     m = st.columns(5)
@@ -916,16 +920,15 @@ def _complete_architecture(res, s, scn):
     st.radio("Architecture view", LAND_VIEWS, horizontal=True, key="tabs_archview", label_visibility="collapsed")
     view = st.session_state["tabs_archview"]
     if view == "Landscape diagram":
-        flt = st.radio("Show", LAND_FILTERS, horizontal=True, key="ag_land_view")
-        st.markdown(T.landscape_html(L, flt), unsafe_allow_html=True)
-        st.caption("Columns run from source systems through Finance consolidation (Central Finance, BW), SAP Business Data Cloud and Datasphere to consumption; the agent suite, governance and the SAP "
-                   "connectors (none reached in DEMO mode) are shown below. Hover a component for its full detail; the Flows view lists every edge.")
-        d = landscape.dot(L, flt)
-        c1, c2 = st.columns([2, 3], vertical_alignment="center")
-        c1.download_button("Download diagram source (DOT)", d, f"bdc_landscape_scenario_{scn}.dot", mime="text/plain", key="ag_dl_dot")
-        if c2.checkbox("Also draw as a graph (Graphviz; slower to render)", key="ag_land_graph"):
-            st.markdown(LEGEND, unsafe_allow_html=True)
-            st.graphviz_chart(d)
+        diagram(AD.landscape_svg(L, agents.catalog_view(), len(agents.TOOLS))[0])
+        st.caption("Agents sit on top and reach systems only through read-only adapters (none configured). Zones run from source systems through Finance consolidation and SAP Business Data Cloud to Datasphere and "
+                   "consumption; numbered arrows are explained in the flow key; reconciliation levels are shown below the zones. Hover a component for its detail; the Flows view lists every edge.")
+    elif view == "Agent suite architecture":
+        diagram(AD.agent_arch_svg(res, scn)[0])
+        st.caption("Experience, orchestration (a pluggable planner behind a deterministic validator), three agents with typed tools, the tool layer, deterministic engines and synthetic evidence. "
+                   "Governance controls sit beside the layer they govern; nothing reaches SAP.")
+    elif view == "Data flow":
+        diagram(AD.dataflow_svg(res, scn)[0])
     elif view == "Component inventory":
         names = [n for _, n in L["layers"]]
         c1, c2 = st.columns(2)
@@ -957,7 +960,7 @@ def _complete_architecture(res, s, scn):
         opt = st.radio("Option", list(arch.OPTIONS), format_func=lambda k: f"{k} · {arch.OPTIONS[k]['name']}", horizontal=True, key="ag_opt")
         o = arch.OPTIONS[opt]
         st.markdown(badge(arch.BADGE, True) + f" &nbsp; Execution mode: `{o['mode']}` · {o['tag']}", unsafe_allow_html=True)
-        st.graphviz_chart(arch.dot_chain(opt))
+        diagram(AD.deployment_svg(opt, res)[0])
         c1, c2, c3 = st.columns(3)
         c1.markdown("**Who owns what**\n\n" + "\n".join(f"- **{k}:** {v}" for k, v in o["owns"].items()))
         c2.markdown("**Advantages**\n\n" + "\n".join(f"- {x}" for x in o["advantages"]))
