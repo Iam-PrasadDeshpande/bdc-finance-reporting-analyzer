@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "9a1667c51cffe3f5ddf9fc1e0b35342892c9201ba439b28fbd102eb9f09ed580",
+ "source_build_manifest_sha256": "3be34463c8ca45a2ba8e9e5c34bb254fda66a5b9c689c93afc55dc8ad3ff0677",
  "files": [
   {
    "path": ".gitignore",
@@ -144,7 +144,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "5d0b03534564fae1e34b845ae8416c2ad87b77ba47b936724441962fee15687f",
+   "sha256": "9d64709a3fed4e5d5e3b1eb580cdf020086ee84657b3d03119360a408815d338",
    "bytes": 696
   },
   {
@@ -234,17 +234,17 @@
   },
   {
    "path": "suite_theme.py",
-   "sha256": "3e8ad249f42b480a6670d2658183bf9cefc7c2c60c6a1ef6ed6be6dbf78cabf9",
-   "bytes": 30912
+   "sha256": "528558960150e0306238499c4f3c05459780016fd29416a2b7c66e09ca1e7c8e",
+   "bytes": 30977
   },
   {
    "path": "v013_page.py",
-   "sha256": "23cabf825cb738e627673fe526b9261a2a9be718a2cbd87b5fee0bbcffdf516d",
+   "sha256": "c6a4e98e2bf39af3e574bac8e96f69b47272ad15343a7d67b1dcc59a9d53f8b1",
    "bytes": 95976
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.18"
+ "release": "v0.13.19"
 }
