@@ -15,12 +15,14 @@ from typing import Any
 from . import decision as dec, mapping
 from .catalog import Catalog, CatalogError
 from .core import EVIDENCE
+from .scenarios import SYSTEMS
 from .delta import DELTA_TYPES, ROUTES, _classify, _fmt
 
 INVENTORY_SCHEMA = "bdc-delta-inventory/1"
 CATALOG_SCHEMA = "bdc-delta-catalog/1"
 LIMITS = {"max_bytes": 1_000_000, "max_objects": 200, "max_fields_per_object": 600, "max_products": 150, "max_entities_per_product": 60,
           "max_fields_per_entity": 400, "max_entities_per_business_object": 10, "max_depth": 40}
+CAP_KEYS = {"key_user_ext", "developer_ext", "odp", "cds_extraction"}  # capabilities a file may declare (dpg is never declarable)
 PROFILE = {"S4_2023": "S4A", "S4_2022": "S4B", "ECC_6_0_EHP8": "ECC01"}  # release family -> built-in capability profile
 IMPORT_EVIDENCE = "CUSTOMER_PROVIDED"
 FIELD_TYPES = {"CHAR", "NUMC", "DATS", "TIMS", "CURR", "QUAN", "DEC", "INT4", "CUKY", "UNIT", "LANG", "STRING", "CLNT"}
@@ -97,6 +99,10 @@ def validate_inventory(doc: dict) -> list[str]:
     src = doc.get("source")
     if not isinstance(src, dict) or not isinstance(src.get("release_family"), str) or src.get("release_family") not in PROFILE:
         errs.append(f"inventory: source.release_family must be one of {sorted(PROFILE)} (these select the capability profile)")
+    caps = src.get("capabilities") if isinstance(src, dict) else None
+    if caps is not None:
+        if not isinstance(caps, dict) or set(caps) - CAP_KEYS or any(not isinstance(v, bool) for v in caps.values()):
+            errs.append(f"inventory: source.capabilities must be an object with only these true/false keys: {sorted(CAP_KEYS)}")
     if doc.get("evidence", IMPORT_EVIDENCE) != IMPORT_EVIDENCE:
         errs.append(f"inventory: evidence must be {IMPORT_EVIDENCE} (imports are never upgraded)")
     objs = doc.get("objects")
@@ -200,9 +206,23 @@ def validate_catalog(doc: dict, example: bool = False) -> list[str]:
     return errs
 
 
+def _profile_for(src: dict) -> tuple[str, bool]:
+    """Capability profile for the route. A file that declares source.capabilities gets a derived profile (bounded set, idempotent);
+    otherwise the built-in profile of the release family. Returns (system key, declared_by_file)."""
+    base = PROFILE[src["release_family"]]
+    caps = src.get("capabilities")
+    if not caps:
+        return base, False
+    merged = {**SYSTEMS[base]["caps"], **caps, "dpg": False}
+    key = "IMP_" + base + "_" + "".join("1" if merged.get(k) else "0" for k in sorted(CAP_KEYS))
+    if key not in SYSTEMS:
+        SYSTEMS[key] = {**SYSTEMS[base], "caps": merged, "role": "Declared in the imported inventory (not verified)"}
+    return key, True
+
+
 def _req(inv: dict, o: dict) -> dict:
     src = inv["source"]
-    profile = PROFILE[src["release_family"]]
+    profile, _ = _profile_for(src)
     fields = {}
     for f in o["fields"]:
         fields[f["name"]] = {"type": str(f.get("type", "CHAR")).upper(), "length": f.get("length", 10), "decimals": f.get("decimals", 0),
@@ -308,7 +328,8 @@ def _run(inventory: dict, catalog_doc: dict, example: bool) -> dict:
             dtype = "FIDELITY_LOSS"
         d = dec.decide(a, req, None)
         route = FIDELITY_ROUTE if dtype == "FIDELITY_LOSS" else (ROUTES.get(d["decision"], d["decision"]) +
-                                                                  ("" if example else f" [capabilities assumed from the built-in {req['system']} profile, not read from your system]"))
+                                                                  ("" if example else (" [capabilities as declared in your inventory file; not verified against your system]" if _profile_for(inventory["source"])[1]
+                                                                                       else f" [capabilities assumed from the built-in {PROFILE[inventory['source']['release_family']]} profile, not read from your system]")))
         first = next((x for x in a["gaps"] if x["class"] != "NO_GAP"), None)
         cust_txt = ", ".join(f"{n} ({'not in the delivered product' if n in miss else 'covered by the product'})" for n in sorted(custom_names)) or "-"
         rows.append({"object": req["object"], "business_object": req["group"], "product": (f"{cand['product']} / {cand['entity']}" if cand else "none"),
