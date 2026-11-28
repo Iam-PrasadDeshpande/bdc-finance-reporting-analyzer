@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "df38a0a83e7b67f20352b0f7d73be9e90344963d2689cd358fa31740d3896339",
+ "source_build_manifest_sha256": "7ed1b38a67e2cb7a947f6532885ad99c3bc4d1d82ec683ea84b273df91189fed",
  "files": [
   {
    "path": ".gitignore",
@@ -104,8 +104,8 @@
   },
   {
    "path": "bdcwb/importer.py",
-   "sha256": "4da149fec7e026df6b8908be7aac8ab8bd72d81f45b36683c8a6014a94ed82c5",
-   "bytes": 26196
+   "sha256": "1c2870c4534cf922a3221f0555dabc632b9e8303f968e74d072217e0b1586f3e",
+   "bytes": 27673
   },
   {
    "path": "bdcwb/landscape.py",
@@ -134,7 +134,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "2b9122d3b8c1a05015b5fb8b9af268198e0f4f97b9439e7e3a727c5cb3264615",
+   "sha256": "24b3f1e45092a86e1a3a8149cae760772167da3802943e3e6a4a45fbe1994b9e",
    "bytes": 696
   },
   {
@@ -219,12 +219,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "cd64d691624da521b3754b0fc42f3a6fabd06153bbbb97b03a0e8b09be7c8a13",
-   "bytes": 81193
+   "sha256": "ac661c7b64d542258c1c7c3ece7780777a9b4074c6b0775ce710610aa1fc2cf8",
+   "bytes": 81194
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.9"
+ "release": "v0.13.10"
 }
