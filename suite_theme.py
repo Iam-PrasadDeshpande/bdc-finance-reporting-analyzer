@@ -10,7 +10,7 @@ import json
 import re
 
 THEMES = {
-    "SAP Quartz Light": {"bg": "#f5f6f7", "surface": "#ffffff", "surface2": "#f2f5f8", "ink": "#1d2d3e", "muted": "#5b738b", "line": "#d9dfe6",
+    "SAP Quartz Light": {"bg": "#f5f6f7", "surface": "#ffffff", "surface2": "#f2f5f8", "ink": "#1d2d3e", "muted": "#475c72", "line": "#d9dfe6",
                           "accent": "#0a6ed1", "on_accent": "#ffffff", "accent_soft": "#eaf3fc", "accent_line": "#b9d6f3", "ok": "#188918", "ok_soft": "#eaf6ea", "warn": "#b35c00",
                           "warn_soft": "#fff4e5", "bad": "#bb0000", "bad_soft": "#fdecec", "radius": "8px", "shadow": "0 1px 2px rgba(20,40,60,.05)", "l_source": "#2e7d32", "l_finance": "#7a5ca8", "l_bdc": "#0a6ed1", "l_dsp": "#00838f", "l_consume": "#6b7785", "l_agent": "#b8860b", "l_gov": "#c77700", "l_conn": "#bb0000", "c_fi": "#7a5ca8", "c_rec": "#2e7d32", "c_ctl": "#5b6b7b", "c_ref": "#8a95a1"},
     "SAP Quartz Dark": {"bg": "#10161c", "surface": "#1a2129", "surface2": "#222b35", "ink": "#e8edf2", "muted": "#9fb0c0", "line": "#333f4b",
@@ -172,6 +172,9 @@ svg.dg text{font-family:inherit}
 /* footer */
 .ag-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-top:1px solid var(--line);padding:.35rem 1.2rem;font-size:.72rem;color:var(--muted)}
 .ag-foot b{color:var(--ink)}
+[data-testid="stCaptionContainer"]{opacity:1!important}
+h1.ag-title{margin:0;padding:0;font-size:1.12rem;font-weight:700;line-height:1.25;letter-spacing:normal;font-family:inherit}
+@media(max-width:700px){.ag-foot{position:static;margin-top:1rem}}
 @media(max-width:900px){.ag-flow{grid-template-columns:1fr}.ag-flow .arrow{display:none}.ag-h1{font-size:1.6rem}}
 """
 _HIDE_SIDEBAR = '[data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],[data-testid="collapsedControl"]{display:none!important}'
