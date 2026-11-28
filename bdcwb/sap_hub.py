@@ -105,6 +105,29 @@ def equivalents(sim_id: str) -> dict:
             "note": ("Matched by name by this build. " if ps else "No product with this scope is in the SAP-published snapshot (Finance list plus the adjacent products). ")}
 
 
+def answer(res: dict, scn: str, text: str) -> dict:
+    """Plain-language question about the SAP-published catalog: one product (with CDS views and register link), one process tag, or the overall picture."""
+    t = lookup._norm(text)
+    names = sorted(load()["products"], key=lambda p: -len(p["name"]))
+    prod = next((p for p in names if lookup._word_in(lookup._norm(p["name"]), t)), None)
+    if prod:
+        d = detail(res, scn, prod["name"])
+        views = "; ".join(f"{v['view']} (Cloud ERP {v['cloud_erp']}, Private {v['private_edition']})" for v in d["cds_views"]) or "no standard-named CDS view in SAP's released-objects files"
+        return {"summary": d["summary"] + " Backend CDS views (name match): " + views + ". " + CDS_NOTE,
+                "data": {"kind": "product", "product": prod["id"], "ord_id": prod["ord_id"], "s4_objects": prod["s4_objects"], "cds_views": [v["view"] for v in d["cds_views"]],
+                         "register_rows": len(d["rows"])}}
+    tag = next((x for x in PROCESS_TAGS if lookup._word_in(lookup._norm(x), t)), None)
+    if tag:
+        ps = [p for p in products(True) if tag in p["processes"]]
+        return {"summary": f"SAP tags {len(ps)} Finance data products with the process '{tag}': " + ", ".join(p["name"] for p in ps[:15]) + (" ..." if len(ps) > 15 else "") + ". " + BADGE + ".",
+                "data": {"kind": "process_tag", "tag": tag, "count": len(ps), "products": [p["id"] for p in ps]}}
+    s = stats()
+    return {"summary": (f"SAP's hub lists {s['hub_total']} data products; {s['finance']} are tagged Finance (process tags: " + ", ".join(f"{k} {v}" for k, v in s["process_tags"].items()) +
+                        f"; {s['untagged']} untagged). {s['with_cds_view']} have a name-matched CDS view, {s['cds_not_released_somewhere']} of those with a view that is not released in every edition. "
+                        "Name a product or a process tag for detail. " + BADGE + "."),
+            "data": {"kind": "overview", **{k: s[k] for k in ("hub_total", "finance", "with_cds_view", "cds_not_released_somewhere")}}}
+
+
 def detail(res: dict, scn: str, name: str) -> dict:
     """One SAP-published product, and the objects of the synthetic delta register that map to it: the comparison with backend standard."""
     p = by_name(name)
