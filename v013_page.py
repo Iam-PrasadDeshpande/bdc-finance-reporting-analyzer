@@ -31,7 +31,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Diagrams"]
-RELEASE = "0.13.15"
+RELEASE = "0.13.16"
 FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
@@ -84,7 +84,8 @@ def ftable(rows, max_height: int = 0, name: str = "table") -> None:
     """A result table that shows every row (no inner scrolling), says how many there are, and can be downloaded."""
     ss = st.session_state
     ss["_ftn"] = ss.get("_ftn", 0) + 1
-    st.markdown(T.html_table(rows, 100000), unsafe_allow_html=True)
+    ss.setdefault("_tables", []).append((name, rows))          # what each table showed this run (read by the tests)
+    st.html(T.sortable_table(rows, f"ft{ss['_ftn']}_{name}", caption=name.replace("_", " ")), unsafe_allow_javascript=True)
     if rows:
         cols = []
         for r in rows:
@@ -97,7 +98,7 @@ def ftable(rows, max_height: int = 0, name: str = "table") -> None:
         for r in rows:
             w.writerow({k: ("; ".join(map(str, v)) if isinstance(v, (list, tuple)) else v) for k, v in r.items()})
         c = st.columns([5, 2])
-        c[0].caption(f"All {len(rows)} row(s) shown.")
+        c[0].caption(f"All {len(rows)} row(s) shown. Click a column header to sort; type in the box above the table to filter.")
         c[1].download_button("Download CSV", buf.getvalue().encode("utf-8-sig"), file_name=f"{name}.csv", mime="text/csv", key=f"dl_{ss['_ftn']}_{name}", width="content")
 
 
@@ -163,6 +164,39 @@ def _select_agent(agent_id: str | None) -> None:
     st.session_state["ag_sel"] = agent_id
 
 
+# ---------------------------------------------------------------------------------------------------- left navigation
+def _nav_state() -> tuple:
+    ss = st.session_state
+    return (ss.get("nav_view", "home"), ss.get("tabs_space"), ss.get("tabs_stage"), ss.get("tabs_arch"), ss.get("tabs_agents"))
+
+
+def _sidebar_nav() -> None:
+    """Persistent left navigation: the same destinations as the Menu popover, with the current page marked."""
+    view, space, stage, arch, agent_tab = _nav_state()
+
+    def item(label, key, icon, active, **go):
+        st.button(label, key=key, icon=f":material/{icon}:", on_click=_go, kwargs=go, type="primary" if active else "secondary", width="stretch")
+
+    with st.sidebar:
+        st.markdown('<div class="ag-navgroup">Start</div>', unsafe_allow_html=True)
+        item("My Home", "sn_home", "home", view == "home", view="home")
+        st.markdown('<div class="ag-navgroup">Delta journey</div>', unsafe_allow_html=True)
+        for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
+            item(f"{n} {STAGES[n - 1]['name']}", f"sn_stage{n}", icon, view == "space" and space == "Delta journey" and (stage or "").startswith(str(n)),
+                 view="space", space="Delta journey", stage=n)
+        st.markdown('<div class="ag-navgroup">Find</div>', unsafe_allow_html=True)
+        item("Process, product, SAP catalog", "sn_find", "manage_search", view == "space" and space == "Find", view="space", space="Find")
+        st.markdown('<div class="ag-navgroup">Explore</div>', unsafe_allow_html=True)
+        item("Ontology: how data flows", "sn_onto", "account_tree", view == "space" and space == "Ontology", view="space", space="Ontology")
+        item("Ask the BDC agents", "sn_ask", "smart_toy", view == "space" and space == "Agents", view="space", space="Agents", agents_tab="Ask the agents")
+        st.markdown('<div class="ag-navgroup">Architecture</div>', unsafe_allow_html=True)
+        item("Live run", "sn_live", "lan", view == "space" and space == "Architecture & operations" and arch == "Live run", view="space", space="Architecture & operations", arch_tab="Live run")
+        item("Complete architecture", "sn_arch", "schema", view == "space" and space == "Architecture & operations" and arch == "Complete architecture",
+             view="space", space="Architecture & operations", arch_tab="Complete architecture")
+        st.markdown('<div class="ag-navgroup">Earlier version</div>', unsafe_allow_html=True)
+        item("Old demo (v0.12 pages)", "sn_old", "history", view == "old", view="old")
+
+
 # ---------------------------------------------------------------------------------------------------- shell
 def shell(mode: str) -> None:
     """Top shell bar. mode: home | space | old."""
@@ -170,6 +204,7 @@ def shell(mode: str) -> None:
     title = {"home": "My Home", "space": "BDC Transition Agent Cockpit", "old": "Old demo - v0.12 reporting analyzer"}[mode]
     crumb = {"home": "BDC transition agent suite / local demo", "space": "Home / BDC / agent cockpit", "old": "Home / old demo"}[mode]
     widths = {"home": [.5, 1.3, 3.6, 2.0, 1.5, 2.9, 2.0], "space": [.5, 1.3, 3.7, .1, 1.5, 2.6, 2.0, 3.0, 2.0], "old": [.5, 1.3, 5.3, 2.4]}[mode]
+    _sidebar_nav()
     with st.container(key="shell"):
         c = st.columns(widths, vertical_alignment="center")
         c[0].button("", icon=":material/home:", key="nav_home", on_click=_go, kwargs={"view": "home"}, help="My Home")
@@ -358,6 +393,7 @@ def _fit_badge(fit: str) -> str:
 def _find(res, s, scn, tech):
     ss = st.session_state
     ss["_ftn"] = 0
+    ss["_tables"] = []
     st.markdown("##### Find a process, a data product or an SAP object")
     st.caption("Pick a view, or search across all three. Processes and demo products are synthetic; the SAP-published catalog is what SAP states publicly. Nothing is tenant-verified.")
     st.radio("Direction", FIND_DIRS, horizontal=True, key="find_dir", label_visibility="collapsed")

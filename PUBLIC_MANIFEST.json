@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "18a606dfb8f6be78e746cfa43f20e10524ff664b273139a80f001d0dd9833aaf",
+ "source_build_manifest_sha256": "0b44fd6b176fee746dffb3847a43be64b6baed2033989034e4dee562eb85c651",
  "files": [
   {
    "path": ".gitignore",
@@ -24,8 +24,8 @@
   },
   {
    "path": "app.py",
-   "sha256": "5a79e31e1a81ee01a2ba5bb72a729a76bf8350618b6a90bcc87127bab78b5c6c",
-   "bytes": 2228
+   "sha256": "baa8d11844f943413e9b071b390104bdc2079ade5db573e037b34dbba5a1da9f",
+   "bytes": 2223
   },
   {
    "path": "ar_aging_demo.py",
@@ -139,7 +139,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "0bce173945667bfa1fa11e208e97b64a019b1f63a8d3420c8a99127021ec3105",
+   "sha256": "c7ec5f224aff2838a603166ab9d04a88d969e43889e36273ca0141ed234f3941",
    "bytes": 696
   },
   {
@@ -229,17 +229,17 @@
   },
   {
    "path": "suite_theme.py",
-   "sha256": "09233331af82c80f4e3c42035ef7a1704b0c82b4470afef3112c4f372d861057",
-   "bytes": 23644
+   "sha256": "6b0327ff61f6dd9a629a275c3b2f4f4cc8a73cbb0228d926954941c0d5d3a06c",
+   "bytes": 29790
   },
   {
    "path": "v013_page.py",
-   "sha256": "9ad5bcc6d982094c5a74b3b8d690a7d741d6dc10dd68af7bae76d50d84d9aeb3",
-   "bytes": 92712
+   "sha256": "0fb964434d80d0885bc67677a5a0d2ba9b10d0a95a7b37ca869d087453ca351e",
+   "bytes": 95609
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.15"
+ "release": "v0.13.16"
 }

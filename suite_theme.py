@@ -115,6 +115,14 @@ table.ag-table{border-collapse:collapse;width:100%%;font-size:.8rem}
 table.ag-table th{position:sticky;top:0;background:var(--surface2);text-align:left;padding:.45rem .65rem;border-bottom:1px solid var(--line);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)!important;white-space:nowrap}
 table.ag-table td{padding:.42rem .65rem;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4}
 table.ag-table tr:last-child td{border-bottom:0}
+.ag-sortable .ag-tbar{display:flex;gap:.8rem;align-items:center;margin:.3rem 0 .2rem;flex-wrap:wrap}
+.ag-sortable input.ag-tfilter{flex:1 1 16rem;max-width:26rem;padding:.4rem .6rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);font-size:.85rem}
+.ag-sr{position:absolute;left:-9999px}
+.ag-sortable .ag-tcount{font-size:.8rem;color:var(--muted)}
+.ag-sortable th[data-col]{cursor:pointer;user-select:none}
+.ag-sortable th[data-col]:hover,.ag-sortable th[data-col]:focus-visible{color:var(--accent)!important;outline:2px solid var(--accent);outline-offset:-2px}
+.ag-sortable th[aria-sort="ascending"]::after{content:" ▲";font-size:.65rem}
+.ag-sortable th[aria-sort="descending"]::after{content:" ▼";font-size:.65rem}
 table.ag-table tr:hover td{background:var(--accent-soft)}
 .ag-st{display:inline-block;padding:.02rem .5rem;border-radius:99px;font-size:.72rem;font-weight:700;white-space:nowrap}
 .ag-st.ok{background:var(--ok-soft);color:var(--ok)!important}.ag-st.warn{background:var(--warn-soft);color:var(--warn)!important}.ag-st.bad{background:var(--bad-soft);color:var(--bad)!important}
@@ -175,9 +183,30 @@ svg.dg text{font-family:inherit}
 [data-testid="stCaptionContainer"]{opacity:1!important}
 h1.ag-title{margin:0;padding:0;font-size:1.12rem;font-weight:700;line-height:1.25;letter-spacing:normal;font-family:inherit}
 @media(max-width:700px){.ag-foot{position:static;margin-top:1rem}}
+/* persistent left navigation */
+[data-testid="stSidebar"]{background:var(--surface);border-right:1px solid var(--line)}
+[data-testid="stSidebar"] [data-testid="stSidebarHeader"]{height:4.4rem}
+[data-testid="stSidebarContent"] [data-testid="stSidebarUserContent"]{padding-top:0}
+[data-testid="stSidebar"] button{justify-content:flex-start;text-align:left;border-radius:var(--radius);min-height:2.2rem;padding:.2rem .7rem}
+[data-testid="stSidebar"] button[data-testid="stBaseButton-secondary"]{border-color:transparent;background:transparent}
+[data-testid="stSidebar"] button[data-testid="stBaseButton-secondary"]:hover{background:var(--accent-soft);border-color:var(--accent-line)}
+[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] p{color:var(--accent);font-weight:700}
+.ag-navgroup{font-size:.66rem;font-weight:800;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin:.9rem 0 .2rem .3rem}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell,.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .ag-foot{left:300px}
+[data-testid="stSidebar"] button>div,[data-testid="stSidebar"] button [data-testid="stMarkdownContainer"]{width:100%%;justify-content:flex-start;text-align:left}
+[data-testid="stSidebar"] button p{text-align:left}
+@media(min-width:1000px){.st-key-shell [data-testid="stPopover"]{display:none!important}}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-ag_scn{min-width:285px}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-ag_theme{min-width:200px}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell .ag-badge{display:none}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell_old{display:none}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell{width:calc(100vw - 300px);right:auto;box-sizing:border-box}
+.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell [data-testid="stHorizontalBlock"]{width:100%%!important;max-width:100%%!important}
+@media(max-width:999px){.stApp .st-key-shell,.stApp .ag-foot{left:0!important}}
 @media(max-width:900px){.ag-flow{grid-template-columns:1fr}.ag-flow .arrow{display:none}.ag-h1{font-size:1.6rem}}
 """
-_HIDE_SIDEBAR = '[data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],[data-testid="collapsedControl"]{display:none!important}'
+_HIDE_SIDEBAR = ""
 
 _OK = re.compile(r"^(COVERS_AS_IS|NO_DELTA|PASS|SYNTHETIC_PASS|OK|OFFLINE_VALIDATED|ENGINEERING_ACCEPTED_SYNTHETIC|COMPLETE|MATCH|DETECTED|True|GENERATED)$")
 _WARN = re.compile(r"^(COVERS_WITH_DELTA|NOT_USED|NOT_READY|NOT CONFIGURED|CUSTOM_FIELD|CUSTOM_OBJECT|STRUCTURAL|SEMANTIC_RULE|FIELD_GAP_STANDARD|SECURITY|NO_STANDARD_PRODUCT|UNKNOWN_CATALOG|HOLD|NOT_RUN|NOT_REACHED|UNKNOWN|UNAVAILABLE|PROPOSED|READY_FOR_AUTHORIZED_EXECUTION|INSUFFICIENT_EVIDENCE|PLANNED|PENDING)$")
@@ -203,6 +232,51 @@ def _cell(v) -> str:
 
 
 MAX_ROWS = 400  # keep the browser light: a table shows at most this many rows and says so
+
+
+_SORT_JS = """
+(function(){
+  var root=document.getElementById("__UID__"); if(!root||root.dataset.ready) return; root.dataset.ready="1";
+  var table=root.querySelector("table"), body=table.tBodies[0], rows=[].slice.call(body.rows);
+  var input=root.querySelector("input.ag-tfilter"), count=root.querySelector(".ag-tcount"), total=rows.length, dir={};
+  function val(r,i){return (r.cells[i].textContent||"").trim();}
+  function num(s){var n=parseFloat(s.replace(/[, ]/g,"")); return (s!==""&&!isNaN(n)&&isFinite(n)&&/^[-+]?[0-9.,]+$/.test(s.trim()))?n:null;}
+  function update(){var q=(input.value||"").toLowerCase(), shown=0;
+    rows.forEach(function(r){var ok=!q||r.textContent.toLowerCase().indexOf(q)>=0; r.style.display=ok?"":"none"; if(ok) shown++;});
+    count.textContent=(shown===total?"All "+total+" row(s) shown":shown+" of "+total+" row(s) match");}
+  function sort(i,th){var d=dir[i]==="ascending"?"descending":"ascending"; dir={}; dir[i]=d;
+    [].slice.call(table.tHead.rows[0].cells).forEach(function(c){c.setAttribute("aria-sort","none");}); th.setAttribute("aria-sort",d);
+    rows.sort(function(a,b){var x=val(a,i), y=val(b,i), nx=num(x), ny=num(y), c;
+      if(nx!==null&&ny!==null) c=nx-ny; else c=x.localeCompare(y,undefined,{numeric:true,sensitivity:"base"});
+      return d==="ascending"?c:-c;});
+    rows.forEach(function(r){body.appendChild(r);}); }
+  [].slice.call(table.tHead.rows[0].cells).forEach(function(th,i){th.setAttribute("data-col",i); th.setAttribute("tabindex","0"); th.setAttribute("aria-sort","none"); th.setAttribute("role","columnheader");
+    th.addEventListener("click",function(){sort(i,th);}); th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); sort(i,th);}});});
+  input.addEventListener("input",update); update();
+})();
+"""
+
+
+def sortable_table(rows: list[dict], uid: str, caption: str = "") -> str:
+    """The same table as html_table, with click-to-sort headers (keyboard accessible, aria-sort), a filter box and a live row count. uid must be unique on the page."""
+    if not rows:
+        return '<div class="ag-note">No rows.</div>'
+    uid = re.sub(r"[^A-Za-z0-9_-]", "", uid) or "t"
+    total = len(rows)
+    rows = rows[:MAX_ROWS]
+    cols: list[str] = []
+    for r in rows:
+        for k in r:
+            if k not in cols:
+                cols.append(k)
+    head = "".join(f'<th scope="col">{esc(c)}</th>' for c in cols)
+    body = "".join("<tr>" + "".join(f"<td>{_cell(r.get(c, ''))}</td>" for c in cols) + "</tr>" for r in rows)
+    more = f'<div class="ag-note">Showing {MAX_ROWS} of {total} rows.</div>' if total > MAX_ROWS else ""
+    js = _SORT_JS.replace("__UID__", uid)
+    cap = f"<caption class=\"ag-sr\">{esc(caption)}</caption>" if caption else ""
+    return (f'<div class="ag-sortable" id="{uid}"><div class="ag-tbar"><input class="ag-tfilter" type="search" aria-label="Filter the rows of this table" placeholder="Filter this table">'
+            f'<span class="ag-tcount" aria-live="polite"></span></div><div class="ag-tablewrap"><table class="ag-table">{cap}<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>{more}</div>'
+            f'<script>{js}</script>')
 
 
 def html_table(rows: list[dict], max_height: int = 420) -> str:
