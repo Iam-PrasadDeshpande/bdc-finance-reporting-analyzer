@@ -3,8 +3,9 @@
  "evidence": "PUBLIC_SAP_CATALOG_SNAPSHOT",
  "source": "SAP Business Accelerator Hub, data products, read by the owner from the public hub on 2026-11-28",
  "scope": "all 95 products tagged Lines of Business = Finance, plus a few adjacent products that are not tagged Finance",
- "not_included": "descriptions, field lists, CDS view names, lineage, tenant availability or activation state",
+ "not_included": "descriptions, field lists, lineage, tenant availability or activation state; CDS views only as name matches with their published release state",
  "hub_total_products": 334,
+ "cds_release_source": "SAP/abap-atc-cr-cv-s4hc on GitHub (Apache-2.0): objectReleaseInfoLatest.json = SAP Cloud ERP, objectReleaseInfo_PCELatest.json = SAP Cloud ERP Private; read 2026-11-28. Release state is for ABAP Cloud / clean-core use. CDS views are matched to products by name, which SAP does not publish.",
  "products": [
   {
    "id": "sap-s4com-BillableControl-v1",
@@ -31,7 +32,16 @@
    "odm_objects": [
     "BillableControlCode"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_BILLABLECONTROL",
+     "s4_object": "BillableControl",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-BillingDocument-v1",
@@ -56,7 +66,16 @@
    "odm_objects": [
     "BillingDocument"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_BILLINGDOCUMENT",
+     "s4_object": "BillingDocument",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-BillingDocumentRequest-v1",
@@ -81,7 +100,16 @@
    "odm_objects": [
     "BillingDocumentRequest"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_BILLINGDOCUMENTREQUEST",
+     "s4_object": "BillingDocumentRequest",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4pce-BudgetEntryDocument-v1",
@@ -111,7 +139,8 @@
    "odm_objects": [
     "BudgetEntryDocument"
    ],
-   "modified": "2026-06-11"
+   "modified": "2026-06-11",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-BusinessArea-v1",
@@ -138,7 +167,16 @@
    "odm_objects": [
     "BusinessArea"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_BUSINESSAREA",
+     "s4_object": "BusinessArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CashFlow-v1",
@@ -162,7 +200,8 @@
    "odm_objects": [
     "CashFlow"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4pce-CollectionsCodes-v1",
@@ -188,7 +227,8 @@
     "CollectionsPriority"
    ],
    "odm_objects": [],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4pce-CollectionsCustomerContact-v1",
@@ -212,7 +252,8 @@
    "odm_objects": [
     "CollectionsCustomerContact"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4pce-CollectionsResubmission-v1",
@@ -236,7 +277,8 @@
    "odm_objects": [
     "CollectionsResubmission"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4pce-CollectionsWorklistItem-v1",
@@ -260,7 +302,8 @@
    "odm_objects": [
     "CollectionsWorklistItem"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-Company-v1",
@@ -289,7 +332,8 @@
    "odm_objects": [
     "Company"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-CompanyCode-v1",
@@ -320,7 +364,30 @@
     "CompanyCode",
     "CompanyCodeHierarchy"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_CURRENCYROLE",
+     "s4_object": "CurrencyRole",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_COMPANYCODEHIERARCHY",
+     "s4_object": "CompanyCodeHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_COMPANYCODE",
+     "s4_object": "CompanyCode",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnBillingDocumentType-v1",
@@ -348,7 +415,16 @@
    "odm_objects": [
     "ConsolidationBillingDocumentType"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNBILLINGDOCUMENTTYPE",
+     "s4_object": "CnsldtnBillingDocumentType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnBusinessArea-v1",
@@ -376,7 +452,23 @@
    "odm_objects": [
     "ConsolidationBusinessArea"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNBUSINESSAREAHIERARCHY",
+     "s4_object": "CnsldtnBusinessAreaHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNBUSINESSAREA",
+     "s4_object": "CnsldtnBusinessArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ConsolidationChartOfAccounts-v1",
@@ -403,7 +495,8 @@
    "odm_objects": [
     "ConsolidationChartOfAccounts"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-CnsldtnControllingArea-v1",
@@ -430,7 +523,16 @@
    "odm_objects": [
     "ConsolidationControllingArea"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNCONTROLLINGAREA",
+     "s4_object": "CnsldtnControllingArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnCostCenter-v1",
@@ -458,7 +560,23 @@
    "odm_objects": [
     "ConsolidationCostCenter"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNCOSTCENTERHIERARCHY",
+     "s4_object": "CnsldtnCostCenterHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNCOSTCENTER",
+     "s4_object": "CnsldtnCostCenter",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnCountry-v1",
@@ -486,7 +604,23 @@
    "odm_objects": [
     "ConsolidationCountry"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNCOUNTRYHIERARCHY",
+     "s4_object": "CnsldtnCountryHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNCOUNTRY",
+     "s4_object": "CnsldtnCountry",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnCustomer-v1",
@@ -514,7 +648,23 @@
    "odm_objects": [
     "ConsolidationCustomer"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNCUSTOMER",
+     "s4_object": "CnsldtnCustomer",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNCUSTOMERHIERARCHY",
+     "s4_object": "CnsldtnCustomerHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnCustomerGroup-v1",
@@ -542,7 +692,16 @@
    "odm_objects": [
     "ConsolidationCustomerGroup"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNCUSTOMERGROUP",
+     "s4_object": "CnsldtnCustomerGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnDistributionChannel-v1",
@@ -570,7 +729,23 @@
    "odm_objects": [
     "ConsolidationDistributionChannel"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNDISTRIBUTIONCHANNEL",
+     "s4_object": "CnsldtnDistributionChannel",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNDISTRCHANNELHIERARCHY",
+     "s4_object": "CnsldtnDistrChannelHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnDivision-v1",
@@ -598,7 +773,23 @@
    "odm_objects": [
     "ConsolidationDivision"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNDIVISIONHIERARCHY",
+     "s4_object": "CnsldtnDivisionHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNDIVISION",
+     "s4_object": "CnsldtnDivision",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnFinancialStatementItem-v1",
@@ -626,7 +817,8 @@
    "odm_objects": [
     "ConsolidationFinancialStatementItem"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-CnsldtnFinTransactionType-v1",
@@ -654,7 +846,16 @@
    "odm_objects": [
     "ConsolidationFinancialTransactionType"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNFINTRANSTYPEHIERARCHY",
+     "s4_object": "CnsldtnFinTransTypeHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnFunctionalArea-v1",
@@ -682,7 +883,23 @@
    "odm_objects": [
     "ConsolidationFunctionalArea"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNFUNCNLAREAHIERARCHY",
+     "s4_object": "CnsldtnFuncnlAreaHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNFUNCTIONALAREA",
+     "s4_object": "CnsldtnFunctionalArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnGLAccount-v1",
@@ -710,7 +927,16 @@
    "odm_objects": [
     "ConsolidationGeneralLedgerAccount"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNGLACCOUNTHIERARCHY",
+     "s4_object": "CnsldtnGLAccountHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnGLChartOfAccounts-v1",
@@ -737,7 +963,16 @@
    "odm_objects": [
     "ConsolidationGeneralLedgerChartOfAccounts"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNGLCHARTOFACCOUNTS",
+     "s4_object": "CnsldtnGLChartOfAccounts",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ConsolidationGroup-v1",
@@ -764,7 +999,8 @@
    "odm_objects": [
     "ConsolidationGroup"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ConsolidationGroupStructure-v1",
@@ -791,7 +1027,8 @@
    "odm_objects": [
     "ConsolidationGroupStructure"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-CnsldtnIndustry-v1",
@@ -819,7 +1056,23 @@
    "odm_objects": [
     "ConsolidationIndustry"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNINDUSTRYHIERARCHY",
+     "s4_object": "CnsldtnIndustryHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNINDUSTRY",
+     "s4_object": "CnsldtnIndustry",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnMaterial-v1",
@@ -847,7 +1100,23 @@
    "odm_objects": [
     "ConsolidationMaterial"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNMATERIALHIERARCHY",
+     "s4_object": "CnsldtnMaterialHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNMATERIAL",
+     "s4_object": "CnsldtnMaterial",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnMaterialGroup-v1",
@@ -875,7 +1144,16 @@
    "odm_objects": [
     "ConsolidationMaterialGroup"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNMATERIALGROUP",
+     "s4_object": "CnsldtnMaterialGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnOrder-v1",
@@ -902,7 +1180,16 @@
    "odm_objects": [
     "ConsolidationOrder"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNORDER",
+     "s4_object": "CnsldtnOrder",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnPlant-v1",
@@ -930,7 +1217,23 @@
    "odm_objects": [
     "ConsolidationPlant"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNPLANT",
+     "s4_object": "CnsldtnPlant",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNPLANTHIERARCHY",
+     "s4_object": "CnsldtnPlantHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnProduct-v1",
@@ -958,7 +1261,23 @@
    "odm_objects": [
     "ConsolidationProduct"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNPRODUCTHIERARCHY",
+     "s4_object": "CnsldtnProductHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNPRODUCT",
+     "s4_object": "CnsldtnProduct",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnProductGroup-v1",
@@ -986,7 +1305,23 @@
    "odm_objects": [
     "ConsolidationProductGroup"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNPRODUCTGROUP",
+     "s4_object": "CnsldtnProductGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNPRODUCTGROUPHIERARCHY",
+     "s4_object": "CnsldtnProductGroupHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnProfitCenter-v1",
@@ -1014,7 +1349,23 @@
    "odm_objects": [
     "ConsolidationProfitCenter"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNPROFITCENTERHIERARCHY",
+     "s4_object": "CnsldtnProfitCenterHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNPROFITCENTER",
+     "s4_object": "CnsldtnProfitCenter",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnSalesDistrict-v1",
@@ -1042,7 +1393,16 @@
    "odm_objects": [
     "ConsolidationSalesDistrict"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNSALESDISTRICT",
+     "s4_object": "CnsldtnSalesDistrict",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnSalesOrganization-v1",
@@ -1070,7 +1430,23 @@
    "odm_objects": [
     "ConsolidationSalesOrganization"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNSALESORGHIERARCHY",
+     "s4_object": "CnsldtnSalesOrgHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNSALESORGANIZATION",
+     "s4_object": "CnsldtnSalesOrganization",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CnsldtnSegment-v1",
@@ -1098,7 +1474,23 @@
    "odm_objects": [
     "ConsolidationSegment"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNSEGMENT",
+     "s4_object": "CnsldtnSegment",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNSEGMENTHIERARCHY",
+     "s4_object": "CnsldtnSegmentHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ConsolidationSubitem-v1",
@@ -1128,7 +1520,8 @@
     "ConsolidationSubitemCategory",
     "ConsolidationSubitem"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-CnsldtnSupplier-v1",
@@ -1156,7 +1549,23 @@
    "odm_objects": [
     "ConsolidationSupplier"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CNSLDTNSUPPLIERHIERARCHY",
+     "s4_object": "CnsldtnSupplierHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CNSLDTNSUPPLIER",
+     "s4_object": "CnsldtnSupplier",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ConsolidationUnit-v1",
@@ -1184,7 +1593,8 @@
    "odm_objects": [
     "ConsolidationUnit"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ConsolidationVersion-v1",
@@ -1211,7 +1621,8 @@
    "odm_objects": [
     "ConsolidationVersion"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ContrAcctgDocument-v1",
@@ -1238,7 +1649,8 @@
    "odm_objects": [
     "ContractAccountingDocument"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ControllingArea-v1",
@@ -1266,7 +1678,16 @@
    "odm_objects": [
     "ControllingArea"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_CONTROLLINGAREA",
+     "s4_object": "ControllingArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ControllingObject-v1",
@@ -1293,7 +1714,23 @@
     "ControllingObjectClass"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_CONTROLLINGOBJECT",
+     "s4_object": "ControllingObject",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CONTROLLINGOBJECTCLASS",
+     "s4_object": "ControllingObjectClass",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CostAnalysisResource-v1",
@@ -1321,7 +1758,16 @@
    "odm_objects": [
     "CostAnalysisResource"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_COSTANALYSISRESOURCE",
+     "s4_object": "CostAnalysisResource",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CostCenter-v1",
@@ -1354,7 +1800,30 @@
     "CostCenterCategoryCode",
     "CostCenter"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_COSTCENTERHIERARCHY",
+     "s4_object": "CostCenterHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_COSTCENTERCATEGORY",
+     "s4_object": "CostCenterCategory",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_COSTCENTER",
+     "s4_object": "CostCenter",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CostCenterActivityType-v1",
@@ -1386,7 +1855,23 @@
     "CostCenterActivityType",
     "CostCtrActivityTypeHierarchy"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_COSTCENTERACTIVITYTYPE",
+     "s4_object": "CostCenterActivityType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_COSTCTRACTIVITYTYPEHIERARCHY",
+     "s4_object": "CostCtrActivityTypeHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CostOriginGroup-v1",
@@ -1409,7 +1894,16 @@
     "CostOriginGroup"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_COSTORIGINGROUP",
+     "s4_object": "CostOriginGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CostingValuationVariant-v1",
@@ -1432,7 +1926,16 @@
     "CostingValuationVariant"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_COSTINGVALUATIONVARIANT",
+     "s4_object": "CostingValuationVariant",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-Country-v1",
@@ -1463,7 +1966,23 @@
     "CountryCode",
     "CountrySubdivisionCode"
    ],
-   "modified": "2026-04-14"
+   "modified": "2026-04-14",
+   "cds_views": [
+    {
+     "view": "I_COUNTRY",
+     "s4_object": "Country",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_REGION",
+     "s4_object": "Region",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CreditMemoRequest-v1",
@@ -1488,7 +2007,16 @@
    "odm_objects": [
     "CreditMemoRequest"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CREDITMEMOREQUEST",
+     "s4_object": "CreditMemoRequest",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-Customer-v1",
@@ -1515,7 +2043,16 @@
    "odm_objects": [
     "BusinessPartner"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CUSTOMER",
+     "s4_object": "Customer",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-CustomerReturn-v1",
@@ -1540,7 +2077,16 @@
    "odm_objects": [
     "CustomerReturn"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_CUSTOMERRETURN",
+     "s4_object": "CustomerReturn",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-DebitMemoRequest-v1",
@@ -1565,7 +2111,16 @@
    "odm_objects": [
     "DebitMemoRequest"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_DEBITMEMOREQUEST",
+     "s4_object": "DebitMemoRequest",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-DunningBlockingReason-v1",
@@ -1585,7 +2140,8 @@
     "DunningBlockingReason"
    ],
    "odm_objects": [],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-EntryViewJournalEntry-v1",
@@ -1608,7 +2164,8 @@
    ],
    "s4_objects": [],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-FinancialPlanningEntryItem-v1",
@@ -1636,7 +2193,23 @@
    "odm_objects": [
     "FinancialPlanningEntryItem"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_FINANCIALPLANNINGENTRYITEM",
+     "s4_object": "FinancialPlanningEntryItem",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PLANNINGCATEGORY",
+     "s4_object": "PlanningCategory",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-FiscalYear-v1",
@@ -1667,7 +2240,23 @@
     "FiscalYear",
     "FiscalYearVariantCode"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_FISCALYEAR",
+     "s4_object": "FiscalYear",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_FISCALYEARVARIANT",
+     "s4_object": "FiscalYearVariant",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-FunctionalArea-v1",
@@ -1697,7 +2286,23 @@
     "FunctionalAreaHierarchy",
     "FunctionalArea"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_FUNCTIONALAREA",
+     "s4_object": "FunctionalArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_FUNCTIONALAREAHIERARCHY",
+     "s4_object": "FunctionalAreaHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-GeneralLedgerAccount-v1",
@@ -1739,7 +2344,37 @@
     "ChartOfAccounts",
     "FinancialStatementHierarchy"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_SEMANTICTAG",
+     "s4_object": "SemanticTag",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CHARTOFACCOUNTS",
+     "s4_object": "ChartOfAccounts",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_GLACCOUNTTYPEFLOWTYPE",
+     "s4_object": "GLAccountTypeFlowType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_FINANCIALSTATEMENTHIERARCHY",
+     "s4_object": "FinancialStatementHierarchy",
+     "cloud_erp": "deprecated",
+     "private_edition": "deprecated",
+     "successor_class": "oneObject"
+    }
+   ]
   },
   {
    "id": "sap-s4com-HANACurrency-v1",
@@ -1764,7 +2399,8 @@
    ],
    "s4_objects": [],
    "odm_objects": [],
-   "modified": "2026-04-14"
+   "modified": "2026-04-14",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-HouseBank-v1",
@@ -1793,7 +2429,16 @@
    "odm_objects": [
     "HouseBank"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_HOUSEBANK",
+     "s4_object": "HouseBank",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-InternalOrder-v1",
@@ -1821,7 +2466,16 @@
    "odm_objects": [
     "InternalOrder"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_INTERNALORDER",
+     "s4_object": "InternalOrder",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-JournalEntryCodes-v1",
@@ -1853,7 +2507,44 @@
     "BusinessTransactionCategory"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_REVERSALREASON",
+     "s4_object": "ReversalReason",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_FINANCIALTRANSACTIONTYPE",
+     "s4_object": "FinancialTransactionType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_BUSINESSTRANSACTIONTYPE",
+     "s4_object": "BusinessTransactionType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_REFERENCEDOCUMENTTYPE",
+     "s4_object": "ReferenceDocumentType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_BUSINESSTRANSACTIONCATEGORY",
+     "s4_object": "BusinessTransactionCategory",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-JournalEntryHeader-v1",
@@ -1881,7 +2572,16 @@
    "odm_objects": [
     "JournalEntry"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_JOURNALENTRY",
+     "s4_object": "JournalEntry",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-JournalEntryItemCodes-v1",
@@ -1915,7 +2615,37 @@
     "AssetAcctTransClassification"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_FINANCIALACCOUNTTYPE",
+     "s4_object": "FinancialAccountType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_CONTROLLINGDEBITCREDITCODE",
+     "s4_object": "ControllingDebitCreditCode",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_DEBITCREDITCODE",
+     "s4_object": "DebitCreditCode",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_POSTINGKEY",
+     "s4_object": "PostingKey",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-Ledger-v1",
@@ -1943,7 +2673,16 @@
    "odm_objects": [
     "Ledger"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_LEDGER",
+     "s4_object": "Ledger",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-OperatingConcern-v1",
@@ -1969,7 +2708,16 @@
     "OperatingConcern"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_OPERATINGCONCERN",
+     "s4_object": "OperatingConcern",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PaymentMethod-v1",
@@ -1996,7 +2744,16 @@
    "odm_objects": [
     "PaymentMethodCode"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_PAYMENTMETHOD",
+     "s4_object": "PaymentMethod",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PaymentTerms-v1",
@@ -2021,7 +2778,16 @@
    "odm_objects": [
     "PaymentTerms"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_PAYMENTTERMS",
+     "s4_object": "PaymentTerms",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PreliminaryBillingDocument-v1",
@@ -2046,7 +2812,8 @@
    "odm_objects": [
     "PreliminaryBillingDocument"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-Product-v1",
@@ -2076,7 +2843,23 @@
     "ProductGroup",
     "Product"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_PRODUCTGROUP",
+     "s4_object": "ProductGroup",
+     "cloud_erp": "released",
+     "private_edition": "not listed",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PRODUCT",
+     "s4_object": "Product",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-ProfitCenter-v1",
@@ -2105,7 +2888,23 @@
     "ProfitCenterHierarchy",
     "ProfitCenter"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PROFITCENTERHIERARCHY",
+     "s4_object": "ProfitCenterHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PROFITCENTER",
+     "s4_object": "ProfitCenter",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4pce-PromiseToPay-v1",
@@ -2129,7 +2928,8 @@
    "odm_objects": [
     "PromiseToPay"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-PurchasingOrganization-v1",
@@ -2157,7 +2957,16 @@
    "odm_objects": [
     "PurchasingOrganization"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PURCHASINGORGANIZATION",
+     "s4_object": "PurchasingOrganization",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesContract-v1",
@@ -2182,7 +2991,16 @@
    "odm_objects": [
     "SalesContract"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESCONTRACT",
+     "s4_object": "SalesContract",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4pce-SalesInquiry-v1",
@@ -2206,7 +3024,16 @@
    "odm_objects": [
     "SalesInquiry"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESINQUIRY",
+     "s4_object": "SalesInquiry",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesOrder-v1",
@@ -2231,7 +3058,16 @@
    "odm_objects": [
     "SalesOrder"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESORDER",
+     "s4_object": "SalesOrder",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesOrderWithoutCharge-v1",
@@ -2256,7 +3092,16 @@
    "odm_objects": [
     "SalesOrderWithoutCharge"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESORDERWITHOUTCHARGE",
+     "s4_object": "SalesOrderWithoutCharge",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesOrganizationalStructure-v1",
@@ -2298,7 +3143,79 @@
     "SalesArea",
     "SalesOrganization"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESGROUP",
+     "s4_object": "SalesGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_DISTRIBUTIONCHANNEL",
+     "s4_object": "DistributionChannel",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESDISTRICT",
+     "s4_object": "SalesDistrict",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESORGANIZATION",
+     "s4_object": "SalesOrganization",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESOFFICE",
+     "s4_object": "SalesOffice",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESDISTRICTHIERARCHY",
+     "s4_object": "SalesDistrictHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESAREA",
+     "s4_object": "SalesArea",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_DIVISION",
+     "s4_object": "Division",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_DIVISIONHIERARCHY",
+     "s4_object": "DivisionHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SALESORGANIZATIONHIERARCHY",
+     "s4_object": "SalesOrganizationHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesQuotation-v1",
@@ -2323,7 +3240,16 @@
    "odm_objects": [
     "SalesQuotation"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SALESQUOTATION",
+     "s4_object": "SalesQuotation",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SalesSchedulingAgreement-v1",
@@ -2348,7 +3274,8 @@
    "odm_objects": [
     "SalesSchedulingAgreement"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-SalesTaxCode-v1",
@@ -2371,7 +3298,8 @@
     "SalesTaxCode"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-SalesTaxType-v1",
@@ -2394,7 +3322,8 @@
     "SalesTaxType"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-SecuritiesAccount-v1",
@@ -2422,7 +3351,8 @@
    "odm_objects": [
     "SecuritiesAccount"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-SecurityClass-v1",
@@ -2450,7 +3380,30 @@
    "odm_objects": [
     "SecurityClass"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SECURITYCLASSQUOTATION",
+     "s4_object": "SecurityClassQuotation",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SECURITYCLASS",
+     "s4_object": "SecurityClass",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SECURITYCLASSTRANSFERTYPE",
+     "s4_object": "SecurityClassTransferType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-Segment-v1",
@@ -2478,7 +3431,23 @@
    "odm_objects": [
     "Segment"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_SEGMENT",
+     "s4_object": "Segment",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SEGMENTHIERARCHY",
+     "s4_object": "SegmentHierarchy",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-StatisticalKeyFigure-v1",
@@ -2505,7 +3474,16 @@
    "odm_objects": [
     "StatisticalKeyFigure"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_STATISTICALKEYFIGURE",
+     "s4_object": "StatisticalKeyFigure",
+     "cloud_erp": "released",
+     "private_edition": "not listed",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-Supplier-v1",
@@ -2532,7 +3510,16 @@
    "odm_objects": [
     "BusinessPartner"
    ],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_SUPPLIER",
+     "s4_object": "Supplier",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-TaxJurisdiction-v1",
@@ -2557,7 +3544,16 @@
    "odm_objects": [
     "TaxJurisdictionCode"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_TAXJURISDICTION",
+     "s4_object": "TaxJurisdiction",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-US_TaxSourcing-v1",
@@ -2580,7 +3576,8 @@
     "US_TaxSourcing"
    ],
    "odm_objects": [],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-WithholdingTaxCode-v1",
@@ -2602,7 +3599,16 @@
     "WithholdingTaxCode"
    ],
    "odm_objects": [],
-   "modified": "2026-09-01"
+   "modified": "2026-09-01",
+   "cds_views": [
+    {
+     "view": "I_WITHHOLDINGTAXCODE",
+     "s4_object": "WithholdingTaxCode",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-AccountingCostRate-v1",
@@ -2625,7 +3631,8 @@
    "odm_objects": [
     "AccountingCostRate"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-PhysicalInventoryDocument-v1",
@@ -2656,7 +3663,8 @@
    "odm_objects": [
     "PhysicalInventoryDocument"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ProcurementConfigurationData-v1",
@@ -2703,7 +3711,107 @@
     "PurchasingOrganizationPlantAssignment",
     "PurchasingGroup"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PRICINGDATECONTROL",
+     "s4_object": "PricingDateControl",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASECONTRACTTYPE",
+     "s4_object": "PurchaseContractType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASINGDOCUMENTCATEGORY",
+     "s4_object": "PurchasingDocumentCategory",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SUPPLIERINVOICESTATUSAPI01",
+     "s4_object": "SupplierInvoiceStatus",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURGAGGRGDPRODCMPLNCSUPLRSTS",
+     "s4_object": "PurgAggrgdProdCmplncSuplrSts",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASINGDOCUMENTSTATUS",
+     "s4_object": "PurchasingDocumentStatus",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASINGDOCUMENTTYPE",
+     "s4_object": "PurchasingDocumentType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURGPRODCMPLNCSUPPLIERSTATUS",
+     "s4_object": "PurgProdCmplncSupplierStatus",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURGSAFETYDATASHEETSTATUS",
+     "s4_object": "PurgSafetyDataSheetStatus",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_SUPPLIERCONFIRMATIONCATEGORY",
+     "s4_object": "SupplierConfirmationCategory",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASEREQUISITIONTYPE",
+     "s4_object": "PurchaseRequisitionType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASINGDOCUMENTORIGIN",
+     "s4_object": "PurchasingDocumentOrigin",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASEORDERTYPE",
+     "s4_object": "PurchaseOrderType",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASINGGROUP",
+     "s4_object": "PurchasingGroup",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PurchaseContract-v1",
@@ -2726,7 +3834,16 @@
    "odm_objects": [
     "PurchaseContract"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PURCHASECONTRACTAPI01",
+     "s4_object": "PurchaseContract",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PurchaseOrder-v1",
@@ -2749,7 +3866,23 @@
    "odm_objects": [
     "PurchaseOrder"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PURCHASEORDER",
+     "s4_object": "PurchaseOrder",
+     "cloud_erp": "not listed",
+     "private_edition": "notToBeReleasedStable",
+     "successor_class": ""
+    },
+    {
+     "view": "I_PURCHASEORDERAPI01",
+     "s4_object": "PurchaseOrder",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PurchaseRequisition-v1",
@@ -2772,7 +3905,16 @@
    "odm_objects": [
     "PurchaseRequisition"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PURCHASEREQUISITIONAPI01",
+     "s4_object": "PurchaseRequisition",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PurchaseSchedulingAgreement-v1",
@@ -2795,7 +3937,8 @@
    "odm_objects": [
     "PurchaseSchedulingAgreement"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-PurchasingInfoRecord-v1",
@@ -2818,7 +3961,16 @@
    "odm_objects": [
     "PurchasingInfoRecord"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_PURCHASINGINFORECORDAPI01",
+     "s4_object": "PurchasingInfoRecord",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-PurchasingSourceList-v1",
@@ -2841,7 +3993,8 @@
    "odm_objects": [
     "PurchasingSourceList"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-RequestForQuotation-v1",
@@ -2864,7 +4017,8 @@
    "odm_objects": [
     "RequestForQuotation"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ReservationDocument-v1",
@@ -2888,7 +4042,8 @@
    "odm_objects": [
     "ReservationDocument"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   },
   {
    "id": "sap-s4com-ServiceEntrySheet-v1",
@@ -2911,7 +4066,16 @@
    "odm_objects": [
     "ServiceEntrySheet"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_SERVICEENTRYSHEETAPI01",
+     "s4_object": "ServiceEntrySheet",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SupplierInvoice-v1",
@@ -2934,7 +4098,16 @@
    "odm_objects": [
     "SupplierInvoice"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": [
+    {
+     "view": "I_SUPPLIERINVOICEAPI01",
+     "s4_object": "SupplierInvoice",
+     "cloud_erp": "released",
+     "private_edition": "released",
+     "successor_class": ""
+    }
+   ]
   },
   {
    "id": "sap-s4com-SupplierQuotation-v1",
@@ -2957,7 +4130,8 @@
    "odm_objects": [
     "SupplierQuotation"
    ],
-   "modified": "2026-09-10"
+   "modified": "2026-09-10",
+   "cds_views": []
   }
  ]
 }

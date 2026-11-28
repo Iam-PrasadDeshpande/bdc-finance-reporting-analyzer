@@ -29,7 +29,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.11"
+RELEASE = "0.13.12"
 FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
@@ -381,11 +381,12 @@ def _hub_for_product(pid):
 def _find_hub(res, scn):
     s = sap_hub.stats()
     st.markdown(T.badge(sap_hub.BADGE, "warn"), unsafe_allow_html=True)
-    m = st.columns(4)
+    m = st.columns(5)
     m[0].metric("Products on the SAP hub", s["hub_total"])
     m[1].metric("Tagged Finance", s["finance"])
     m[2].metric("With an S/4 business object", s["with_s4_object"])
-    m[3].metric("SAP components responsible", s["components"])
+    m[3].metric("With a name-matched CDS view", s["with_cds_view"])
+    m[4].metric("SAP components responsible", s["components"])
     st.caption("Process tags SAP puts on Finance products: " + ", ".join(f"{k} {v}" for k, v in s["process_tags"].items()) + f"; {s['untagged']} carry no process tag. "
                "SAP states no 'Order to Cash' or AR/AP aging product for Finance in this list.")
     c = st.columns([2, 2, 3, 2])
@@ -398,7 +399,7 @@ def _find_hub(res, scn):
     st.markdown(f"##### {len(rows)} SAP data product(s)")
     table([{"data product": p["name"], "version": p["version"], "component": p["component"], "process tags": ", ".join(p["processes"]) or "-",
             "editions": ", ".join(p["editions"]) or "-", "S/4 object": ", ".join(p["s4_objects"][:3]) or "-", "ODM object": ", ".join(p["odm_objects"][:2]) or "-",
-            "category": p["category"]} for p in rows] or [{"data product": "none match the filters"}], 380)
+            "CDS views (name match)": ", ".join(v["view"] for v in p.get("cds_views", [])[:2]) or "-", "category": p["category"]} for p in rows] or [{"data product": "none match the filters"}], 380)
     if not rows:
         return
     names = [p["name"] for p in rows]
@@ -412,6 +413,13 @@ def _find_hub(res, scn):
             "editions": ", ".join(p["editions"]) or "-", "process tags": ", ".join(p["processes"]) or "-"}], 200)
     st.markdown("##### Backend standard anchor")
     table([{"S/4HANA business objects": ", ".join(p["s4_objects"]) or "none stated", "ODM business objects (cross-product model)": ", ".join(p["odm_objects"]) or "none stated"}], 200)
+    st.markdown("##### Backend CDS views and their release state")
+    if d["cds_views"]:
+        table([{"CDS view": v["view"], "for S/4 object": v["s4_object"], "SAP Cloud ERP": v["cloud_erp"], "SAP Cloud ERP Private": v["private_edition"],
+                "successor": v["successor_class"] or "-"} for v in d["cds_views"]], 260)
+    else:
+        st.caption("No CDS view with the standard name for this product's S/4 object is in SAP's released-objects files.")
+    st.caption(sap_hub.CDS_NOTE)
     st.markdown(f"##### Our delta register against this product (scenario {T.esc(scn)})")
     if d["rows"]:
         table([{"object": r["object"], "system": r["system"], "SAP object": r["sap_object"], "our catalog product": r["our product"], "delta": r["delta"],

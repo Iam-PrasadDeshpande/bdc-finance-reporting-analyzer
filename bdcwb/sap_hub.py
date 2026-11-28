@@ -15,6 +15,8 @@ from . import lookup
 
 SNAPSHOT = Path(__file__).resolve().parents[1] / "data" / "public_demo" / "sap_hub_finance_SNAPSHOT.json"
 BADGE = "SAP-PUBLISHED CATALOG SNAPSHOT (READ 2026-11-28) - NOT TENANT-VERIFIED"
+CDS_NOTE = ("CDS views are matched to the product by name (I_<S/4 object>, optionally with an API suffix); SAP does not publish which view feeds a data product. "
+            "The release state is SAP's state for ABAP Cloud (clean-core) use per edition, not a statement that the view is extraction-enabled or activated in a tenant.")
 PROCESS_TAGS = ["Record to Report", "Procure to Pay", "Hire to Retire"]          # the only process tags SAP puts on Finance products
 HUB_TAG_FOR = {"P2P": "Procure to Pay", "R2R": "Record to Report"}              # our taxonomy id -> SAP's process tag (others have no equivalent tag)
 
@@ -59,7 +61,8 @@ def stats() -> dict:
     tags = {t: sum(1 for p in fin if t in p["processes"]) for t in PROCESS_TAGS}
     return {"hub_total": load()["hub_total_products"], "finance": len(fin), "adjacent": len(products()) - len(fin), "process_tags": tags,
             "untagged": sum(1 for p in fin if not p["processes"]), "business_object_products": sum(1 for p in fin if p["category"] == "business-object"),
-            "with_s4_object": sum(1 for p in fin if p["s4_objects"]), "components": len({p["component"] for p in fin})}
+            "with_s4_object": sum(1 for p in fin if p["s4_objects"]), "with_cds_view": sum(1 for p in fin if p.get("cds_views")),
+            "cds_not_released_somewhere": sum(1 for p in fin if any(v["cloud_erp"] != "released" or v["private_edition"] != "released" for v in p.get("cds_views", []))), "components": len({p["component"] for p in fin})}
 
 
 def browse(process: str = "", area_: str = "", text: str = "", include_adjacent: bool = False) -> list[dict]:
@@ -111,7 +114,7 @@ def detail(res: dict, scn: str, name: str) -> dict:
     rows_by_group = lookup._group_rows(res["scenarios"][scn])
     rows = [{"object": lookup._grain(g), "system": r["system"], "sap_object": r["sap_object"], "our product": r["product"], "delta": r["delta_type"],
              "solution": r["route"], "customization": r["kind"] == "Customization"} for g in groups for r in rows_by_group.get(g, [])]
-    return {"found": True, "product": p, "groups": groups, "rows": rows,
+    return {"found": True, "product": p, "groups": groups, "rows": rows, "cds_views": p.get("cds_views", []),
             "summary": (f"{p['name']} v{p['version']} ({p['ord_id']}) is published by SAP for " + ", ".join(p["editions"]) + ". Backend standard anchor: " +
                         (", ".join(p["s4_objects"]) or "none stated") + "." +
                         (f" {len(rows)} object(s) in the scenario map to it; {sum(1 for r in rows if r['delta'] != 'NO_DELTA')} differ." if rows else
