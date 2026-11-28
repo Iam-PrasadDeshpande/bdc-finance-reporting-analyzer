@@ -1,0 +1,2963 @@
+{
+ "schema": "bdc-hub-snapshot/1",
+ "evidence": "PUBLIC_SAP_CATALOG_SNAPSHOT",
+ "source": "SAP Business Accelerator Hub, data products, read by the owner from the public hub on 2026-11-28",
+ "scope": "all 95 products tagged Lines of Business = Finance, plus a few adjacent products that are not tagged Finance",
+ "not_included": "descriptions, field lists, CDS view names, lineage, tenant availability or activation state",
+ "hub_total_products": 334,
+ "products": [
+  {
+   "id": "sap-s4com-BillableControl-v1",
+   "name": "Billable Control",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:BillableControl:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "BillableControl"
+   ],
+   "odm_objects": [
+    "BillableControlCode"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-BillingDocument-v1",
+   "name": "Billing Document",
+   "version": "1.0.3",
+   "ord_id": "sap.s4com:dataProduct:BillingDocument:v1",
+   "state": "ACTIVE",
+   "component": "SD-BIL",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "BillingDocument"
+   ],
+   "odm_objects": [
+    "BillingDocument"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-BillingDocumentRequest-v1",
+   "name": "Billing Document Request",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:BillingDocumentRequest:v1",
+   "state": "ACTIVE",
+   "component": "SD-BIL-BDR",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "BillingDocumentRequest"
+   ],
+   "odm_objects": [
+    "BillingDocumentRequest"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-BudgetEntryDocument-v1",
+   "name": "Budget Entry Document",
+   "version": "1.0.0",
+   "ord_id": "sap.s4pce:dataProduct:BudgetEntryDocument:v1",
+   "state": "ACTIVE",
+   "component": "PSM-FM-BCS-BU",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [],
+   "s4_objects": [
+    "FundsMgmtBudgetUsageState",
+    "FndsMgmtBdgtEntrDocumentStatus",
+    "BudgetCategory",
+    "FndsMgmtOriginalBudgetingAppl",
+    "FundsMgmtBudgetEntryDocType",
+    "FundsManagementBudgetType",
+    "BudgetProcess",
+    "FndsMgmtBdgtEntryDocRvslStatus",
+    "BudgetEntryDocument"
+   ],
+   "odm_objects": [
+    "BudgetEntryDocument"
+   ],
+   "modified": "2026-06-11"
+  },
+  {
+   "id": "sap-s4com-BusinessArea-v1",
+   "name": "Business Area",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:BusinessArea:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-A",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "BusinessArea"
+   ],
+   "odm_objects": [
+    "BusinessArea"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CashFlow-v1",
+   "name": "Cash Flow",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:CashFlow:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-FQM",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [],
+   "s4_objects": [
+    "CashFlow"
+   ],
+   "odm_objects": [
+    "CashFlow"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-CollectionsCodes-v1",
+   "name": "Collections Codes",
+   "version": "1.1.0",
+   "ord_id": "sap.s4pce:dataProduct:CollectionsCodes:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-COL",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CollectionsGroup",
+    "CollectionsSegment",
+    "CollectionsPriority"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-CollectionsCustomerContact-v1",
+   "name": "Collections Customer Contact",
+   "version": "1.1.1",
+   "ord_id": "sap.s4pce:dataProduct:CollectionsCustomerContact:v1",
+   "state": "ACTIVE",
+   "component": "FI-AR-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CollectionsCustomerContact"
+   ],
+   "odm_objects": [
+    "CollectionsCustomerContact"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-CollectionsResubmission-v1",
+   "name": "Collections Resubmission",
+   "version": "1.1.1",
+   "ord_id": "sap.s4pce:dataProduct:CollectionsResubmission:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-COL",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CollectionsResubmission"
+   ],
+   "odm_objects": [
+    "CollectionsResubmission"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-CollectionsWorklistItem-v1",
+   "name": "Collections Worklist Item",
+   "version": "1.1.1",
+   "ord_id": "sap.s4pce:dataProduct:CollectionsWorklistItem:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-COL",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CollectionsWorklistItem"
+   ],
+   "odm_objects": [
+    "CollectionsWorklistItem"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-Company-v1",
+   "name": "Company",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:Company:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Company"
+   ],
+   "odm_objects": [
+    "Company"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CompanyCode-v1",
+   "name": "Company Code",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:CompanyCode:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CurrencyRole",
+    "CompanyCodeHierarchy",
+    "CompanyCode"
+   ],
+   "odm_objects": [
+    "CompanyCode",
+    "CompanyCodeHierarchy"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CnsldtnBillingDocumentType-v1",
+   "name": "Consolidation Billing Document Type",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnBillingDocumentType:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnBillingDocumentType",
+    "CnsldtnBillingDocTypeHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationBillingDocumentType"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnBusinessArea-v1",
+   "name": "Consolidation Business Area",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnBusinessArea:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnBusinessAreaHierarchy",
+    "CnsldtnBusinessArea"
+   ],
+   "odm_objects": [
+    "ConsolidationBusinessArea"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationChartOfAccounts-v1",
+   "name": "Consolidation Chart Of Accounts",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationChartOfAccounts:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationChartOfAccounts"
+   ],
+   "odm_objects": [
+    "ConsolidationChartOfAccounts"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnControllingArea-v1",
+   "name": "Consolidation Controlling Area",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnControllingArea:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnControllingArea"
+   ],
+   "odm_objects": [
+    "ConsolidationControllingArea"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnCostCenter-v1",
+   "name": "Consolidation Cost Center",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnCostCenter:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnCostCenterHierarchy",
+    "CnsldtnCostCenter"
+   ],
+   "odm_objects": [
+    "ConsolidationCostCenter"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnCountry-v1",
+   "name": "Consolidation Country",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnCountry:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnCountryHierarchy",
+    "CnsldtnCountry"
+   ],
+   "odm_objects": [
+    "ConsolidationCountry"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnCustomer-v1",
+   "name": "Consolidation Customer",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnCustomer:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnCustomer",
+    "CnsldtnCustomerHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationCustomer"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnCustomerGroup-v1",
+   "name": "Consolidation Customer Group",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnCustomerGroup:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnCustomerGroup",
+    "CnsldtnCustomerGroupHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationCustomerGroup"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnDistributionChannel-v1",
+   "name": "Consolidation Distribution Channel",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnDistributionChannel:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnDistributionChannel",
+    "CnsldtnDistrChannelHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationDistributionChannel"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnDivision-v1",
+   "name": "Consolidation Division",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnDivision:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnDivisionHierarchy",
+    "CnsldtnDivision"
+   ],
+   "odm_objects": [
+    "ConsolidationDivision"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnFinancialStatementItem-v1",
+   "name": "Consolidation Financial Statement Item",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnFinancialStatementItem:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnFinancialStatementItem",
+    "ConsolidationFSItemHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationFinancialStatementItem"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnFinTransactionType-v1",
+   "name": "Consolidation Financial Transaction Type",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnFinTransactionType:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnFinTransTypeHierarchy",
+    "CnsldtnFinTransactionType"
+   ],
+   "odm_objects": [
+    "ConsolidationFinancialTransactionType"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnFunctionalArea-v1",
+   "name": "Consolidation Functional Area",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnFunctionalArea:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnFuncnlAreaHierarchy",
+    "CnsldtnFunctionalArea"
+   ],
+   "odm_objects": [
+    "ConsolidationFunctionalArea"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnGLAccount-v1",
+   "name": "Consolidation General Ledger Account",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnGLAccount:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnGLAccountHierarchy",
+    "CnsldtnGLAccount"
+   ],
+   "odm_objects": [
+    "ConsolidationGeneralLedgerAccount"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnGLChartOfAccounts-v1",
+   "name": "Consolidation General Ledger Chart Of Accounts",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnGLChartOfAccounts:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnGLChartOfAccounts"
+   ],
+   "odm_objects": [
+    "ConsolidationGeneralLedgerChartOfAccounts"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationGroup-v1",
+   "name": "Consolidation Group",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationGroup:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationGroup"
+   ],
+   "odm_objects": [
+    "ConsolidationGroup"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationGroupStructure-v1",
+   "name": "Consolidation Group Structure",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationGroupStructure:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationGroupStructure"
+   ],
+   "odm_objects": [
+    "ConsolidationGroupStructure"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnIndustry-v1",
+   "name": "Consolidation Industry",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnIndustry:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnIndustryHierarchy",
+    "CnsldtnIndustry"
+   ],
+   "odm_objects": [
+    "ConsolidationIndustry"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnMaterial-v1",
+   "name": "Consolidation Material",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnMaterial:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnMaterialHierarchy",
+    "CnsldtnMaterial"
+   ],
+   "odm_objects": [
+    "ConsolidationMaterial"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnMaterialGroup-v1",
+   "name": "Consolidation Material Group",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnMaterialGroup:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnMaterialGroup",
+    "CnsldtnMaterialGroupHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationMaterialGroup"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnOrder-v1",
+   "name": "Consolidation Order",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnOrder:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnOrder"
+   ],
+   "odm_objects": [
+    "ConsolidationOrder"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnPlant-v1",
+   "name": "Consolidation Plant",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnPlant:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnPlant",
+    "CnsldtnPlantHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationPlant"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnProduct-v1",
+   "name": "Consolidation Product",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnProduct:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnProductHierarchy",
+    "CnsldtnProduct"
+   ],
+   "odm_objects": [
+    "ConsolidationProduct"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnProductGroup-v1",
+   "name": "Consolidation Product Group",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnProductGroup:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnProductGroup",
+    "CnsldtnProductGroupHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationProductGroup"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnProfitCenter-v1",
+   "name": "Consolidation Profit Center",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnProfitCenter:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnProfitCenterHierarchy",
+    "CnsldtnProfitCenter"
+   ],
+   "odm_objects": [
+    "ConsolidationProfitCenter"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnSalesDistrict-v1",
+   "name": "Consolidation Sales District",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnSalesDistrict:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnSalesDistrictHierarchy",
+    "CnsldtnSalesDistrict"
+   ],
+   "odm_objects": [
+    "ConsolidationSalesDistrict"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnSalesOrganization-v1",
+   "name": "Consolidation Sales Organization",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnSalesOrganization:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnSalesOrgHierarchy",
+    "CnsldtnSalesOrganization"
+   ],
+   "odm_objects": [
+    "ConsolidationSalesOrganization"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnSegment-v1",
+   "name": "Consolidation Segment",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnSegment:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnSegment",
+    "CnsldtnSegmentHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationSegment"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationSubitem-v1",
+   "name": "Consolidation Subitem",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationSubitem:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationSubitemCategory",
+    "ConsolidationSubitem",
+    "ConsolidationSubitemHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationSubitemCategory",
+    "ConsolidationSubitem"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CnsldtnSupplier-v1",
+   "name": "Consolidation Supplier",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CnsldtnSupplier:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CnsldtnSupplierHierarchy",
+    "CnsldtnSupplier"
+   ],
+   "odm_objects": [
+    "ConsolidationSupplier"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationUnit-v1",
+   "name": "Consolidation Unit",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationUnit:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationUnit",
+    "ConsolidationUnitHierarchy"
+   ],
+   "odm_objects": [
+    "ConsolidationUnit"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ConsolidationVersion-v1",
+   "name": "Consolidation Version",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:ConsolidationVersion:v1",
+   "state": "ACTIVE",
+   "component": "FIN-CS-MD",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ConsolidationVersion"
+   ],
+   "odm_objects": [
+    "ConsolidationVersion"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ContrAcctgDocument-v1",
+   "name": "Contract Accounting Document",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:ContrAcctgDocument:v1",
+   "state": "ACTIVE",
+   "component": "FI-CA",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ContrAcctgDocument"
+   ],
+   "odm_objects": [
+    "ContractAccountingDocument"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ControllingArea-v1",
+   "name": "Controlling Area",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:ControllingArea:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ControllingArea"
+   ],
+   "odm_objects": [
+    "ControllingArea"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-ControllingObject-v1",
+   "name": "Controlling Object",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:ControllingObject:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ControllingObject",
+    "ControllingObjectClass"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CostAnalysisResource-v1",
+   "name": "Cost Analysis Resource",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:CostAnalysisResource:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CostAnalysisResource"
+   ],
+   "odm_objects": [
+    "CostAnalysisResource"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CostCenter-v1",
+   "name": "Cost Center",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:CostCenter:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CostCenterHierarchy",
+    "CostCenterCategory",
+    "CostCenter"
+   ],
+   "odm_objects": [
+    "CostCenterHierarchy",
+    "CostCenterCategoryCode",
+    "CostCenter"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CostCenterActivityType-v1",
+   "name": "Cost Center Activity Type",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:CostCenterActivityType:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CostCenterActivityTypeCategory",
+    "CostCenterActivityType",
+    "CostCtrActivityTypeHierarchy"
+   ],
+   "odm_objects": [
+    "CostCenterActivityType",
+    "CostCtrActivityTypeHierarchy"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CostOriginGroup-v1",
+   "name": "Cost Origin Group",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CostOriginGroup:v1",
+   "state": "ACTIVE",
+   "component": "CO-PC-PCP",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CostOriginGroup"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-CostingValuationVariant-v1",
+   "name": "Costing Valuation Variant",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:CostingValuationVariant:v1",
+   "state": "ACTIVE",
+   "component": "CO-PC-PCP",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CostingValuationVariant"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-Country-v1",
+   "name": "Country/Region",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:Country:v1",
+   "state": "ACTIVE",
+   "component": "BC-SRV-ADR",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Country",
+    "Region"
+   ],
+   "odm_objects": [
+    "CountryCode",
+    "CountrySubdivisionCode"
+   ],
+   "modified": "2026-04-14"
+  },
+  {
+   "id": "sap-s4com-CreditMemoRequest-v1",
+   "name": "Credit Memo Request",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CreditMemoRequest:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-CMR",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CreditMemoRequest"
+   ],
+   "odm_objects": [
+    "CreditMemoRequest"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-Customer-v1",
+   "name": "Customer",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:Customer:v1",
+   "state": "ACTIVE",
+   "component": "LO-MD-BP",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Customer"
+   ],
+   "odm_objects": [
+    "BusinessPartner"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-CustomerReturn-v1",
+   "name": "Customer Return",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:CustomerReturn:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-RE",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "CustomerReturn"
+   ],
+   "odm_objects": [
+    "CustomerReturn"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-DebitMemoRequest-v1",
+   "name": "Debit Memo Request",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:DebitMemoRequest:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-CMR",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "DebitMemoRequest"
+   ],
+   "odm_objects": [
+    "DebitMemoRequest"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-DunningBlockingReason-v1",
+   "name": "Dunning Blocking Reason",
+   "version": "1.0.0",
+   "ord_id": "sap.s4com:dataProduct:DunningBlockingReason:v1",
+   "state": "ACTIVE",
+   "component": "FI-AR-AR-C",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [],
+   "s4_objects": [
+    "DunningBlockingReason"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-EntryViewJournalEntry-v1",
+   "name": "Entry View Journal Entry",
+   "version": "1.1.3",
+   "ord_id": "sap.s4com:dataProduct:EntryViewJournalEntry:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-FinancialPlanningEntryItem-v1",
+   "name": "Financial Planning Entry Item",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:FinancialPlanningEntryItem:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "FinancialPlanningEntryItem",
+    "PlanningCategory"
+   ],
+   "odm_objects": [
+    "FinancialPlanningEntryItem"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-FiscalYear-v1",
+   "name": "Fiscal Year",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:FiscalYear:v1",
+   "state": "ACTIVE",
+   "component": "BC-SRV-ASF-FYV",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "FiscalYear",
+    "FiscalYearVariant"
+   ],
+   "odm_objects": [
+    "FiscalYear",
+    "FiscalYearVariantCode"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-FunctionalArea-v1",
+   "name": "Functional Area",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:FunctionalArea:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-A",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "FunctionalArea",
+    "FunctionalAreaHierarchy"
+   ],
+   "odm_objects": [
+    "FunctionalAreaHierarchy",
+    "FunctionalArea"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-GeneralLedgerAccount-v1",
+   "name": "General Ledger Account",
+   "version": "1.2.2",
+   "ord_id": "sap.s4com:dataProduct:GeneralLedgerAccount:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-N",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "GeneralLedgerAccount",
+    "GeneralLedgerAccountFlowType",
+    "OperatingGeneralLedgerAccount",
+    "SemanticTag",
+    "GeneralLedgerAccountType",
+    "ChartOfAccounts",
+    "GeneralLedgerAccountHierarchy",
+    "GLAccountTypeFlowType",
+    "FinancialStatementHierarchy"
+   ],
+   "odm_objects": [
+    "GeneralLedgerAccountHierarchy",
+    "GeneralLedgerAccount",
+    "FinancialAccountingSemanticTagCode",
+    "OperatingGeneralLedgerAccount",
+    "ChartOfAccounts",
+    "FinancialStatementHierarchy"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-HANACurrency-v1",
+   "name": "HANACurrency",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:HANACurrency:v1",
+   "state": "ACTIVE",
+   "component": "BC-SRV-BSF-CUR",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [],
+   "odm_objects": [],
+   "modified": "2026-04-14"
+  },
+  {
+   "id": "sap-s4com-HouseBank-v1",
+   "name": "House Bank",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:HouseBank:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-CLM-BAM",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "HouseBank"
+   ],
+   "odm_objects": [
+    "HouseBank"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-InternalOrder-v1",
+   "name": "Internal Order",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:InternalOrder:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire",
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "InternalOrder"
+   ],
+   "odm_objects": [
+    "InternalOrder"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-JournalEntryCodes-v1",
+   "name": "Journal Entry Codes",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:JournalEntryCodes:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-A",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "JournalEntryType",
+    "ReversalReason",
+    "FinancialTransactionType",
+    "BusinessTransactionType",
+    "ReferenceDocumentType",
+    "JournalEntryCategory",
+    "BusinessTransactionCategory"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-JournalEntryHeader-v1",
+   "name": "Journal Entry Header",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:JournalEntryHeader:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "JournalEntry"
+   ],
+   "odm_objects": [
+    "JournalEntry"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-JournalEntryItemCodes-v1",
+   "name": "Journal Entry Item Codes",
+   "version": "1.2.0",
+   "ord_id": "sap.s4com:dataProduct:JournalEntryItemCodes:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-A",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SubledgerAccountLineItemType",
+    "FinancialAccountType",
+    "SpecialGeneralLedgerCode",
+    "ControllingDebitCreditCode",
+    "DebitCreditCode",
+    "GeneralLedgerRecordType",
+    "JournalEntryItemObsoleteReason",
+    "PostingKey",
+    "AssetAcctTransClassification"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-Ledger-v1",
+   "name": "Ledger",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:Ledger:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-A",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Ledger"
+   ],
+   "odm_objects": [
+    "Ledger"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-OperatingConcern-v1",
+   "name": "Operating Concern",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:OperatingConcern:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "OperatingConcern"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PaymentMethod-v1",
+   "name": "Payment Method",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:PaymentMethod:v1",
+   "state": "ACTIVE",
+   "component": "FI-AP-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Hire to Retire"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PaymentMethod"
+   ],
+   "odm_objects": [
+    "PaymentMethodCode"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-PaymentTerms-v1",
+   "name": "Payment Terms",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:PaymentTerms:v1",
+   "state": "ACTIVE",
+   "component": "FI-AR-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PaymentTerms"
+   ],
+   "odm_objects": [
+    "PaymentTerms"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-PreliminaryBillingDocument-v1",
+   "name": "Preliminary Billing Document",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:PreliminaryBillingDocument:v1",
+   "state": "ACTIVE",
+   "component": "SD-BIL-PBD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PreliminaryBillingDocument"
+   ],
+   "odm_objects": [
+    "PreliminaryBillingDocument"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-Product-v1",
+   "name": "Product",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:Product:v1",
+   "state": "ACTIVE",
+   "component": "LO-MD-MM",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ProductGroup",
+    "Product"
+   ],
+   "odm_objects": [
+    "ProductGroup",
+    "Product"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-ProfitCenter-v1",
+   "name": "Profit Center",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:ProfitCenter:v1",
+   "state": "ACTIVE",
+   "component": "EC-PCA-MD",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ProfitCenterHierarchy",
+    "ProfitCenter"
+   ],
+   "odm_objects": [
+    "ProfitCenterHierarchy",
+    "ProfitCenter"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4pce-PromiseToPay-v1",
+   "name": "Promise To Pay",
+   "version": "1.1.1",
+   "ord_id": "sap.s4pce:dataProduct:PromiseToPay:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-COL",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PromiseToPay"
+   ],
+   "odm_objects": [
+    "PromiseToPay"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-PurchasingOrganization-v1",
+   "name": "Purchasing Organization",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:PurchasingOrganization:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-ANA",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchasingOrganization"
+   ],
+   "odm_objects": [
+    "PurchasingOrganization"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-SalesContract-v1",
+   "name": "Sales Contract",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:SalesContract:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-OA-CCO",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesContract"
+   ],
+   "odm_objects": [
+    "SalesContract"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4pce-SalesInquiry-v1",
+   "name": "Sales Inquiry",
+   "version": "1.1.1",
+   "ord_id": "sap.s4pce:dataProduct:SalesInquiry:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-QUT",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesInquiry"
+   ],
+   "odm_objects": [
+    "SalesInquiry"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesOrder-v1",
+   "name": "Sales Order",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:SalesOrder:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-SO",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesOrder"
+   ],
+   "odm_objects": [
+    "SalesOrder"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesOrderWithoutCharge-v1",
+   "name": "Sales Order Without Charge",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:SalesOrderWithoutCharge:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-SO",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesOrderWithoutCharge"
+   ],
+   "odm_objects": [
+    "SalesOrderWithoutCharge"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesOrganizationalStructure-v1",
+   "name": "Sales Organizational Structure",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:SalesOrganizationalStructure:v1",
+   "state": "ACTIVE",
+   "component": "SD-CRF-ORG",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "DistributionChannelHierarchy",
+    "SalesGroup",
+    "DistributionChannel",
+    "SlsOrgDistrChannelAssignment",
+    "SalesDistrict",
+    "SalesOrganization",
+    "SalesOffice",
+    "SalesDistrictHierarchy",
+    "SalesArea",
+    "Division",
+    "DivisionHierarchy",
+    "SalesOrganizationHierarchy"
+   ],
+   "odm_objects": [
+    "SalesDistrictCode",
+    "DivisionCode",
+    "SalesOffice",
+    "SalesGroup",
+    "DistributionChannelCode",
+    "SalesArea",
+    "SalesOrganization"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesQuotation-v1",
+   "name": "Sales Quotation",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:SalesQuotation:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-QUT",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesQuotation"
+   ],
+   "odm_objects": [
+    "SalesQuotation"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesSchedulingAgreement-v1",
+   "name": "Sales Scheduling Agreement",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:SalesSchedulingAgreement:v1",
+   "state": "ACTIVE",
+   "component": "SD-SLS-OA-SCH",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesSchedulingAgreement"
+   ],
+   "odm_objects": [
+    "SalesSchedulingAgreement"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SalesTaxCode-v1",
+   "name": "Sales Tax Code",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:SalesTaxCode:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-F",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesTaxCode"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-SalesTaxType-v1",
+   "name": "Sales Tax Type",
+   "version": "1.1.1",
+   "ord_id": "sap.s4com:dataProduct:SalesTaxType:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SalesTaxType"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-SecuritiesAccount-v1",
+   "name": "Securities Account",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:SecuritiesAccount:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-TRM",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SecuritiesAccountCategory",
+    "SecuritiesAccountType",
+    "SecuritiesAccountGroup",
+    "SecuritiesAccount"
+   ],
+   "odm_objects": [
+    "SecuritiesAccount"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-SecurityClass-v1",
+   "name": "Security Class",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:SecurityClass:v1",
+   "state": "ACTIVE",
+   "component": "FIN-FSCM-TRM",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SecurityClassQuotation",
+    "ScrtyClGeneralClassification",
+    "SecurityClass",
+    "SecurityClassTransferType"
+   ],
+   "odm_objects": [
+    "SecurityClass"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-Segment-v1",
+   "name": "Segment",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:Segment:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-GL-N",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Record to Report"
+   ],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Segment",
+    "SegmentHierarchy"
+   ],
+   "odm_objects": [
+    "Segment"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-StatisticalKeyFigure-v1",
+   "name": "Statistical KeyFigure",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:StatisticalKeyFigure:v1",
+   "state": "ACTIVE",
+   "component": "FI-GL-IS",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "StatisticalKeyFigure",
+    "StatisticalKeyFigureHierarchy",
+    "StatisticalKeyFigureCategory"
+   ],
+   "odm_objects": [
+    "StatisticalKeyFigure"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-Supplier-v1",
+   "name": "Supplier",
+   "version": "1.1.2",
+   "ord_id": "sap.s4com:dataProduct:Supplier:v1",
+   "state": "ACTIVE",
+   "component": "LO-MD-BP",
+   "category": "business-object",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [
+    "Procure to Pay",
+    "Record to Report"
+   ],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "Supplier"
+   ],
+   "odm_objects": [
+    "BusinessPartner"
+   ],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-TaxJurisdiction-v1",
+   "name": "Tax Jurisdiction",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:TaxJurisdiction:v1",
+   "state": "ACTIVE",
+   "component": "FI-TXL-EXT",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "TaxJurisdiction"
+   ],
+   "odm_objects": [
+    "TaxJurisdictionCode"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-US_TaxSourcing-v1",
+   "name": "USA _ Tax Sourcing",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:US_TaxSourcing:v1",
+   "state": "ACTIVE",
+   "component": "FI-TXL-EXT",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "US_TaxSourcing"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-WithholdingTaxCode-v1",
+   "name": "Withholding Tax Code",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:WithholdingTaxCode:v1",
+   "state": "ACTIVE",
+   "component": "FI-AP-AP-Q",
+   "category": "other",
+   "line_of_business": [
+    "Finance"
+   ],
+   "finance_tagged": true,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "WithholdingTaxCode"
+   ],
+   "odm_objects": [],
+   "modified": "2026-09-01"
+  },
+  {
+   "id": "sap-s4com-AccountingCostRate-v1",
+   "name": "Accounting Cost Rate",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:AccountingCostRate:v1",
+   "state": "ACTIVE",
+   "component": "CO-OM",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "AccountingCostRate"
+   ],
+   "odm_objects": [
+    "AccountingCostRate"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PhysicalInventoryDocument-v1",
+   "name": "Physical Inventory Document",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:PhysicalInventoryDocument:v1",
+   "state": "ACTIVE",
+   "component": "MM-IM-PI",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PhysicalInventoryType",
+    "PhysInvtryCycleCntImportance",
+    "PhysicalInventoryDeletionSts",
+    "ReasonForPhysicalInventoryDiff",
+    "PhysInvtryAdjustmentPostingSts",
+    "PhysicalInventoryStockType",
+    "PhysicalInventoryStockStatus",
+    "PhysicalInventoryCountStatus",
+    "PhysicalInventoryDocument",
+    "PhysicalInventoryGroupType"
+   ],
+   "odm_objects": [
+    "PhysicalInventoryDocument"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-ProcurementConfigurationData-v1",
+   "name": "Procurement Configuration Data",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:ProcurementConfigurationData:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR",
+   "category": "other",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PricingDateControl",
+    "PurchaseContractType",
+    "PurchasingDocumentCategory",
+    "PurgAggrgdProdMarketabilitySts",
+    "PurgProductMarketabilityStatus",
+    "SupplierInvoiceStatus",
+    "SuplrInvcVerificatTolGroup",
+    "PurgAggrgdProdCmplncSuplrSts",
+    "PurchasingDocumentStatus",
+    "PurchasingDocumentType",
+    "PurchasingDocumentItemCategory",
+    "PurchasingInfoRecordUpdateCode",
+    "PurgProdCmplncTotDngrsGoodsSts",
+    "PurgProdCmplncDngrsGoodsStatus",
+    "PurgProdCmplncSupplierStatus",
+    "PurchasingDocumentProcessCode",
+    "PurgSafetyDataSheetStatus",
+    "SupplierConfirmationCategory",
+    "PurchaseRequisitionType",
+    "PurchasingDocumentOrigin",
+    "PurchaseOrderType",
+    "PurgOrgPlantAssignment",
+    "PurchasingGroup",
+    "PurgAggrgdSftyDataSheetStatus"
+   ],
+   "odm_objects": [
+    "PurchasingOrganizationPlantAssignment",
+    "PurchasingGroup"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchaseContract-v1",
+   "name": "Purchase Contract",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:PurchaseContract:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-OA-CON",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchaseContract"
+   ],
+   "odm_objects": [
+    "PurchaseContract"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchaseOrder-v1",
+   "name": "Purchase Order",
+   "version": "1.1.0",
+   "ord_id": "sap.s4com:dataProduct:PurchaseOrder:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-PO",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchaseOrder"
+   ],
+   "odm_objects": [
+    "PurchaseOrder"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchaseRequisition-v1",
+   "name": "Purchase Requisition",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:PurchaseRequisition:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-REQ",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchaseRequisition"
+   ],
+   "odm_objects": [
+    "PurchaseRequisition"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchaseSchedulingAgreement-v1",
+   "name": "Purchase Scheduling Agreement",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:PurchaseSchedulingAgreement:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-OA-SCH",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchaseSchedulingAgreement"
+   ],
+   "odm_objects": [
+    "PurchaseSchedulingAgreement"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchasingInfoRecord-v1",
+   "name": "Purchasing Info Record",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:PurchasingInfoRecord:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-VM-REC",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchasingInfoRecord"
+   ],
+   "odm_objects": [
+    "PurchasingInfoRecord"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-PurchasingSourceList-v1",
+   "name": "Purchasing Source List",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:PurchasingSourceList:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-SQ-SLI",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "PurchasingSourceList"
+   ],
+   "odm_objects": [
+    "PurchasingSourceList"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-RequestForQuotation-v1",
+   "name": "Request For Quotation",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:RequestForQuotation:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-RFQ",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "RequestForQuotation"
+   ],
+   "odm_objects": [
+    "RequestForQuotation"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-ReservationDocument-v1",
+   "name": "Reservation Document",
+   "version": "1.0.2",
+   "ord_id": "sap.s4com:dataProduct:ReservationDocument:v1",
+   "state": "ACTIVE",
+   "component": "MM-IM-RS",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ReservationDocument",
+    "ResvnAcctAssignmentCategory",
+    "ReservationCompletionStatus"
+   ],
+   "odm_objects": [
+    "ReservationDocument"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-ServiceEntrySheet-v1",
+   "name": "Service Entry Sheet",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:ServiceEntrySheet:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-SVC-SES",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "ServiceEntrySheet"
+   ],
+   "odm_objects": [
+    "ServiceEntrySheet"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-SupplierInvoice-v1",
+   "name": "Supplier Invoice",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:SupplierInvoice:v1",
+   "state": "ACTIVE",
+   "component": "MM-IV",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SupplierInvoice"
+   ],
+   "odm_objects": [
+    "SupplierInvoice"
+   ],
+   "modified": "2026-09-10"
+  },
+  {
+   "id": "sap-s4com-SupplierQuotation-v1",
+   "name": "Supplier Quotation",
+   "version": "1.0.1",
+   "ord_id": "sap.s4com:dataProduct:SupplierQuotation:v1",
+   "state": "ACTIVE",
+   "component": "MM-PUR-RFQ",
+   "category": "business-object",
+   "line_of_business": [],
+   "finance_tagged": false,
+   "processes": [],
+   "editions": [
+    "Public Edition",
+    "Private Edition"
+   ],
+   "s4_objects": [
+    "SupplierQuotation"
+   ],
+   "odm_objects": [
+    "SupplierQuotation"
+   ],
+   "modified": "2026-09-10"
+  }
+ ]
+}

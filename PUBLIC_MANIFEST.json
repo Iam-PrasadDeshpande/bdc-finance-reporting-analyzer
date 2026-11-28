@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "7ed1b38a67e2cb7a947f6532885ad99c3bc4d1d82ec683ea84b273df91189fed",
+ "source_build_manifest_sha256": "4f1bbc42f3dcadbf3031a74916234bd5d7c7bce0c5a00999cae05d46f0b12c62",
  "files": [
   {
    "path": ".gitignore",
@@ -134,7 +134,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "24b3f1e45092a86e1a3a8149cae760772167da3802943e3e6a4a45fbe1994b9e",
+   "sha256": "024859c3c66db86a968f3ad23a11d163321ba519d2f24ab3a6a270d365e79deb",
    "bytes": 696
   },
   {
@@ -146,6 +146,11 @@
    "path": "bdcwb/run.py",
    "sha256": "ad715aecc421c926f84588533dcdb34471fad8bdd280a03f17478d73b9c22945",
    "bytes": 13008
+  },
+  {
+   "path": "bdcwb/sap_hub.py",
+   "sha256": "713daf4bac49d2363050b2dbbd1a52ca72208c8a66088d3b0e5701be28861948",
+   "bytes": 6963
   },
   {
    "path": "bdcwb/scenarios.py",
@@ -171,6 +176,11 @@
    "path": "data/public_demo/manifest_SYNTHETIC.json",
    "sha256": "7e93d418de195da942687e1a709dd0159c5b0bbe2ca855f1ec146039380370f3",
    "bytes": 470
+  },
+  {
+   "path": "data/public_demo/sap_hub_finance_SNAPSHOT.json",
+   "sha256": "7093188f35ebc9d79aca677b30b56c3045cdbaa448b9b75317fe06b79c99cb00",
+   "bytes": 65429
   },
   {
    "path": "data/public_demo/source_report_extract_SYNTHETIC.csv",
@@ -219,12 +229,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "ac661c7b64d542258c1c7c3ece7780777a9b4074c6b0775ce710610aa1fc2cf8",
-   "bytes": 81194
+   "sha256": "6ad8c1fcbb3e03e79aec525981a14a2ea01ece8cc734fdc55de98bd744779a48",
+   "bytes": 86811
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.10"
+ "release": "v0.13.11"
 }

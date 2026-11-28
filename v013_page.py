@@ -17,7 +17,7 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, lookup, ontology, status
+from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, lookup, ontology, sap_hub, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
@@ -29,8 +29,8 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.10"
-FIND_DIRS = ["Process → data products", "Data product → processes"]
+RELEASE = "0.13.11"
+FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
@@ -313,12 +313,15 @@ def _fit_badge(fit: str) -> str:
 def _find(res, s, scn, tech):
     ss = st.session_state
     st.markdown("##### Find the data products for a process, or the processes behind a data product")
-    st.caption("Both directions read the same delta register and catalog as the Delta journey, so the answers always agree with it. " + lookup.BADGE + ".")
+    st.caption("The first two directions read the same delta register and catalog as the Delta journey, so the answers always agree with it. " + lookup.BADGE +
+               ". The third shows what SAP itself publishes for Finance. " + sap_hub.BADGE + ".")
     st.radio("Direction", FIND_DIRS, horizontal=True, key="find_dir", label_visibility="collapsed")
     if ss["find_dir"] == FIND_DIRS[0]:
         _find_process(res, scn)
-    else:
+    elif ss["find_dir"] == FIND_DIRS[1]:
         _find_product(res, scn)
+    else:
+        _find_hub(res, scn)
 
 
 def _find_process(res, scn):
@@ -344,12 +347,82 @@ def _find_process(res, scn):
     st.markdown("##### Step by step: product, fit and delta")
     table([{"step": x["step"], "object": x["object"], "system": x["system"], "data product / entity": (x["product"] + " / " + x["entity"]) if x["product"] != "-" else "-",
             "fit": lookup.FIT[x["fit"]], "delta": x["delta"], "solution": x["solution"]} for st_ in r["steps"] for x in st_["rows"]], 520)
+    _hub_for_process(r["process"])
     st.caption("Fit: 'Not established' means the catalog does not declare that domain complete, so a missing product is not proof that SAP delivers none. "
                "'Candidate' means the product is unverified. Open the Delta journey to solve, plan, reconcile and see readiness.")
     b = st.columns(3)
     b[0].button("Open 1 Find the delta →", key="find_to_s1", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 1}, width="stretch")
     b[1].button("Open 2 Solution the delta →", key="find_to_s2", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 2}, width="stretch")
     b[2].button("Open the Ontology →", key="find_to_onto", on_click=_go, kwargs={"view": "space", "space": "Ontology"}, width="stretch")
+
+
+def _hub_for_process(pid):
+    h = sap_hub.for_process(pid)
+    with st.expander(f"What SAP publishes for this process ({len(h['tagged'])} tagged products)", expanded=False):
+        st.caption(h["note"] + " " + sap_hub.BADGE + ".")
+        table([{"step": s["step"], "SAP-published products": ", ".join(f"{p['name']} v{p['version']}" for p in s["products"]) or "none in the snapshot"} for s in h["steps"]], 320)
+        if h["unpublished_steps"]:
+            st.caption("No SAP-published product carries the objects of: " + ", ".join(h["unpublished_steps"]) + ". That is a gap in the published list, not proof that SAP delivers nothing.")
+        if h["tagged"]:
+            st.caption("Tagged " + h["tag"] + ": " + ", ".join(p["name"] for p in h["tagged"][:40]) + (" ..." if len(h["tagged"]) > 40 else ""))
+
+
+def _hub_for_product(pid):
+    e = sap_hub.equivalents(pid)
+    with st.expander("SAP-published equivalent", expanded=bool(e["products"])):
+        if not e["products"]:
+            st.caption(e["note"])
+            return
+        st.caption(e["note"] + "SAP's own process tags for it: " + (", ".join(e["processes"]) or "none") + ". " + sap_hub.BADGE + ".")
+        table([{"SAP data product": p["name"], "version": p["version"], "ORD ID": p["ord_id"], "component": p["component"], "editions": ", ".join(p["editions"]),
+                "S/4 object": ", ".join(p["s4_objects"]) or "-"} for p in e["products"]], 260)
+
+
+def _find_hub(res, scn):
+    s = sap_hub.stats()
+    st.markdown(T.badge(sap_hub.BADGE, "warn"), unsafe_allow_html=True)
+    m = st.columns(4)
+    m[0].metric("Products on the SAP hub", s["hub_total"])
+    m[1].metric("Tagged Finance", s["finance"])
+    m[2].metric("With an S/4 business object", s["with_s4_object"])
+    m[3].metric("SAP components responsible", s["components"])
+    st.caption("Process tags SAP puts on Finance products: " + ", ".join(f"{k} {v}" for k, v in s["process_tags"].items()) + f"; {s['untagged']} carry no process tag. "
+               "SAP states no 'Order to Cash' or AR/AP aging product for Finance in this list.")
+    c = st.columns([2, 2, 3, 2])
+    c[0].selectbox("SAP process tag", ["All", *sap_hub.PROCESS_TAGS, "(no process tag)"], key="find_hub_proc")
+    c[1].selectbox("Application area (SAP component)", ["All", *sap_hub.areas()], key="find_hub_area")
+    c[2].text_input("Search name, id, component or object", key="find_hub_text", placeholder="for example: journal, FI-GL, CompanyCode")
+    c[3].checkbox("Include adjacent (not tagged Finance)", key="find_hub_adj", help="Procurement products SAP lists next to the Finance products, such as Purchase Order.")
+    ss = st.session_state
+    rows = sap_hub.browse(ss["find_hub_proc"], ss["find_hub_area"], ss["find_hub_text"], bool(ss.get("find_hub_adj")))
+    st.markdown(f"##### {len(rows)} SAP data product(s)")
+    table([{"data product": p["name"], "version": p["version"], "component": p["component"], "process tags": ", ".join(p["processes"]) or "-",
+            "editions": ", ".join(p["editions"]) or "-", "S/4 object": ", ".join(p["s4_objects"][:3]) or "-", "ODM object": ", ".join(p["odm_objects"][:2]) or "-",
+            "category": p["category"]} for p in rows] or [{"data product": "none match the filters"}], 380)
+    if not rows:
+        return
+    names = [p["name"] for p in rows]
+    if ss.get("find_hub_sel") not in names:
+        ss["find_hub_sel"] = names[0]
+    st.selectbox("Open one product", names, key="find_hub_sel")
+    d = sap_hub.detail(res, scn, ss["find_hub_sel"])
+    p = d["product"]
+    st.markdown("##### " + T.esc(p["name"]) + " - published facts")
+    table([{"ORD ID": p["ord_id"], "version": p["version"], "state": p["state"], "last modified": p["modified"], "component": p["component"], "category": p["category"],
+            "editions": ", ".join(p["editions"]) or "-", "process tags": ", ".join(p["processes"]) or "-"}], 200)
+    st.markdown("##### Backend standard anchor")
+    table([{"S/4HANA business objects": ", ".join(p["s4_objects"]) or "none stated", "ODM business objects (cross-product model)": ", ".join(p["odm_objects"]) or "none stated"}], 200)
+    st.markdown(f"##### Our delta register against this product (scenario {T.esc(scn)})")
+    if d["rows"]:
+        table([{"object": r["object"], "system": r["system"], "SAP object": r["sap_object"], "our catalog product": r["our product"], "delta": r["delta"],
+                "solution": r["solution"], "customization": "yes" if r["customization"] else "-"} for r in d["rows"]], 380)
+    else:
+        st.info("No object in the synthetic scenario maps to this product, so there is nothing to compare yet. Fields, CDS views and lineage are not published, so a comparison "
+                "with backend standard needs the customer's own inventory (import it in Delta journey, stage 1).")
+    st.caption(d["summary"] + " SAP does not publish field lists on the hub, so differences are at object level; field-level differences come from the customer's inventory.")
+    b = st.columns(2)
+    b[0].button("Open 1 Find the delta →", key="findh_to_s1", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 1}, width="stretch")
+    b[1].button("Open 2 Solution the delta →", key="findh_to_s2", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 2}, width="stretch")
 
 
 def _find_product(res, scn):
@@ -373,6 +446,7 @@ def _find_product(res, scn):
     st.markdown("##### What differs in the backend if you use this product")
     table([{"object": b["object"], "system": b["system"], "SAP object": b["sap_object"], "product entity": b["entity"], "delta": b["delta"], "solution": b["solution"],
             "customization": "yes" if b["customization"] else "-"} for b in r["backend"]], 420)
+    _hub_for_product(r["product"])
     st.markdown("##### Product state and extension options")
     table([{"activation": stt["activation"], "entitlement": stt["entitlement"], "installation": stt["installation"], "supported releases": ", ".join(stt["releases"]),
             "key-user extension": "yes" if stt["key_user_extension"] else "no", "developer extension": "yes" if stt["developer_extension"] else "no",
