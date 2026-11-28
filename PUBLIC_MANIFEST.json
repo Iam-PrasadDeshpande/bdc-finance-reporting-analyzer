@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "6ecd5fb8841d8c70206eceeeaa0649a735ca69e037271521a55befa509330c93",
+ "source_build_manifest_sha256": "f816770c813e79c214bb49ca9182d0d406dec33b5647f550f70e9312eb36afbb",
  "files": [
   {
    "path": ".gitignore",
@@ -134,7 +134,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "381c93d2db5324b671ca762345a7ced404fc69ff86e0cda92cc9921b85e21c8a",
+   "sha256": "750edb3f7562ae4c48ca4ea584511d6417cc888343f8f3892aab92dc2dc08e34",
    "bytes": 696
   },
   {
@@ -149,8 +149,8 @@
   },
   {
    "path": "bdcwb/sap_hub.py",
-   "sha256": "4abd481763555f5fd69b98d99ae38af0aa1ae4de41b5a7d0fcb8bfecc6807bd7",
-   "bytes": 9652
+   "sha256": "f9684c1649ae2e484f73a658476c5e4bf42ee156b51d967de0d63586b4925bbf",
+   "bytes": 10722
   },
   {
    "path": "bdcwb/scenarios.py",
@@ -229,12 +229,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "b73d887167405b03fef2267c4c43d84bdded34d7ebef2a8168ecb57980becb34",
-   "bytes": 87468
+   "sha256": "7b9ad651a3c39d738f21f28975f2161b31a0fe309ab26f9880161e538def1379",
+   "bytes": 90321
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.13"
+ "release": "v0.13.14"
 }

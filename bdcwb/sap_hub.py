@@ -76,10 +76,23 @@ def browse(process: str = "", area_: str = "", text: str = "", include_adjacent:
             continue
         if area_ and area_ != "All" and area(p) != area_:
             continue
-        if t and t not in (p["name"] + " " + p["id"] + " " + p["component"] + " " + " ".join(p["s4_objects"] + p["odm_objects"])).lower():
+        if t and t not in (p["name"] + " " + p["id"] + " " + p["component"] + " " + " ".join(p["s4_objects"] + p["odm_objects"] + [v["view"] for v in p.get("cds_views", [])])).lower():
             continue
         out.append(p)
     return out
+
+
+def search_all(res: dict, scn: str, text: str) -> dict:
+    """One search across our process taxonomy, the synthetic catalog and the SAP-published snapshot (names, ids, components, S/4 and ODM objects, CDS views)."""
+    t = re.sub(r"\s+", " ", (text or "").lower()).strip()
+    if not t:
+        return {"query": "", "processes": [], "synthetic_products": [], "sap_products": [], "total": 0}
+    procs = [{"id": k, "name": v["name"], "steps": ", ".join(s for s, _ in v["steps"])} for k, v in lookup.PROCESSES.items()
+             if t in (v["name"] + " " + " ".join(v["aliases"]) + " " + " ".join(s for s, _ in v["steps"])).lower()]
+    cat = res["scenarios"][scn]["catalog"]["products"]
+    syn = [{"id": p["product_id"], "name": p["name"], "evidence": p["evidence"]} for p in cat if t in (p["product_id"] + " " + p["name"]).lower()]
+    sap = browse(text=t, include_adjacent=True)
+    return {"query": text, "processes": procs, "synthetic_products": syn, "sap_products": sap, "total": len(procs) + len(syn) + len(sap)}
 
 
 def for_process(pid: str) -> dict:
