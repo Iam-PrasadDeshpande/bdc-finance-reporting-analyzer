@@ -30,8 +30,10 @@ _BASE = """
 --c-fi:%(c_fi)s;--c-rec:%(c_rec)s;--c-ctl:%(c_ctl)s;--c-ref:%(c_ref)s}
 .stApp{background:var(--bg)}
 header[data-testid="stHeader"]{background:transparent!important;height:0!important;min-height:0!important;pointer-events:none}
-header[data-testid="stHeader"] [data-testid="stExpandSidebarButton"]{pointer-events:auto;position:fixed;top:.55rem;left:.5rem;z-index:200;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
-header[data-testid="stHeader"] [data-testid="stToolbar"],[data-testid="stToolbar"],[data-testid="stDecoration"],footer,#MainMenu{display:none!important}
+header[data-testid="stHeader"] [data-testid="stExpandSidebarButton"]{visibility:visible;pointer-events:auto;position:fixed;top:.55rem;left:.5rem;z-index:200;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+[data-testid="stToolbar"]{visibility:hidden}
+[data-testid="stToolbar"] [data-testid="stExpandSidebarButton"]{visibility:visible}
+[data-testid="stDecoration"],footer,#MainMenu{display:none!important}
 [data-testid="stSidebarCollapseButton"]{display:none!important}
 %(sidebar)s
 :where(.stApp) :where(p,li,label,h1,h2,h3,h4,h5,h6,span,div,td,th,summary,small,caption){color:var(--ink)}
