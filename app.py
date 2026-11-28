@@ -7,7 +7,7 @@ The suite renders its own shell bar, so the Streamlit sidebar is not used.
 """
 import streamlit as st
 
-st.set_page_config(page_title="BDC Transition Agent Suite", page_icon="\U0001F9ED", layout="wide", initial_sidebar_state="collapsed",
+st.set_page_config(page_title="BDC Transition Agent Suite", page_icon="\U0001F9ED", layout="wide", initial_sidebar_state="auto",
                    menu_items={"Get help": None, "Report a bug": None,
                                "About": "Independent assessment prototype, not affiliated with SAP. Synthetic data only."})
 
