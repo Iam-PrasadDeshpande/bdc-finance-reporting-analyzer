@@ -25,7 +25,7 @@ LIMITS = {"max_bytes": 1_000_000, "max_objects": 200, "max_fields_per_object": 6
 CAP_KEYS = {"key_user_ext", "developer_ext", "odp", "cds_extraction"}  # capabilities a file may declare (dpg is never declarable)
 PROFILE = {"S4_2023": "S4A", "S4_2022": "S4B", "ECC_6_0_EHP8": "ECC01"}  # release family -> built-in capability profile
 IMPORT_EVIDENCE = "CUSTOMER_PROVIDED"
-FIELD_TYPES = {"CHAR", "NUMC", "DATS", "TIMS", "CURR", "QUAN", "DEC", "INT4", "CUKY", "UNIT", "LANG", "STRING", "CLNT"}
+FIELD_TYPES = {"CHAR", "NUMC", "DATS", "TIMS", "CURR", "QUAN", "DEC", "INT4", "CUKY", "UNIT", "LANG", "STRING", "CLNT", "TIMESTAMP", "BOOL", "UUID", "FLTP", "RAW"}
 FIDELITY_ROUTE = ("Correct the extension so the delivered product carries the field with its original type, business name and unit or currency reference, "
                   "then re-activate and re-check the catalog entry; until then restore meaning in the Datasphere semantic layer. "
                   "Procedure per product and release must be confirmed in SAP documentation.")
