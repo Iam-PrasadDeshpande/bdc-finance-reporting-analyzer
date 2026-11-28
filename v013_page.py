@@ -31,7 +31,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Diagrams"]
-RELEASE = "0.13.17"
+RELEASE = "0.13.18"
 FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
@@ -170,30 +170,46 @@ def _nav_state() -> tuple:
     return (ss.get("nav_view", "home"), ss.get("tabs_space"), ss.get("tabs_stage"), ss.get("tabs_arch"), ss.get("tabs_agents"))
 
 
+STAGE_ICONS = {1: "travel_explore", 2: "construction", 3: "database", 4: "compare_arrows", 5: "task_alt"}
+
+
+def _toggle_mini() -> None:
+    st.session_state["nav_mini"] = not st.session_state.get("nav_mini", False)
+
+
 def _sidebar_nav() -> None:
-    """Persistent left navigation: the same destinations as the Menu popover, with the current page marked."""
+    """Persistent left navigation. Wide: icon and text. Collapsed (own toggle): icons only, hover shows the name."""
     view, space, stage, arch, agent_tab = _nav_state()
+    mini = bool(st.session_state.get("nav_mini", False))
 
     def item(label, key, icon, active, **go):
-        st.button(label, key=key, icon=f":material/{icon}:", on_click=_go, kwargs=go, type="primary" if active else "secondary", width="stretch")
+        st.button("" if mini else label, key=key, icon=f":material/{icon}:", on_click=_go, kwargs=go, type="primary" if active else "secondary",
+                  width="stretch", help=label if mini else None)
+
+    def group(name):
+        st.markdown('<hr class="ag-navsep"/>' if mini else f'<div class="ag-navgroup">{name}</div>', unsafe_allow_html=True)
 
     with st.sidebar:
-        st.markdown('<div class="ag-navgroup">Start</div>', unsafe_allow_html=True)
+        if mini:
+            st.markdown('<div class="ag-mini-on"></div>', unsafe_allow_html=True)
+        st.button("" if mini else "Collapse menu", key="sn_toggle", icon=":material/keyboard_double_arrow_right:" if mini else ":material/keyboard_double_arrow_left:",
+                  on_click=_toggle_mini, width="stretch", help="Expand menu" if mini else "Collapse to icons")
+        group("Start")
         item("My Home", "sn_home", "home", view == "home", view="home")
-        st.markdown('<div class="ag-navgroup">Delta journey</div>', unsafe_allow_html=True)
-        for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
-            item(f"{n} {STAGES[n - 1]['name']}", f"sn_stage{n}", icon, view == "space" and space == "Delta journey" and (stage or "").startswith(str(n)),
+        group("Delta journey")
+        for n in range(1, 6):
+            item(f"{n} {STAGES[n - 1]['name']}", f"sn_stage{n}", STAGE_ICONS[n], view == "space" and space == "Delta journey" and (stage or "").startswith(str(n)),
                  view="space", space="Delta journey", stage=n)
-        st.markdown('<div class="ag-navgroup">Find</div>', unsafe_allow_html=True)
+        group("Find")
         item("Process, product, SAP catalog", "sn_find", "manage_search", view == "space" and space == "Find", view="space", space="Find")
-        st.markdown('<div class="ag-navgroup">Explore</div>', unsafe_allow_html=True)
+        group("Explore")
         item("Ontology: how data flows", "sn_onto", "account_tree", view == "space" and space == "Ontology", view="space", space="Ontology")
         item("Ask the BDC agents", "sn_ask", "smart_toy", view == "space" and space == "Agents", view="space", space="Agents", agents_tab="Ask the agents")
-        st.markdown('<div class="ag-navgroup">Architecture</div>', unsafe_allow_html=True)
+        group("Architecture")
         item("Live run", "sn_live", "lan", view == "space" and space == "Architecture & operations" and arch == "Live run", view="space", space="Architecture & operations", arch_tab="Live run")
         item("Complete architecture", "sn_arch", "schema", view == "space" and space == "Architecture & operations" and arch == "Complete architecture",
              view="space", space="Architecture & operations", arch_tab="Complete architecture")
-        st.markdown('<div class="ag-navgroup">Earlier version</div>', unsafe_allow_html=True)
+        group("Earlier version")
         item("Old demo (v0.12 pages)", "sn_old", "history", view == "old", view="old")
 
 
@@ -211,7 +227,7 @@ def shell(mode: str) -> None:
         with c[1].popover("Menu", icon=":material/apps:"):
             st.caption("BDC TRANSITION WORKSPACE")
             st.button("My Home", key="m_home", icon=":material/home:", on_click=_go, kwargs={"view": "home"}, width="stretch")
-            for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
+            for n, icon in STAGE_ICONS.items():
                 st.button(f"{n} {STAGES[n - 1]['name']}", key=f"m_stage{n}", icon=f":material/{icon}:", on_click=_go,
                           kwargs={"view": "space", "space": "Delta journey", "stage": n}, width="stretch")
             st.button("Find: process to data product", key="m_find", icon=":material/manage_search:", on_click=_go,

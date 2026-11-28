@@ -29,7 +29,10 @@ _BASE = """
 --l-source:%(l_source)s;--l-finance:%(l_finance)s;--l-bdc:%(l_bdc)s;--l-dsp:%(l_dsp)s;--l-consume:%(l_consume)s;--l-agent:%(l_agent)s;--l-gov:%(l_gov)s;--l-conn:%(l_conn)s;
 --c-fi:%(c_fi)s;--c-rec:%(c_rec)s;--c-ctl:%(c_ctl)s;--c-ref:%(c_ref)s}
 .stApp{background:var(--bg)}
-header[data-testid="stHeader"],[data-testid="stToolbar"],[data-testid="stDecoration"],footer,#MainMenu{display:none!important}
+header[data-testid="stHeader"]{background:transparent!important;height:0!important;min-height:0!important;pointer-events:none}
+header[data-testid="stHeader"] [data-testid="stExpandSidebarButton"]{pointer-events:auto;position:fixed;top:.55rem;left:.5rem;z-index:200;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+header[data-testid="stHeader"] [data-testid="stToolbar"],[data-testid="stToolbar"],[data-testid="stDecoration"],footer,#MainMenu{display:none!important}
+[data-testid="stSidebarCollapseButton"]{display:none!important}
 %(sidebar)s
 :where(.stApp) :where(p,li,label,h1,h2,h3,h4,h5,h6,span,div,td,th,summary,small,caption){color:var(--ink)}
 :where(.stApp) :where([data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *){color:var(--muted)}
@@ -196,6 +199,14 @@ h1.ag-title{margin:0;padding:0;font-size:1.12rem;font-weight:700;line-height:1.2
 .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-shell,.stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .ag-foot{left:300px}
 [data-testid="stSidebar"] button>div,[data-testid="stSidebar"] button [data-testid="stMarkdownContainer"]{width:100%%;justify-content:flex-start;text-align:left}
 [data-testid="stSidebar"] button p{text-align:left}
+.ag-navsep{border:0;border-top:1px solid var(--line);margin:.5rem .3rem}
+[data-testid="stSidebar"]:has(.ag-mini-on){width:64px!important;min-width:64px!important;max-width:64px!important}
+[data-testid="stSidebar"]:has(.ag-mini-on) [data-testid="stSidebarContent"]{overflow-x:hidden}
+[data-testid="stSidebar"]:has(.ag-mini-on) button{justify-content:center;padding:.2rem 0}
+[data-testid="stSidebar"]:has(.ag-mini-on) button p{display:none}
+[data-testid="stSidebar"]:has(.ag-mini-on) button>div{justify-content:center}
+.stApp:has(.ag-mini-on) .st-key-shell,.stApp:has(.ag-mini-on) .ag-foot{left:64px!important}
+.stApp:has(.ag-mini-on) .st-key-shell{width:calc(100vw - 64px)!important}
 @media(min-width:1000px){.st-key-shell [data-testid="stPopover"]{display:none!important}}
 .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-ag_scn{min-width:285px}
 .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) .st-key-ag_theme{min-width:200px}
