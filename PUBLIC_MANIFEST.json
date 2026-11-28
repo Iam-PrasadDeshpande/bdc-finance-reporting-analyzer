@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "3be34463c8ca45a2ba8e9e5c34bb254fda66a5b9c689c93afc55dc8ad3ff0677",
+ "source_build_manifest_sha256": "fda17fca1b272c27a143eec5af48ec4ecf34dac39a82640517f50bbbd14d4dba",
  "files": [
   {
    "path": ".gitignore",
@@ -79,8 +79,8 @@
   },
   {
    "path": "bdcwb/csn.py",
-   "sha256": "77a2cb23fb18f3d90efd4decc6528801b1a5c7bffdaf81f7a27b65402210c244",
-   "bytes": 9603
+   "sha256": "103fc6d08492885432e9ea66244ae015bab78fdcde900e7bbbed8c849de889c3",
+   "bytes": 9632
   },
   {
    "path": "bdcwb/decision.py",
@@ -129,8 +129,8 @@
   },
   {
    "path": "bdcwb/mapping.py",
-   "sha256": "27c5dc33e5943de42c8af77ba4e873c3e1a6fb1a1d431fd7b73b3a0b94c0564a",
-   "bytes": 12466
+   "sha256": "6c87ca815ad86ec06e9eebc658880c36caa2a596b1c7e145557de611e3706243",
+   "bytes": 12842
   },
   {
    "path": "bdcwb/ontology.py",
@@ -144,7 +144,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "9d64709a3fed4e5d5e3b1eb580cdf020086ee84657b3d03119360a408815d338",
+   "sha256": "fe337542edf2fa154b6f188f9403fd1368eb8803d66412c7195753e9f7259396",
    "bytes": 696
   },
   {
@@ -239,12 +239,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "c6a4e98e2bf39af3e574bac8e96f69b47272ad15343a7d67b1dcc59a9d53f8b1",
-   "bytes": 95976
+   "sha256": "c5867d2d5541b48e32a8cead1d5d8d5d293cb6528303e7f4bf12eb03c2eeebcf",
+   "bytes": 98649
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.19"
+ "release": "v0.13.20"
 }
