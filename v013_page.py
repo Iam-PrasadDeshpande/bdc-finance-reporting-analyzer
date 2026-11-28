@@ -31,7 +31,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Diagrams"]
-RELEASE = "0.13.14"
+RELEASE = "0.13.15"
 FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
@@ -67,6 +67,19 @@ def table(rows, max_height: int = 420) -> None:
     st.markdown(T.html_table(rows, max_height), unsafe_allow_html=True)
 
 
+_EV = {"SYNTHETIC_FIXTURE": "Synthetic", "CUSTOMER_PROVIDED": "Customer-provided"}
+
+
+def _dl(code: str) -> str:
+    """Delta code as a plain label; the raw code is added under Technical details."""
+    lab = delta.DELTA_TYPES.get(code, (code,))[0]
+    return f"{lab} ({code})" if st.session_state.get("ag_tech") and lab != code else lab
+
+
+def _ev(code: str) -> str:
+    return _EV.get(code, code) if not st.session_state.get("ag_tech") else code
+
+
 def ftable(rows, max_height: int = 0, name: str = "table") -> None:
     """A result table that shows every row (no inner scrolling), says how many there are, and can be downloaded."""
     ss = st.session_state
@@ -85,7 +98,7 @@ def ftable(rows, max_height: int = 0, name: str = "table") -> None:
             w.writerow({k: ("; ".join(map(str, v)) if isinstance(v, (list, tuple)) else v) for k, v in r.items()})
         c = st.columns([5, 2])
         c[0].caption(f"All {len(rows)} row(s) shown.")
-        c[1].download_button("Download CSV", buf.getvalue().encode("utf-8-sig"), file_name=f"{name}.csv", mime="text/csv", key=f"dl_{ss['_ftn']}_{name}", width="stretch")
+        c[1].download_button("Download CSV", buf.getvalue().encode("utf-8-sig"), file_name=f"{name}.csv", mime="text/csv", key=f"dl_{ss['_ftn']}_{name}", width="content")
 
 
 def badge(text: str, warn: bool = False) -> str:
@@ -179,7 +192,7 @@ def shell(mode: str) -> None:
             st.divider()
             st.button("Old demo (v0.12 pages)", key="m_old", icon=":material/history:", on_click=_go, kwargs={"view": "old"}, width="stretch")
         c[2].markdown(f'<div class="ag-brand"><div class="ag-logo">B</div><div><div class="ag-crumb">{T.esc(crumb)}</div>'
-                      f'<div class="ag-title">{T.esc(title)}</div></div></div>', unsafe_allow_html=True)
+                      f'<h1 class="ag-title">{T.esc(title)}</h1></div></div>', unsafe_allow_html=True)
         if mode == "old":
             c[3].button("Open the Agent Suite", key="old_to_suite", type="primary", on_click=_go, kwargs={"view": "home"}, width="stretch")
             return
@@ -224,12 +237,19 @@ def render() -> None:
 
 # ---------------------------------------------------------------------------------------------------- shared widgets
 def _status_strip(res: dict) -> None:
-    """Synthetic and live status stay separate and always visible."""
+    """Synthetic and live status stay visible (one chip) and separate; the detail is one click away."""
     x = res["status"]
-    st.markdown('<div style="margin:.9rem 0 .2rem">' + T.badge("SYNTHETIC DATA - DEMO MODE - NO SAP CONNECTION", "ok") + " "
-                + T.badge("LIVE SAP VALIDATION: " + x["LIVE_SAP_VALIDATION"], "warn") + " " + T.badge("LIVE BDC VALIDATION: " + x["LIVE_BDC_VALIDATION"], "warn") + " "
-                + T.badge("FINANCE VALIDATION: " + x["FINANCE_VALIDATION"], "warn") + " "
-                + T.badge("PUBLICATION AUTHORIZATION (live evidence): " + x["PUBLICATION_AUTHORIZATION"], "warn") + "</div>", unsafe_allow_html=True)
+    st.markdown('<div style="margin:.9rem 0 .2rem">' + T.badge("SYNTHETIC DATA - NO SAP CONNECTION - LIVE VALIDATION ON HOLD", "ok") + "</div>", unsafe_allow_html=True)
+    with st.expander("Status and scope notes"):
+        st.markdown(T.badge("SYNTHETIC DATA - DEMO MODE - NO SAP CONNECTION", "ok") + " "
+                    + T.badge("LIVE SAP VALIDATION: " + x["LIVE_SAP_VALIDATION"], "warn") + " " + T.badge("LIVE BDC VALIDATION: " + x["LIVE_BDC_VALIDATION"], "warn") + " "
+                    + T.badge("FINANCE VALIDATION: " + x["FINANCE_VALIDATION"], "warn") + " "
+                    + T.badge("PUBLICATION AUTHORIZATION (live evidence): " + x["PUBLICATION_AUTHORIZATION"], "warn"), unsafe_allow_html=True)
+        st.markdown("- **Hold** means no live SAP, BDC or Finance evidence exists yet; it is not an error.\n"
+                    "- **Scenario B** includes ECC, S/4HANA 2022 and Central Finance: whether SAP supports them under Business Data Cloud is unverified here.\n"
+                    "- **SAP's own process tags** on Finance products are Record to Report, Procure to Pay and Hire to Retire; the other processes are illustrative.\n"
+                    "- **CDS views** shown next to SAP-published products are name-matched candidates, not SAP-stated lineage; release states do not name the release contract.\n"
+                    "- **Extension decisions** are a type check plus catalog flags; real extensibility enablement is not read from any system.")
 
 
 def _scn_select() -> None:
@@ -286,18 +306,18 @@ def _stage_cards(res: dict, scn: str, prefix: str) -> None:
 # ---------------------------------------------------------------------------------------------------- Level 1: Home
 def _home(res: dict) -> None:
     with st.container(key="home_body"):
-        st.markdown('<div class="ag-kicker">BDC transition / the delta</div><div class="ag-h1">Ask the transition agents</div>'
-                    '<div class="ag-lead">What did the customer change in standard SAP, how was it found, and what is the next step? Three agents answer from the '
+        st.markdown('<div class="ag-kicker">BDC transition / the delta</div><div class="ag-h1">Ask the transition agents</div>', unsafe_allow_html=True)
+        e1, e2, e3 = st.columns(3)
+        e1.button("Process → data products", key="h_find_pp", icon=":material/manage_search:", on_click=_go, help="Which SAP data products serve a business process, and what is the delta?",
+                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[0]}, width="stretch")
+        e2.button("Data product → processes", key="h_find_dp", icon=":material/swap_horiz:", on_click=_go, help="Which processes a data product serves, and what changes in the backend if you use it.",
+                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[1]}, width="stretch")
+        e3.button("SAP-published Finance catalog", key="h_find_hub", icon=":material/library_books:", on_click=_go, help="What SAP itself publishes for Finance, and how it compares with the delta register.",
+                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[2]}, width="stretch")
+        st.markdown('<div class="ag-lead">What did the customer change in standard SAP, how was it found, and what is the next step? Three agents answer from the '
                     'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. The orchestrator plans, each agent calls typed tools, and people approve; nothing is written to SAP. The demo planner is deterministic so every answer is reproducible; an LLM planner plugs in behind the same validated tool contract, and read-only system adapters supply live evidence once access is authorized. Start from an S/4HANA object or from a data product.</div>',
                     unsafe_allow_html=True)
         _ask_box("h")
-        e1, e2, e3 = st.columns(3)
-        e1.button("Process → data products: which products serve a business process?", key="h_find_pp", icon=":material/manage_search:", on_click=_go,
-                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[0]}, width="stretch")
-        e2.button("Data product → processes and backend delta: what changes if I use this product?", key="h_find_dp", icon=":material/swap_horiz:", on_click=_go,
-                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[1]}, width="stretch")
-        e3.button("SAP-published Finance catalog: what does SAP deliver, and how does it compare?", key="h_find_hub", icon=":material/library_books:", on_click=_go,
-                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[2]}, width="stretch")
         st.radio("Home tabs", HOME_TABS, horizontal=True, key="tabs_home", label_visibility="collapsed")
         tab = st.session_state["tabs_home"]
         scn = st.session_state.get("ag_scn", "A")
@@ -339,10 +359,9 @@ def _find(res, s, scn, tech):
     ss = st.session_state
     ss["_ftn"] = 0
     st.markdown("##### Find a process, a data product or an SAP object")
-    st.caption("Search across everything, or browse one of three views below. Processes and demo products are synthetic; the SAP-published catalog is what SAP states publicly. Nothing is tenant-verified.")
-    _find_search(res, scn)
-    st.caption("Or browse:")
+    st.caption("Pick a view, or search across all three. Processes and demo products are synthetic; the SAP-published catalog is what SAP states publicly. Nothing is tenant-verified.")
     st.radio("Direction", FIND_DIRS, horizontal=True, key="find_dir", label_visibility="collapsed")
+    _find_search(res, scn)
     if ss["find_dir"] == FIND_DIRS[0]:
         _find_process(res, scn)
     elif ss["find_dir"] == FIND_DIRS[1]:
@@ -353,6 +372,7 @@ def _find(res, s, scn, tech):
 
 def _find_process(res, scn):
     names = {k: v["name"] for k, v in lookup.PROCESSES.items()}
+    st.caption("These processes are illustrative. SAP's own process tags on Finance products are Record to Report, Procure to Pay and Hire to Retire (see the SAP-published catalog).")
     st.selectbox("Business process", list(names), format_func=lambda k: names[k], key="find_proc")
     st.text_input("...or describe the process in your own words", key="find_proc_text", placeholder="for example: GR/IR, accounts payable, order to cash",
                   help="Matched against the process taxonomy only. A process that is not in it is reported as not found, never guessed.")
@@ -367,13 +387,14 @@ def _find_process(res, scn):
     m[1].metric("Objects in scope", sum(c.values()))
     m[2].metric("SAP data products involved", len(r["products"]))
     m[3].metric("Need a delta or have no product", c["COVERED_WITH_DELTA"] + c["CANDIDATE_ONLY"] + c["NOT_ESTABLISHED"] + c["NO_PRODUCT"])
+    st.markdown("**" + T.esc(r["summary"]) + "**")
     st.markdown(_fit_badge(r["verdict"]) + f" &nbsp; <span class='ag-note'>{T.esc(r['name'])}, scenario {T.esc(scn)}</span>", unsafe_allow_html=True)
     st.markdown("##### Data products that serve this process")
-    ftable([{"data product": p["product"], "evidence": p["evidence"], "serves steps": ", ".join(p["steps"]), "objects": p["objects"], "with a delta": p["with_delta"],
+    ftable([{"data product": p["product"], "evidence": _ev(p["evidence"]), "serves steps": ", ".join(p["steps"]), "objects": p["objects"], "with a delta": p["with_delta"],
             "activation": p["activation"], "entitlement": p["entitlement"]} for p in r["products"]] or [{"data product": "none"}], 300)
     st.markdown("##### Step by step: product, fit and delta")
     ftable([{"step": x["step"], "object": x["object"], "system": x["system"], "data product / entity": (x["product"] + " / " + x["entity"]) if x["product"] != "-" else "-",
-            "fit": lookup.FIT[x["fit"]], "delta": x["delta"], "solution": x["solution"]} for st_ in r["steps"] for x in st_["rows"]], 520)
+            "fit": lookup.FIT[x["fit"]], "delta": _dl(x["delta"]), "solution": x["solution"]} for st_ in r["steps"] for x in st_["rows"]], 520)
     _hub_for_process(r["process"])
     st.caption("Fit: 'Not established' means the catalog does not declare that domain complete, so a missing product is not proof that SAP delivers none. "
                "'Candidate' means the product is unverified. Open the Delta journey to solve, plan, reconcile and see readiness.")
@@ -412,11 +433,11 @@ def _find_search(res, scn):
         ftable([{"process": x["name"], "steps": x["steps"]} for x in r["processes"]], name="search_processes")
     if r["synthetic_products"]:
         st.markdown("**Demo data products (synthetic)**")
-        ftable([{"data product": x["id"], "name": x["name"], "evidence": x["evidence"]} for x in r["synthetic_products"]], name="search_demo_products")
+        ftable([{"data product": x["id"], "name": x["name"], "evidence": _ev(x["evidence"])} for x in r["synthetic_products"]], name="search_demo_products")
     if r["sap_products"]:
         st.markdown("**SAP-published data products**")
         ftable([{"data product": x["name"], "version": x["version"], "component": x["component"], "process tags": ", ".join(x["processes"]) or "-",
-                 "S/4 object": ", ".join(x["s4_objects"][:3]) or "-", "CDS views (name match)": ", ".join(v["view"] for v in x.get("cds_views", [])[:3]) or "-",
+                 "S/4 object": ", ".join(x["s4_objects"][:3]) or "-", "CDS view candidates (name match, not lineage)": ", ".join(v["view"] for v in x.get("cds_views", [])[:3]) or "-",
                  "tagged Finance": "yes" if x["finance_tagged"] else "no"} for x in r["sap_products"]], name="search_sap_products")
     c = st.columns([5, 2])
     labels = [o[2] for o in opts]
@@ -462,14 +483,14 @@ def _find_hub(res, scn):
     c = st.columns([2, 2, 3, 2])
     c[0].selectbox("SAP process tag", ["All", *sap_hub.PROCESS_TAGS, "(no process tag)"], key="find_hub_proc")
     c[1].selectbox("Application area (SAP component)", ["All", *sap_hub.areas()], key="find_hub_area")
-    c[2].text_input("Search name, id, component or object", key="find_hub_text", placeholder="for example: journal, FI-GL, CompanyCode")
+    c[2].text_input("Filter this list: name, id, component or object", key="find_hub_text", placeholder="for example: journal, FI-GL, CompanyCode")
     c[3].checkbox("Include adjacent (not tagged Finance)", key="find_hub_adj", help="Procurement products SAP lists next to the Finance products, such as Purchase Order.")
     ss = st.session_state
     rows = sap_hub.browse(ss["find_hub_proc"], ss["find_hub_area"], ss["find_hub_text"], bool(ss.get("find_hub_adj")))
     st.markdown(f"##### {len(rows)} SAP data product(s)")
     ftable([{"data product": p["name"], "version": p["version"], "component": p["component"], "process tags": ", ".join(p["processes"]) or "-",
             "editions": " + ".join(e.replace(" Edition", "") for e in p["editions"]) or "-", "S/4 object": ", ".join(p["s4_objects"][:3]) or "-", "ODM object": ", ".join(p["odm_objects"][:2]) or "-",
-            "CDS views (name match)": ", ".join(v["view"] for v in p.get("cds_views", [])[:2]) or "-", "category": p["category"]} for p in rows] or [{"data product": "none match the filters"}], 380)
+            "CDS view candidates (name match, not lineage)": ", ".join(v["view"] for v in p.get("cds_views", [])[:2]) or "-", "category": p["category"]} for p in rows] or [{"data product": "none match the filters"}], 380)
     if not rows:
         return
     names = [p["name"] for p in rows]
@@ -478,21 +499,22 @@ def _find_hub(res, scn):
     st.selectbox("Open one product", names, key="find_hub_sel")
     d = sap_hub.detail(res, scn, ss["find_hub_sel"])
     p = d["product"]
+    st.markdown("**" + T.esc(d["summary"]) + "**")
     st.markdown("##### " + T.esc(p["name"]) + " - published facts")
     ftable([{"ORD ID": p["ord_id"], "version": p["version"], "state": p["state"], "last modified": p["modified"], "component": p["component"], "category": p["category"],
             "editions": ", ".join(p["editions"]) or "-", "process tags": ", ".join(p["processes"]) or "-"}], 200)
     st.markdown("##### Backend standard anchor")
     ftable([{"S/4HANA business objects": ", ".join(p["s4_objects"]) or "none stated", "ODM business objects (cross-product model)": ", ".join(p["odm_objects"]) or "none stated"}], 200)
-    st.markdown("##### Backend CDS views and their release state")
+    st.markdown("##### Backend CDS views and their release state (name-matched candidates, not lineage)")
     if d["cds_views"]:
-        ftable([{"CDS view": v["view"], "for S/4 object": v["s4_object"], "SAP Cloud ERP": v["cloud_erp"], "SAP Cloud ERP Private": v["private_edition"],
+        ftable([{"CDS view": v["view"], "for S/4 object": v["s4_object"], "SAP Cloud ERP release state": v["cloud_erp"], "SAP Cloud ERP Private release state": v["private_edition"],
                 "successor": v["successor_class"] or "-"} for v in d["cds_views"]], 260)
     else:
         st.caption("No CDS view with the standard name for this product's S/4 object is in SAP's released-objects files.")
     st.caption(sap_hub.CDS_NOTE)
     st.markdown(f"##### Our delta register against this product (scenario {T.esc(scn)})")
     if d["rows"]:
-        ftable([{"object": r["object"], "system": r["system"], "SAP object": r["sap_object"], "our catalog product": r["our product"], "delta": r["delta"],
+        ftable([{"object": r["object"], "system": r["system"], "SAP object": r["sap_object"], "our catalog product": r["our product"], "delta": _dl(r["delta"]),
                 "solution": r["solution"], "customization": "yes" if r["customization"] else "-"} for r in d["rows"]], 380)
     else:
         st.info("No object in the synthetic scenario maps to this product, so there is nothing to compare yet. Fields, CDS views and lineage are not published, so a comparison "
@@ -516,13 +538,14 @@ def _find_product(res, scn):
     m[1].metric("Objects mapped", len(r["backend"]))
     m[2].metric("Objects that differ", sum(1 for b in r["backend"] if b["delta"] != "NO_DELTA"))
     m[3].metric("Customizations", sum(1 for b in r["backend"] if b["customization"]))
+    st.markdown("**" + T.esc(r["summary"]) + "**")
     st.markdown(T.badge(r["status"].replace("_", " "), "" if r["status"] == "COVERS_AS_IS" else "warn") + " &nbsp; " + T.badge(r["evidence"], "warn" if r["evidence"] != "SYNTHETIC_FIXTURE" else "") +
                 f" &nbsp; <span class='ag-note'>{T.esc(r['name'])}, scenario {T.esc(scn)}</span>", unsafe_allow_html=True)
     st.markdown("##### Processes this product serves")
     ftable([{"process": x["name"], "steps": ", ".join(x["steps"]), "objects served": x["share"], "with a delta": x["with_delta"],
             "other products the process needs": ", ".join(x["other_products_needed"]) or "-"} for x in r["processes"]] or [{"process": "none in the taxonomy"}], 320)
     st.markdown("##### What differs in the backend if you use this product")
-    ftable([{"object": b["object"], "system": b["system"], "SAP object": b["sap_object"], "product entity": b["entity"], "delta": b["delta"], "solution": b["solution"],
+    ftable([{"object": b["object"], "system": b["system"], "SAP object": b["sap_object"], "product entity": b["entity"], "delta": _dl(b["delta"]), "solution": b["solution"],
             "customization": "yes" if b["customization"] else "-"} for b in r["backend"]], 420)
     _hub_for_product(r["product"])
     st.markdown("##### Product state and extension options")
@@ -826,6 +849,8 @@ def _stage2(res, s, scn, tech):
     st.markdown(T.flow([("Extend the SAP product", "key-user or data-product extension", "Only when the missing fields are eligible custom attributes and the product supports extension."),
                         ("Create a new backend CDS view + customer-managed data model", "extraction view, product contract, Datasphere target", "When the structure differs (key, grain, relationships, extraction) or no SAP product exists. Generated as templates."),
                         ("Solve in Datasphere", "approved rule or enrichment", "When the data is right but the meaning or authorization needs a rule.")], selected=1), unsafe_allow_html=True)
+    st.caption("Limits: eligibility for a key-user extension is a type check on the missing fields plus the product's extension flag. Whether a real CDS view is enabled for extensibility comes from the catalog, not from this tool. "
+               "Custom tables, custom CDS views, implicit enhancements, the BW bridge and Private versus Public Cloud differences are not modelled.")
     cols = st.columns(max(1, len(sm["routes"])))
     for col, (route, n) in zip(cols, sorted(sm["routes"].items(), key=lambda kv: -kv[1])):
         col.markdown(T.card(route, f"{n} object(s)"), unsafe_allow_html=True)

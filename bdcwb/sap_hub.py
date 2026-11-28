@@ -16,7 +16,8 @@ from . import lookup
 SNAPSHOT = Path(__file__).resolve().parents[1] / "data" / "public_demo" / "sap_hub_finance_SNAPSHOT.json"
 BADGE = "SAP-PUBLISHED CATALOG SNAPSHOT (READ 2026-11-28) - NOT TENANT-VERIFIED"
 CDS_NOTE = ("CDS views are matched to the product by name (I_<S/4 object>, optionally with an API suffix); SAP does not publish which view feeds a data product. "
-            "The release state is SAP's state for ABAP Cloud (clean-core) use per edition, not a statement that the view is extraction-enabled or activated in a tenant.")
+            "The release state is SAP's state for ABAP Cloud (clean-core) use per edition; the release contract (for example C0 or C1) is not distinguished in the files as read here. "
+            "It is not a statement that the view is extraction-enabled or activated in a tenant.")
 PROCESS_TAGS = ["Record to Report", "Procure to Pay", "Hire to Retire"]          # the only process tags SAP puts on Finance products
 HUB_TAG_FOR = {"P2P": "Procure to Pay", "R2R": "Record to Report"}              # our taxonomy id -> SAP's process tag (others have no equivalent tag)
 
