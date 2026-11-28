@@ -19,7 +19,7 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, lookup, ontology, sap_hub, status
+from bdcwb import adapters, agents, arch, arch_diagrams as AD, csn, delta, importer, landscape, lookup, ontology, sap_hub, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
@@ -31,7 +31,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Diagrams"]
-RELEASE = "0.13.19"
+RELEASE = "0.13.20"
 FIND_DIRS = ["Process → data products", "Data product → processes", "SAP-published Finance catalog"]
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
@@ -810,8 +810,13 @@ def _import_panel() -> None:
     c[1].download_button("Download example catalog export (JSON)", json.dumps(importer.EXAMPLE_CATALOG, indent=1), "example_catalog.json", "application/json", key="imp_dl_cat", width="stretch")
     f1 = st.file_uploader("Extension inventory (JSON, schema bdc-delta-inventory/1)", type=["json"], key="imp_inv")
     f2 = st.file_uploader("Data-product catalog export (JSON, schema bdc-delta-catalog/1)", type=["json"], key="imp_cat")
+    f3 = st.file_uploader("Or: one SAP data product as an Effective CSN Interop file (JSON), instead of the catalog export", type=["json"], key="imp_csn")
     st.button("Use the synthetic example files", key="imp_ex", on_click=_use_import_example)
-    if f1 is not None and f2 is not None:
+    if f1 is not None and f2 is None and f3 is not None:
+        out = _csn_flow(f1.getvalue(), f3.getvalue())
+        if out is None:
+            return
+    elif f1 is not None and f2 is not None:
         out = _cached_import(f1.getvalue(), f2.getvalue())
     elif st.session_state.get("imp_use_example"):
         out = importer.run(importer.EXAMPLE_INVENTORY, importer.EXAMPLE_CATALOG, example=True)
@@ -830,6 +835,38 @@ def _import_panel() -> None:
     table([{"object": r["object"], "delivered product": r["product"], "delta": r["delta"], "customization": r["customization"],
             "degraded in the product": "; ".join(r["fidelity"]) or "-", "how it was found": r["how_found"], "next step": r["route"], "evidence": r["evidence"]} for r in out["rows"]], 520)
     st.caption(out["note"])
+
+
+def _csn_flow(inv_bytes: bytes, csn_bytes: bytes):
+    """Inventory + one CSN file. A CSN file cannot say what it covers, whether it is available, its grain or delta capability: the person states those here."""
+    inv, e1 = importer.parse(inv_bytes, "inventory")
+    doc, e2 = importer.parse(csn_bytes, "csn")
+    errs = e1 + e2 + (csn.validate(doc) if doc is not None else [])
+    if errs or inv is None or doc is None:
+        st.error("The files were not accepted. Nothing was compared.")
+        table([{"problem": e} for e in errs[:40]], 300)
+        return None
+    st.warning("The CSN reader follows SAP's published CSN Interop format but has not yet been run on a real SAP data-product file. Treat the result as a method check, not a finding.")
+    ents = list(csn.entities(doc))
+    objs = sorted({o["business_object"] for o in (inv.get("objects") or []) if isinstance(o, dict) and isinstance(o.get("business_object"), str)})
+    sug = csn.suggest_covers(doc, inv)
+    st.markdown("**What the file does not say - you state it**")
+    c = st.columns(4)
+    pname = c[0].text_input("Data product name", "SAP data product (from CSN)", key="csn_name", max_chars=80)
+    domain = c[1].text_input("Domain", "UNKNOWN", key="csn_domain", max_chars=40)
+    act = c[2].selectbox("Activation", ["UNKNOWN", "ACTIVATED", "NOT_ACTIVATED"], key="csn_act")
+    ent = c[3].selectbox("Entitlement", ["UNKNOWN", "ENTITLED", "NOT_ENTITLED"], key="csn_ent")
+    covers, info = {}, {}
+    for i, e in enumerate(ents[:20]):
+        short = e.split(".")[-1]
+        st.caption(f"Entity {short}: proposed customer objects from shared key names: {', '.join(sug.get(e, [])) or 'none'} (a proposal only; choose below)")
+        k = st.columns([3, 2, 1])
+        covers[e] = k[0].multiselect(f"Customer objects covered by {short}", objs, key=f"csn_cov{i}")
+        grain = k[1].text_input(f"Grain of {short} (optional)", "", key=f"csn_grain{i}", max_chars=80)
+        delta_ok = k[2].selectbox(f"Delta {short}", ["unknown", "yes", "no"], key=f"csn_delta{i}")
+        info[e] = {**({"grain": grain} if grain else {}), **({"delta": delta_ok == "yes"} if delta_ok != "unknown" else {})}
+    r = csn.compare(inv, doc, "SAP_DATA_PRODUCT", pname or "SAP data product (from CSN)", covers, domain=domain or "UNKNOWN", activation=act, entitlement=ent, entity_info=info)
+    return r
 
 
 def _delta_by_object(rows):

@@ -133,7 +133,7 @@ def to_product(doc: dict, product_id: str, name: str, covers: dict, *, version: 
     `covers` maps an entity name to the customer business objects it covers; an entity not in `covers` covers nothing.
     A CSN file does not state availability (activation, entitlement, installation), the grain of an entity or whether it supports delta extraction.
     Supply them from the cockpit export when known (`activation` etc., and `entity_info={"Entity": {"grain": "...", "delta": True}}`); left unknown,
-    the delta engine reports the product as not available and the structure as differing, which means 'not established', not 'SAP delivers nothing'.
+    the delta engine reports availability as not established (UNKNOWN_CATALOG), never as 'SAP delivers nothing'; grain and delta capability left out read as differing structure.
     """
     info = entity_info or {}
     ents = []

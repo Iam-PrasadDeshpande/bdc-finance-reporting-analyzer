@@ -108,9 +108,14 @@ def compare(req: dict, product: dict, entity: dict, catalog: Catalog, mode: str)
     if not rel_ok:
         gap("VERSION_GAP", "Source compatibility", dims["Source compatibility"]["detail"])
     avail = catalog.availability(product)
-    dims["Availability"] = {"status": "MATCH" if product["entitlement"] == "ENTITLED" else "GAP", "detail": avail}
-    if product["entitlement"] != "ENTITLED":
-        gap("PRODUCT_NOT_AVAILABLE", "Availability", f"entitlement {product['entitlement']}")
+    if product["entitlement"] == "UNKNOWN":
+        # not stated (for example a CSN file cannot say): this is 'not established', never 'SAP delivers nothing'
+        dims["Availability"] = {"status": "UNASSESSED", "detail": avail}
+        gap("CATALOG_UNVERIFIED", "Availability", "entitlement not stated by the source; availability is not established")
+    else:
+        dims["Availability"] = {"status": "MATCH" if product["entitlement"] == "ENTITLED" else "GAP", "detail": avail}
+        if product["entitlement"] != "ENTITLED":
+            gap("PRODUCT_NOT_AVAILABLE", "Availability", f"entitlement {product['entitlement']}")
     return {"product": product["product_id"], "entity": entity["entity"], "extension": product["extension"], "dimensions": dims, "gaps": gaps,
             "coverage": {"numerator": len(covered), "denominator": len(req["fields"]), "unassessed": [],
                          "percent": round(100.0 * len(covered) / len(req["fields"]), 1) if req["fields"] else None},
