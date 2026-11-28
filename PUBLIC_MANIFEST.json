@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "e60ce333351d85dc2f8e9f343b3ed177e62ff0d84d405a7c116baef2aa4f59cf",
+ "source_build_manifest_sha256": "6ecd5fb8841d8c70206eceeeaa0649a735ca69e037271521a55befa509330c93",
  "files": [
   {
    "path": ".gitignore",
@@ -39,8 +39,8 @@
   },
   {
    "path": "bdcwb/agents.py",
-   "sha256": "66e7cceef4e8350ac0ac9b13e1e7e1772011271fef76b8e938ca794f86e965ad",
-   "bytes": 30144
+   "sha256": "bb4f3ef6adaf2e993aadaab49ce3cb2f6607ab11b395691e8384b25ab52109bc",
+   "bytes": 31752
   },
   {
    "path": "bdcwb/arch.py",
@@ -134,7 +134,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "1575b5dee06310ccc07e23b7feb2b169c259452c7ba9b329cea71b47186a5050",
+   "sha256": "381c93d2db5324b671ca762345a7ced404fc69ff86e0cda92cc9921b85e21c8a",
    "bytes": 696
   },
   {
@@ -149,8 +149,8 @@
   },
   {
    "path": "bdcwb/sap_hub.py",
-   "sha256": "fdd6a279e5dd3ee2a7d6ea9911d48a16696a2de2a309244dead03413601cd9cc",
-   "bytes": 7564
+   "sha256": "4abd481763555f5fd69b98d99ae38af0aa1ae4de41b5a7d0fcb8bfecc6807bd7",
+   "bytes": 9652
   },
   {
    "path": "bdcwb/scenarios.py",
@@ -229,12 +229,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "5de661bc87c4ced0c8137fca8a4f8b29822434c1a562a959a859b54f93fc71c1",
+   "sha256": "b73d887167405b03fef2267c4c43d84bdded34d7ebef2a8168ecb57980becb34",
    "bytes": 87468
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.12"
+ "release": "v0.13.13"
 }

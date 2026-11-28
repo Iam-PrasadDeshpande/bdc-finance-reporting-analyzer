@@ -15,7 +15,7 @@ import re
 import unicodedata
 from typing import Any, Callable
 
-from . import adapters, delta, lookup, ontology
+from . import adapters, delta, lookup, ontology, sap_hub
 
 AUTHORITY = {"PLANS_ONLY": "plans only", "READ": "read", "READ_SIMULATED": "read (simulated)", "LOCAL_DRAFT": "read + local draft",
              "DRAFT_ONLY": "draft only"}
@@ -240,14 +240,26 @@ def t_process_products(res, a):
     r = lookup.process_to_products(res, a.get("scenario") or "A", a.get("request", ""))
     if not r["found"]:
         return {"summary": r["summary"], "data": {"found": False}}
-    return {"summary": r["summary"], "data": {"found": True, "process": r["process"], "verdict": r["verdict"], "counts": r["counts"], "products": [p["product"] for p in r["products"]]}}
+    h = sap_hub.for_process(r["process"])
+    pub = (f" SAP publishes {len(h['tagged'])} Finance products tagged '{h['tag']}'" if h["tag"] else " SAP has no process tag equivalent to this process") + \
+        (f"; no SAP-published product carries the objects of: {', '.join(h['unpublished_steps'])}" if h["unpublished_steps"] else "") + ". " + sap_hub.BADGE + "."
+    return {"summary": r["summary"] + pub, "data": {"found": True, "process": r["process"], "verdict": r["verdict"], "counts": r["counts"], "products": [p["product"] for p in r["products"]],
+                                                    "sap_published": {"tag": h["tag"], "tagged": len(h["tagged"]), "unpublished_steps": h["unpublished_steps"]}}}
 
 
 def t_product_processes(res, a):
     r = lookup.product_to_processes(res, a.get("scenario") or "A", a.get("product") or a.get("request", ""))
     if not r["found"]:
         return {"summary": r["summary"], "data": {"found": False}}
-    return {"summary": r["summary"], "data": {"found": True, "product": r["product"], "status": r["status"], "processes": [p["process"] for p in r["processes"]]}}
+    e = sap_hub.equivalents(r["product"])
+    pub = (" SAP-published equivalent: " + ", ".join(f"{p['name']} v{p['version']}" for p in e["products"]) + "; SAP's process tags: " + (", ".join(e["processes"]) or "none") + ". "
+           if e["products"] else " " + e["note"]) + sap_hub.BADGE + "."
+    return {"summary": r["summary"] + pub, "data": {"found": True, "product": r["product"], "status": r["status"], "processes": [p["process"] for p in r["processes"]],
+                                                    "sap_published": [p["id"] for p in e["products"]]}}
+
+
+def t_hub_catalog(res, a):
+    return sap_hub.answer(res, a.get("scenario") or "A", a.get("request", ""))
 
 
 TOOLS: dict[str, dict] = {}
@@ -284,6 +296,7 @@ _t("delta.register", "s4", "Delta register: customizations in standard SAP vs th
 _t("delta.solution", "s4", "Solution route per delta: extend the product, or new backend CDS view + customer-managed model", _S, "READ", "Domain engine", t_solution)
 _t("dsp.plan", "bdc", "Datasphere plan: replication flows, transformation, semantic model, offline simulation", _S, "LOCAL_DRAFT", "Domain engine", t_dsp)
 _t("delta.by_product", "bdc", "Delta seen from the data product: mapped objects, customizations, solution routes, readiness", {**_S, "product": "string?"}, "READ", "SAP metadata (synthetic)", t_by_product)
+_t("hub.finance_catalog", "bdc", "SAP-published Finance data products: facts, process tags, S/4 objects, name-matched CDS views and release state, and the link to the delta register", {**_S, "request": "string"}, "READ", "SAP metadata (public snapshot)", t_hub_catalog)
 _t("lookup.process_products", "bdc", "Process to data products: which SAP-delivered products serve a business process, how well, and the delta", {**_S, "request": "string"}, "READ", "SAP metadata (synthetic)", t_process_products)
 _t("lookup.product_processes", "bdc", "Data product to processes: which processes a product serves and what differs in the backend", {**_S, "product": "string?"}, "READ", "SAP metadata (synthetic)", t_product_processes)
 _t("ontology.lineage", "bdc", "Ontology: how data flows from the SAP object to the proof, and how the components are wired", _S, "READ", "Evidence store", t_onto)
@@ -309,6 +322,7 @@ def _is_write(text: str) -> bool:
 
 INTENTS = [
     ("write", None, "utility", ["approvals.draft", "exec.plan"]),  # matched by _is_write (normalised, fail closed)
+    ("sap_catalog", re.compile(r"(accelerator hub|\bsap hub\b|hub catalog|sap catalog|api\.sap\.com|finance data products|release state|process tags?\b)", re.I), "bdc", ["hub.finance_catalog"]),
     ("product_to_process", re.compile(r"(\b(which|what)\b.*\bprocess(es)?\b.*\b(sim_dp_\w+|data[- ]?products?)\b|\bprocess(es)? (that )?(use|uses|using|served|depend\w*|affected)\b.*\b(sim_dp_\w+|product)|product[- ]to[- ]process|reverse lookup)", re.I), "bdc",
      ["lookup.product_processes"]),
     ("process_to_product", re.compile(r"(\b(which|what)\b.*\bdata[- ]?products?\b.*\b(for|support\w*|cover\w*|serve\w*|exist\w*|available|needed|use)\b|process[- ]to[- ]product|process[- ]first|\bdata[- ]?products? (for|available for) (the |our )?\w+)", re.I), "bdc",
@@ -333,7 +347,7 @@ INTENTS = [
 EXAMPLES = ["Show the delta: what is customized in standard SAP and how was it found?", "Start from the data product SIM_DP_PURCHASE_ORDER: which of our S/4HANA objects and customizations does it cover?",
             "How should we solve each delta: extend the product or build a new CDS view?", "Generate the customer-managed product package for the invoice item",
             "Which Datasphere flows and models are needed?", "Reconcile scenario B and prove duplicate Finance postings are prevented",
-            "Which data products exist for the procure to pay process?", "Which business processes use the data product SIM_DP_PURCHASE_ORDER?", "Give me the end-to-end result for scenario A", "Show how data flows from the SAP object to the report (ontology)", "Deploy the artifacts to the S/4HANA system"]
+            "Which data products exist for the procure to pay process?", "Which business processes use the data product SIM_DP_PURCHASE_ORDER?", "What is in the SAP hub catalog for Journal Entry Header: CDS views and release state?", "Give me the end-to-end result for scenario A", "Show how data flows from the SAP object to the report (ontology)", "Deploy the artifacts to the S/4HANA system"]
 
 
 def _plan_deterministic(request: str) -> dict:
