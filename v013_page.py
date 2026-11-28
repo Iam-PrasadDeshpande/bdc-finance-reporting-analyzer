@@ -17,20 +17,21 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, ontology, status
+from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, lookup, ontology, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
 STAGE_LABELS = [f"{s['id']} {s['name']}" for s in STAGES]
 SCEN = {"A": "A - single S/4HANA system", "B": "B - multi-system with Central Finance"}
-SPACES = ["Delta journey", "Ontology", "Agents", "Architecture & operations"]
+SPACES = ["Delta journey", "Find", "Ontology", "Agents", "Architecture & operations"]
 START = ["All (objects and data products)", "S/4HANA object", "Data product"]
 ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.8"
-SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
+RELEASE = "0.13.9"
+FIND_DIRS = ["Process → data products", "Data product → processes"]
+SPACE_SLUGS = {"Delta journey": "delta-journey", "Find": "find", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
 AGENT_EXAMPLE = {"s4": 0, "bdc": 4, "utility": 5}
@@ -74,9 +75,11 @@ def _agent(agent_id: str) -> dict:
 
 # ---------------------------------------------------------------------------------------------------- navigation
 def _go(view: str = "space", space: str | None = None, stage: int | None = None, agents_tab: str | None = None, arch_tab: str | None = None,
-        home_tab: str | None = None) -> None:
+        home_tab: str | None = None, find_dir: str | None = None) -> None:
     ss = st.session_state
     ss["nav_view"] = view
+    if find_dir:
+        ss["find_dir"] = find_dir
     if space:
         ss["tabs_space"] = space
     if stage:
@@ -140,6 +143,8 @@ def shell(mode: str) -> None:
             for n, icon in ((1, "travel_explore"), (2, "construction"), (3, "hub"), (4, "balance"), (5, "flag")):
                 st.button(f"{n} {STAGES[n - 1]['name']}", key=f"m_stage{n}", icon=f":material/{icon}:", on_click=_go,
                           kwargs={"view": "space", "space": "Delta journey", "stage": n}, width="stretch")
+            st.button("Find: process to data product", key="m_find", icon=":material/manage_search:", on_click=_go,
+                      kwargs={"view": "space", "space": "Find"}, width="stretch")
             st.button("Ontology: how data flows", key="m_onto", icon=":material/account_tree:", on_click=_go,
                       kwargs={"view": "space", "space": "Ontology"}, width="stretch")
             st.button("Ask the BDC agents", key="m_ask", icon=":material/smart_toy:", on_click=_go,
@@ -188,7 +193,7 @@ def render() -> None:
             if ss["tabs_space"] != "Delta journey" and "stage" in st.query_params:
                 del st.query_params["stage"]
             _status_strip(res)
-            {"Delta journey": _journey, "Ontology": _ontology, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
+            {"Delta journey": _journey, "Find": _find, "Ontology": _ontology, "Agents": _agents, "Architecture & operations": _architecture}[ss["tabs_space"]](res, s, scn, tech)
         st.markdown(T.legal_html(), unsafe_allow_html=True)
     ev = status.load_evidence()
     st.markdown(T.footer(f" &middot; v{RELEASE} &middot; evidence recorded {T.esc(ev.get('recorded', 'n/a'))}"), unsafe_allow_html=True)
@@ -263,6 +268,11 @@ def _home(res: dict) -> None:
                     'synthetic evidence; they compare the customer\'s SAP objects with the data products SAP delivers. The orchestrator plans, each agent calls typed tools, and people approve; nothing is written to SAP. The demo planner is deterministic so every answer is reproducible; an LLM planner plugs in behind the same validated tool contract, and read-only system adapters supply live evidence once access is authorized. Start from an S/4HANA object or from a data product.</div>',
                     unsafe_allow_html=True)
         _ask_box("h")
+        e1, e2 = st.columns(2)
+        e1.button("Process → data products: which products serve a business process?", key="h_find_pp", icon=":material/manage_search:", on_click=_go,
+                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[0]}, width="stretch")
+        e2.button("Data product → processes and backend delta: what changes if I use this product?", key="h_find_dp", icon=":material/swap_horiz:", on_click=_go,
+                  kwargs={"view": "space", "space": "Find", "find_dir": FIND_DIRS[1]}, width="stretch")
         st.radio("Home tabs", HOME_TABS, horizontal=True, key="tabs_home", label_visibility="collapsed")
         tab = st.session_state["tabs_home"]
         scn = st.session_state.get("ag_scn", "A")
@@ -292,6 +302,86 @@ def _home(res: dict) -> None:
         o1.markdown('<span class="ag-note">Looking for the earlier v0.12 analyzer (Vision &amp; Approach, AR Aging, Architecture, Evidence, Methodology)? '
                     'It is kept, unchanged, as one page.</span>', unsafe_allow_html=True)
         o2.button("Open the Old demo →", key="home_old", on_click=_go, kwargs={"view": "old"}, width="stretch")
+
+
+
+# ---------------------------------------------------------------------------------------------------- Find: process <-> data product
+def _fit_badge(fit: str) -> str:
+    return T.badge(lookup.FIT[fit], "" if fit in ("COVERED_AS_IS",) else "warn")
+
+
+def _find(res, s, scn, tech):
+    ss = st.session_state
+    st.markdown("##### Find the data products for a process, or the processes behind a data product")
+    st.caption("Both directions read the same delta register and catalog as the Delta journey, so the answers always agree with it. " + lookup.BADGE + ".")
+    st.radio("Direction", FIND_DIRS, horizontal=True, key="find_dir", label_visibility="collapsed")
+    if ss["find_dir"] == FIND_DIRS[0]:
+        _find_process(res, scn)
+    else:
+        _find_product(res, scn)
+
+
+def _find_process(res, scn):
+    names = {k: v["name"] for k, v in lookup.PROCESSES.items()}
+    st.selectbox("Business process", list(names), format_func=lambda k: names[k], key="find_proc")
+    st.text_input("...or describe the process in your own words", key="find_proc_text", placeholder="for example: GR/IR, accounts payable, order to cash",
+                  help="Matched against the process taxonomy only. A process that is not in it is reported as not found, never guessed.")
+    typed = (st.session_state.get("find_proc_text") or "").strip()
+    r = lookup.process_to_products(res, scn, typed or names[st.session_state["find_proc"]])
+    if not r["found"]:
+        st.warning(r["summary"])
+        return
+    c = r["counts"]
+    m = st.columns(4)
+    m[0].metric("Steps", len(r["steps"]))
+    m[1].metric("Objects in scope", sum(c.values()))
+    m[2].metric("SAP data products involved", len(r["products"]))
+    m[3].metric("Need a delta or have no product", c["COVERED_WITH_DELTA"] + c["CANDIDATE_ONLY"] + c["NOT_ESTABLISHED"] + c["NO_PRODUCT"])
+    st.markdown(_fit_badge(r["verdict"]) + f" &nbsp; <span class='ag-note'>{T.esc(r['name'])}, scenario {T.esc(scn)}</span>", unsafe_allow_html=True)
+    st.markdown("##### Data products that serve this process")
+    table([{"data product": p["product"], "evidence": p["evidence"], "serves steps": ", ".join(p["steps"]), "objects": p["objects"], "with a delta": p["with_delta"],
+            "activation": p["activation"], "entitlement": p["entitlement"]} for p in r["products"]] or [{"data product": "none"}], 300)
+    st.markdown("##### Step by step: product, fit and delta")
+    table([{"step": x["step"], "object": x["object"], "system": x["system"], "data product / entity": (x["product"] + " / " + x["entity"]) if x["product"] != "-" else "-",
+            "fit": lookup.FIT[x["fit"]], "delta": x["delta"], "solution": x["solution"]} for st_ in r["steps"] for x in st_["rows"]], 520)
+    st.caption("Fit: 'Not established' means the catalog does not declare that domain complete, so a missing product is not proof that SAP delivers none. "
+               "'Candidate' means the product is unverified. Open the Delta journey to solve, plan, reconcile and see readiness.")
+    b = st.columns(3)
+    b[0].button("Open 1 Find the delta →", key="find_to_s1", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 1}, width="stretch")
+    b[1].button("Open 2 Solution the delta →", key="find_to_s2", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 2}, width="stretch")
+    b[2].button("Open the Ontology →", key="find_to_onto", on_click=_go, kwargs={"view": "space", "space": "Ontology"}, width="stretch")
+
+
+def _find_product(res, scn):
+    cat = {p["product_id"]: p["name"] for p in res["scenarios"][scn]["catalog"]["products"]}
+    st.selectbox("SAP-delivered data product", list(cat), format_func=lambda k: f"{k} - {cat[k]}", key="find_prod")
+    r = lookup.product_to_processes(res, scn, st.session_state["find_prod"])
+    if not r["found"]:
+        st.warning(r["summary"])
+        return
+    stt = r["state"]
+    m = st.columns(4)
+    m[0].metric("Processes served", len(r["processes"]))
+    m[1].metric("Objects mapped", len(r["backend"]))
+    m[2].metric("Objects that differ", sum(1 for b in r["backend"] if b["delta"] != "NO_DELTA"))
+    m[3].metric("Customizations", sum(1 for b in r["backend"] if b["customization"]))
+    st.markdown(T.badge(r["status"].replace("_", " "), "" if r["status"] == "COVERS_AS_IS" else "warn") + " &nbsp; " + T.badge(r["evidence"], "warn" if r["evidence"] != "SYNTHETIC_FIXTURE" else "") +
+                f" &nbsp; <span class='ag-note'>{T.esc(r['name'])}, scenario {T.esc(scn)}</span>", unsafe_allow_html=True)
+    st.markdown("##### Processes this product serves")
+    table([{"process": x["name"], "steps": ", ".join(x["steps"]), "objects served": x["share"], "with a delta": x["with_delta"],
+            "other products the process needs": ", ".join(x["other_products_needed"]) or "-"} for x in r["processes"]] or [{"process": "none in the taxonomy"}], 320)
+    st.markdown("##### What differs in the backend if you use this product")
+    table([{"object": b["object"], "system": b["system"], "SAP object": b["sap_object"], "product entity": b["entity"], "delta": b["delta"], "solution": b["solution"],
+            "customization": "yes" if b["customization"] else "-"} for b in r["backend"]], 420)
+    st.markdown("##### Product state and extension options")
+    table([{"activation": stt["activation"], "entitlement": stt["entitlement"], "installation": stt["installation"], "supported releases": ", ".join(stt["releases"]),
+            "key-user extension": "yes" if stt["key_user_extension"] else "no", "developer extension": "yes" if stt["developer_extension"] else "no",
+            "data-product extension": "yes" if stt["data_product_extension"] else "no"}], 200)
+    st.caption("State values are synthetic. Whether a real product is activated or entitled in a tenant needs read-only access this build does not have. Nothing here activates or changes anything.")
+    b = st.columns(3)
+    b[0].button("Open 1 Find the delta →", key="findp_to_s1", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 1}, width="stretch")
+    b[1].button("Open 2 Solution the delta →", key="findp_to_s2", on_click=_go, kwargs={"view": "space", "space": "Delta journey", "stage": 2}, width="stretch")
+    b[2].button("Open the Ontology →", key="findp_to_onto", on_click=_go, kwargs={"view": "space", "space": "Ontology"}, width="stretch")
 
 
 # ---------------------------------------------------------------------------------------------------- Level 2: Agents space
@@ -495,9 +585,7 @@ def _import_panel() -> None:
     f2 = st.file_uploader("Data-product catalog export (JSON, schema bdc-delta-catalog/1)", type=["json"], key="imp_cat")
     st.button("Use the synthetic example files", key="imp_ex", on_click=_use_import_example)
     if f1 is not None and f2 is not None:
-        inv, e1 = importer.parse(f1.getvalue(), "inventory")
-        cat, e2 = importer.parse(f2.getvalue(), "catalog")
-        out = {"ok": False, "errors": e1 + e2, "rows": [], "summary": {}} if (e1 or e2) else importer.run(inv, cat)
+        out = _cached_import(f1.getvalue(), f2.getvalue())
     elif st.session_state.get("imp_use_example"):
         out = importer.run(importer.EXAMPLE_INVENTORY, importer.EXAMPLE_CATALOG, example=True)
     else:
@@ -885,11 +973,20 @@ def _onto_concepts():
 
 
 # ---------------------------------------------------------------------------------------------------- Level 2: Architecture & operations
+@st.cache_data(show_spinner=False, max_entries=8)
+def _cached_import(inv_bytes: bytes, cat_bytes: bytes) -> dict:
+    """Parse and run once per pair of files: widget interactions re-run the page and must not repeat the comparison."""
+    inv, e1 = importer.parse(inv_bytes, "inventory")
+    cat, e2 = importer.parse(cat_bytes, "catalog")
+    return {"ok": False, "errors": e1 + e2, "rows": [], "summary": {}} if (e1 or e2) else importer.run(inv, cat)
+
+
 def _run_architecture(res, scn):
     """Run the request in the box and show the whole trace (a replay slider left at 0 must not make a new run look empty)."""
     ss = st.session_state
     run = agents.run_request(ss.get("ag_liveq", ""), res, scn)
     ss["ag_live"] = run
+    ss["ag_live_scn"] = scn
     ss["ag_step"] = len(arch.live_events(run))
     ss["ag_play"] = False
 
@@ -916,13 +1013,15 @@ def _restart_play():
 def _architecture(res, s, scn, tech):
     st.radio("Architecture", ARCH_TABS, horizontal=True, key="tabs_arch", label_visibility="collapsed")
     tab = st.session_state["tabs_arch"]
+    if tab != "Live run":
+        st.session_state["ag_play"] = False      # leaving the tab stops playback; it must not resume by itself on return
     pref = " ".join(f"**{k}** {'preferred' if v['preferred'] else 'conditional, not approved'} ({v['tag']})" for k, v in arch.OPTIONS.items())
     st.caption("Architecture preference: " + pref + " · " + arch.BADGE)
     if tab == "Live run":
         st.markdown("##### Follow a request through the architecture")
         q = st.text_input("Business intent", value="Reconcile the selected synthetic scenario end to end", key="ag_liveq")
         st.button("Run architecture", key="runarch", type="primary", on_click=_run_architecture, args=(res, scn))
-        run = st.session_state.get("ag_live") or agents.run_request(q, res, scn)
+        run = (st.session_state.get("ag_live") if st.session_state.get("ag_live_scn") == scn else None) or agents.run_request(q, res, scn)
         ev = arch.live_events(run)
         ss = st.session_state
         if not 0 <= ss.get("ag_step", -1) <= len(ev):

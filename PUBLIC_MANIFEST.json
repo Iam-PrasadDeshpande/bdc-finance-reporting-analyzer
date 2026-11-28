@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-28",
- "source_build_manifest_sha256": "410b7678354bc352c4732450cbb3e39498c725c68119d2602ea58efe07904a83",
+ "source_build_manifest_sha256": "df38a0a83e7b67f20352b0f7d73be9e90344963d2689cd358fa31740d3896339",
  "files": [
   {
    "path": ".gitignore",
@@ -39,8 +39,8 @@
   },
   {
    "path": "bdcwb/agents.py",
-   "sha256": "0463875cf6fed6e03c8d04cc35ce8dbf0c8f9346d6ee6bac1e53e21ce4970018",
-   "bytes": 28157
+   "sha256": "66e7cceef4e8350ac0ac9b13e1e7e1772011271fef76b8e938ca794f86e965ad",
+   "bytes": 30144
   },
   {
    "path": "bdcwb/arch.py",
@@ -104,13 +104,18 @@
   },
   {
    "path": "bdcwb/importer.py",
-   "sha256": "a03c77a5f7750680548db1feb944dd9460a64586c1aada792d5ee7d26b453ccf",
-   "bytes": 19549
+   "sha256": "4da149fec7e026df6b8908be7aac8ab8bd72d81f45b36683c8a6014a94ed82c5",
+   "bytes": 26196
   },
   {
    "path": "bdcwb/landscape.py",
    "sha256": "4b0c4c7ada2d27baef55d4aa0a7491117a920a9ab355b25e36709a8aba8fa00b",
    "bytes": 18994
+  },
+  {
+   "path": "bdcwb/lookup.py",
+   "sha256": "b082630418f9da69894d7f0cacbfc0ddc4f0180a80cf50b7f920d8c17ad9fb28",
+   "bytes": 13231
   },
   {
    "path": "bdcwb/mapping.py",
@@ -129,7 +134,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "ab62a202f885c89c1233cea8fa2bfc1074c961aa8165cb5799486357b878a902",
+   "sha256": "2b9122d3b8c1a05015b5fb8b9af268198e0f4f97b9439e7e3a727c5cb3264615",
    "bytes": 696
   },
   {
@@ -209,17 +214,17 @@
   },
   {
    "path": "suite_theme.py",
-   "sha256": "320f3d6496dc8ff7db1b5cc82863beef5586d35073a1e803896bac064cde60b7",
-   "bytes": 23268
+   "sha256": "faff8ce1259eae8929873fb33c902c19fbd84efea758d6785739e96fa9392a0c",
+   "bytes": 23396
   },
   {
    "path": "v013_page.py",
-   "sha256": "58ce3f495d40fa4c4d1019ae5788c8caafe8fec06b5dc6f23a5e2a709e54e20a",
-   "bytes": 73341
+   "sha256": "cd64d691624da521b3754b0fc42f3a6fabd06153bbbb97b03a0e8b09be7c8a13",
+   "bytes": 81193
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.8"
+ "release": "v0.13.9"
 }

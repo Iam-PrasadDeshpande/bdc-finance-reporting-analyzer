@@ -19,7 +19,8 @@ from .delta import DELTA_TYPES, ROUTES, _classify, _fmt
 
 INVENTORY_SCHEMA = "bdc-delta-inventory/1"
 CATALOG_SCHEMA = "bdc-delta-catalog/1"
-LIMITS = {"max_bytes": 2_000_000, "max_objects": 200, "max_fields_per_object": 600, "max_products": 150, "max_entities_per_product": 60}
+LIMITS = {"max_bytes": 1_000_000, "max_objects": 200, "max_fields_per_object": 600, "max_products": 150, "max_entities_per_product": 60,
+          "max_fields_per_entity": 400, "max_entities_per_business_object": 10, "max_depth": 40}
 PROFILE = {"S4_2023": "S4A", "S4_2022": "S4B", "ECC_6_0_EHP8": "ECC01"}  # release family -> built-in capability profile
 IMPORT_EVIDENCE = "CUSTOMER_PROVIDED"
 FIELD_TYPES = {"CHAR", "NUMC", "DATS", "TIMS", "CURR", "QUAN", "DEC", "INT4", "CUKY", "UNIT", "LANG", "STRING", "CLNT"}
@@ -28,23 +29,59 @@ FIDELITY_ROUTE = ("Correct the extension so the delivered product carries the fi
                   "Procedure per product and release must be confirmed in SAP documentation.")
 
 
+def _no_duplicate_keys(pairs):
+    keys = [k for k, _ in pairs]
+    dup = {k for k in keys if keys.count(k) > 1}
+    if dup:
+        raise ValueError(f"duplicate key {sorted(dup)[0]!r}")
+    return dict(pairs)
+
+
+def _depth(x, d: int = 0) -> int:
+    """Nesting depth without recursion into hostile structures beyond the limit."""
+    stack, deepest = [(x, 1)], 0
+    while stack:
+        v, n = stack.pop()
+        deepest = max(deepest, n)
+        if deepest > LIMITS["max_depth"]:
+            return deepest
+        if isinstance(v, dict):
+            stack += [(c, n + 1) for c in v.values() if isinstance(c, (dict, list))]
+        elif isinstance(v, list):
+            stack += [(c, n + 1) for c in v if isinstance(c, (dict, list))]
+    return deepest
+
+
 def parse(text: str | bytes, what: str) -> tuple[dict | None, list[str]]:
     raw = text if isinstance(text, (bytes, bytearray)) else text.encode("utf-8")
     if len(raw) > LIMITS["max_bytes"]:
         return None, [f"{what}: file is larger than {LIMITS['max_bytes']} bytes"]
     try:
-        doc = json.loads(raw.decode("utf-8"))
+        doc = json.loads(raw.decode("utf-8"), object_pairs_hook=_no_duplicate_keys)
+    except RecursionError:
+        return None, [f"{what}: nested too deeply"]
     except (UnicodeDecodeError, ValueError) as e:
         return None, [f"{what}: not valid UTF-8 JSON ({str(e)[:80]})"]
+    except Exception:  # noqa: BLE001 - a hostile file must produce a message, never an exception
+        return None, [f"{what}: could not be read as JSON"]
     if not isinstance(doc, dict):
         return None, [f"{what}: the top level must be a JSON object"]
+    if _depth(doc) > LIMITS["max_depth"]:
+        return None, [f"{what}: nested deeper than {LIMITS['max_depth']} levels"]
     return doc, []
+
+
+def _bool_errors(where: str, d: dict, keys: tuple) -> list[str]:
+    return [f"{where}: '{k}' must be true or false (not {d[k]!r})" for k in keys if k in d and not isinstance(d[k], bool)]
 
 
 def _field_errors(where: str, f: Any) -> list[str]:
     if not isinstance(f, dict) or not isinstance(f.get("name"), str) or not f["name"].strip():
         return [f"{where}: each field needs a text 'name'"]
-    errs = []
+    errs = _bool_errors(f"{where}.{f['name']}", f, ("custom", "key"))
+    for k in ("label", "currency_ref", "unit_ref"):
+        if k in f and f[k] is not None and not isinstance(f[k], str):
+            errs.append(f"{where}.{f['name']}: '{k}' must be text")
     if str(f.get("type", "CHAR")).upper() not in FIELD_TYPES:
         errs.append(f"{where}.{f['name']}: type {f.get('type')!r} is not one of {sorted(FIELD_TYPES)}")
     for k in ("length", "decimals"):
@@ -58,7 +95,7 @@ def validate_inventory(doc: dict) -> list[str]:
     if doc.get("schema") != INVENTORY_SCHEMA:
         errs.append(f"inventory: schema must be {INVENTORY_SCHEMA!r}")
     src = doc.get("source")
-    if not isinstance(src, dict) or src.get("release_family") not in PROFILE:
+    if not isinstance(src, dict) or not isinstance(src.get("release_family"), str) or src.get("release_family") not in PROFILE:
         errs.append(f"inventory: source.release_family must be one of {sorted(PROFILE)} (these select the capability profile)")
     if doc.get("evidence", IMPORT_EVIDENCE) != IMPORT_EVIDENCE:
         errs.append(f"inventory: evidence must be {IMPORT_EVIDENCE} (imports are never upgraded)")
@@ -73,6 +110,12 @@ def validate_inventory(doc: dict) -> list[str]:
         if not isinstance(o, dict) or not isinstance(o.get("name"), str) or not isinstance(o.get("business_object"), str):
             errs.append(f"{w}: needs text 'name' and 'business_object'")
             continue
+        for k in ("keys", "relationships", "auth_objects", "logic", "alt_sources"):
+            if k in o and o[k] is not None and not (isinstance(o[k], list) and all(isinstance(x, str) for x in o[k])):
+                errs.append(f"{w} {o['name']}: '{k}' must be a list of text")
+        if "semantics" in o and o["semantics"] is not None and not isinstance(o["semantics"], dict):
+            errs.append(f"{w} {o['name']}: 'semantics' must be an object")
+        errs += _bool_errors(f"{w} {o['name']}", o, ("needs_delta",))
         if o["name"] in seen:
             errs.append(f"{w}: duplicate object name {o['name']}")
         seen.add(o["name"])
@@ -91,7 +134,7 @@ def validate_inventory(doc: dict) -> list[str]:
     return errs
 
 
-def validate_catalog(doc: dict) -> list[str]:
+def validate_catalog(doc: dict, example: bool = False) -> list[str]:
     errs: list[str] = []
     if doc.get("schema") != CATALOG_SCHEMA:
         errs.append(f"catalog: schema must be {CATALOG_SCHEMA!r}")
@@ -100,23 +143,60 @@ def validate_catalog(doc: dict) -> list[str]:
         return errs + ["catalog: 'products' must be a non-empty list"]
     if len(prods) > LIMITS["max_products"]:
         return errs + [f"catalog: more than {LIMITS['max_products']} products"]
+    comp = doc.get("domain_completeness")
+    if comp is not None and (not isinstance(comp, dict) or not all(isinstance(v, bool) for v in comp.values())):
+        errs.append("catalog: 'domain_completeness' must map each domain to true or false")
+    seen_pid: set = set()
+    per_group: dict = {}
     for i, p in enumerate(prods):
         w = f"products[{i}]"
         if not isinstance(p, dict) or not isinstance(p.get("product_id"), str):
             errs.append(f"{w}: needs a text 'product_id'")
             continue
-        if p.get("evidence", IMPORT_EVIDENCE) not in EVIDENCE:
-            errs.append(f"{w} {p['product_id']}: unknown evidence class {p.get('evidence')!r}")
+        if p["product_id"] in seen_pid:
+            errs.append(f"{w}: duplicate product_id {p['product_id']}")
+        seen_pid.add(p["product_id"])
+        ev = p.get("evidence", IMPORT_EVIDENCE)
+        if ev not in EVIDENCE:
+            errs.append(f"{w} {p['product_id']}: unknown evidence class {ev!r}")
+        elif ev != IMPORT_EVIDENCE and not example:
+            errs.append(f"{w} {p['product_id']}: evidence {ev!r} cannot be imported; an imported catalog is {IMPORT_EVIDENCE} (never upgraded)")
+        if "extension" in p and p["extension"] is not None:
+            if not isinstance(p["extension"], dict):
+                errs.append(f"{w} {p['product_id']}: 'extension' must be an object")
+            else:
+                errs += _bool_errors(f"{w} {p['product_id']}.extension", p["extension"], ("key_user", "developer", "data_product_extension"))
+        if "supported_releases" in p and p["supported_releases"] is not None and not (isinstance(p["supported_releases"], list) and all(isinstance(x, str) for x in p["supported_releases"])):
+            errs.append(f"{w} {p['product_id']}: 'supported_releases' must be a list of text")
         ents = p.get("entities")
         if not isinstance(ents, list) or not ents or len(ents) > LIMITS["max_entities_per_product"]:
             errs.append(f"{w} {p['product_id']}: 'entities' must be a list of 1 to {LIMITS['max_entities_per_product']}")
             continue
+        seen_ent: set = set()
         for j, e in enumerate(ents):
-            if not isinstance(e, dict) or not isinstance(e.get("entity"), str) or not isinstance(e.get("covers"), list) or not isinstance(e.get("fields"), dict):
+            if (not isinstance(e, dict) or not isinstance(e.get("entity"), str) or not isinstance(e.get("covers"), list)
+                    or not all(isinstance(c, str) for c in e["covers"]) or not isinstance(e.get("fields"), dict)):
                 errs.append(f"{w}.entities[{j}]: needs 'entity', a 'covers' list of business objects and a 'fields' object")
                 continue
+            if e["entity"] in seen_ent:
+                errs.append(f"{w}.entities[{j}]: duplicate entity {e['entity']}")
+            seen_ent.add(e["entity"])
+            if len(e["fields"]) > LIMITS["max_fields_per_entity"]:
+                errs.append(f"{w}.{e['entity']}: more than {LIMITS['max_fields_per_entity']} fields")
+                continue
+            for k in ("keys", "relationships", "auth_objects", "logic_supported"):
+                if k in e and e[k] is not None and not (isinstance(e[k], list) and all(isinstance(x, str) for x in e[k])):
+                    errs.append(f"{w}.{e['entity']}: '{k}' must be a list of text")
+            if "semantics" in e and e["semantics"] is not None and not isinstance(e["semantics"], dict):
+                errs.append(f"{w}.{e['entity']}: 'semantics' must be an object")
+            errs += _bool_errors(f"{w}.{e['entity']}", e, ("delta",))
+            for c in e["covers"]:
+                per_group[c] = per_group.get(c, 0) + 1
             for n, f in e["fields"].items():
                 errs += _field_errors(f"{w}.{e['entity']}", {**(f if isinstance(f, dict) else {}), "name": n})
+    crowded = sorted(g for g, n in per_group.items() if n > LIMITS["max_entities_per_business_object"])
+    if crowded:
+        errs.append(f"catalog: more than {LIMITS['max_entities_per_business_object']} entities cover the business object(s) {', '.join(crowded[:3])}")
     return errs
 
 
@@ -126,35 +206,37 @@ def _req(inv: dict, o: dict) -> dict:
     fields = {}
     for f in o["fields"]:
         fields[f["name"]] = {"type": str(f.get("type", "CHAR")).upper(), "length": f.get("length", 10), "decimals": f.get("decimals", 0),
-                             "custom": bool(f.get("custom", False)), "key": bool(f.get("key", False)),
+                             "stated": {"type": "type" in f, "length": "length" in f, "decimals": "decimals" in f},
+                             "custom": f.get("custom", False) is True, "key": f.get("key", False) is True,
                              "currency_ref": f.get("currency_ref"), "unit_ref": f.get("unit_ref"), "label": f.get("label", "")}
     keys = list(o.get("keys") or [n for n, f in fields.items() if f["key"]])
     return {"id": f"REQ-IMP-{o['name']}", "group": o["business_object"], "label": o.get("label", o["name"]), "system": profile,
             "object": f"{src.get('system_id', profile)}:{o['name']}", "object_type": o.get("obj_type", "CDS_VIEW"),
             "release_family": src["release_family"], "domain": o.get("domain", "UNKNOWN"), "fields": fields, "keys": keys, "grain": o.get("grain", "UNKNOWN"),
-            "relationships": list(o.get("relationships") or []), "needs_delta": bool(o.get("needs_delta", False)), "auth_objects": list(o.get("auth_objects") or []),
+            "relationships": list(o.get("relationships") or []), "needs_delta": o.get("needs_delta", False) is True, "auth_objects": list(o.get("auth_objects") or []),
             "logic": list(o.get("logic") or []), "semantics": dict(o.get("semantics") or {}), "semantic_rule": None, "alt_sources": list(o.get("alt_sources") or []),
             "evidence": IMPORT_EVIDENCE}
 
 
-def _catalog(doc: dict) -> Catalog:
+def _catalog(doc: dict, example: bool = False) -> Catalog:
     prods = []
     for p in doc["products"]:
         ents = []
         for e in p["entities"]:
             ents.append({"entity": e["entity"], "covers_objects": list(e["covers"]),
                          "fields": {n: {"type": str(f.get("type", "CHAR")).upper(), "length": f.get("length", 10), "decimals": f.get("decimals", 0),
+                                        "stated": {"type": "type" in f, "length": "length" in f, "decimals": "decimals" in f},
                                         "label": f.get("label", ""), "currency_ref": f.get("currency_ref"), "unit_ref": f.get("unit_ref")}
                                     for n, f in e["fields"].items()},
                          "keys": list(e.get("keys") or []), "grain": e.get("grain", "UNKNOWN"), "relationships": list(e.get("relationships") or []),
-                         "delta": bool(e.get("delta", False)), "auth_objects": list(e.get("auth_objects") or []),
+                         "delta": e.get("delta", False) is True, "auth_objects": list(e.get("auth_objects") or []),
                          "logic_supported": list(e.get("logic_supported") or []), "semantics": dict(e.get("semantics") or {})})
         ext = p.get("extension") or {}
         prods.append({"product_id": p["product_id"], "name": p.get("name", p["product_id"]), "version": p.get("version", "n/a"),
                       "source_application": p.get("source_application", "n/a"), "supported_releases": list(p.get("supported_releases") or list(PROFILE)),
-                      "data_package": p.get("data_package", "n/a"), "entities": ents, "evidence": p.get("evidence", IMPORT_EVIDENCE),
+                      "data_package": p.get("data_package", "n/a"), "entities": ents, "evidence": p.get("evidence", IMPORT_EVIDENCE) if example else IMPORT_EVIDENCE,
                       "domain": p.get("domain", "UNKNOWN"),
-                      "extension": {"key_user": bool(ext.get("key_user")), "developer": bool(ext.get("developer")), "data_product_extension": bool(ext.get("data_product_extension"))},
+                      "extension": {"key_user": ext.get("key_user") is True, "developer": ext.get("developer") is True, "data_product_extension": ext.get("data_product_extension") is True},
                       "activation": p.get("activation", "UNKNOWN"), "entitlement": p.get("entitlement", "UNKNOWN"),
                       "installation": p.get("installation", "UNKNOWN"), "published_availability": "UNKNOWN", "tenant_availability": "UNKNOWN",
                       "technical_compatibility": "UNKNOWN", "consumption": "NOT_ATTEMPTED",
@@ -172,7 +254,11 @@ def fidelity(req: dict, entity: dict | None) -> list[dict]:
         if p is None:
             continue
         why = []
-        if p["type"] != f["type"] or p["length"] < f["length"] or p["decimals"] < f["decimals"]:
+        sf, pf = f.get("stated", {}), p.get("stated", {})
+        narrower = ((sf.get("type") and pf.get("type") and p["type"] != f["type"])
+                    or (sf.get("length") and pf.get("length") and p["length"] < f["length"])
+                    or (sf.get("decimals") and pf.get("decimals") and p["decimals"] < f["decimals"]))
+        if narrower:   # a size or type that either file does not state is unknown, never a finding
             why.append(f"type {f['type']}({f['length']},{f['decimals']}) in the source, {p['type']}({p['length']},{p['decimals']}) in the product")
         if f.get("label") and not p.get("label"):
             why.append(f"business name '{f['label']}' is empty in the product")
@@ -187,11 +273,22 @@ def fidelity(req: dict, entity: dict | None) -> list[dict]:
 
 def run(inventory: dict, catalog_doc: dict, example: bool = False) -> dict:
     """Validate both files, run the delta engine, return the register. Never raises for bad input: returns errors instead."""
-    errs = validate_inventory(inventory) + validate_catalog(catalog_doc)
+    try:
+        return _run(inventory, catalog_doc, example)
+    except RecursionError:
+        return {"ok": False, "errors": ["the files are nested too deeply"], "rows": [], "summary": {}}
+    except Exception:  # noqa: BLE001 - validation is the contract; anything that slips past it must still not take the page down
+        return {"ok": False, "errors": ["the files could not be processed: check the schema and field types against the example files"], "rows": [], "summary": {}}
+
+
+def _run(inventory: dict, catalog_doc: dict, example: bool) -> dict:
+    if not isinstance(inventory, dict) or not isinstance(catalog_doc, dict):
+        return {"ok": False, "errors": ["both files must be JSON objects"], "rows": [], "summary": {}}
+    errs = validate_inventory(inventory) + validate_catalog(catalog_doc, example)
     if errs:
         return {"ok": False, "errors": errs, "rows": [], "summary": {}}
     try:
-        cat = _catalog(catalog_doc)
+        cat = _catalog(catalog_doc, example)
     except CatalogError as e:
         return {"ok": False, "errors": [f"catalog: {e}"], "rows": [], "summary": {}}
     mode = "DEMO" if example else "IMPORT"
@@ -210,17 +307,18 @@ def run(inventory: dict, catalog_doc: dict, example: bool = False) -> dict:
         if dtype in ("FIELD_GAP_STANDARD", "NO_DELTA") and not miss and fid:
             dtype = "FIDELITY_LOSS"
         d = dec.decide(a, req, None)
-        route = FIDELITY_ROUTE if dtype == "FIDELITY_LOSS" else ROUTES.get(d["decision"], d["decision"])
+        route = FIDELITY_ROUTE if dtype == "FIDELITY_LOSS" else (ROUTES.get(d["decision"], d["decision"]) +
+                                                                  ("" if example else f" [capabilities assumed from the built-in {req['system']} profile, not read from your system]"))
         first = next((x for x in a["gaps"] if x["class"] != "NO_GAP"), None)
         cust_txt = ", ".join(f"{n} ({'not in the delivered product' if n in miss else 'covered by the product'})" for n in sorted(custom_names)) or "-"
         rows.append({"object": req["object"], "business_object": req["group"], "product": (f"{cand['product']} / {cand['entity']}" if cand else "none"),
                      "catalog_state": a["catalog_state"], "delta_type": dtype,
-                     "delta": ("Extension degraded in the product" if dtype == "FIDELITY_LOSS" else DELTA_TYPES[dtype][0]),
+                     "delta": (("Extension degraded in the product" if all(x["custom"] for x in fid) else "Field degraded in the product") if dtype == "FIDELITY_LOSS" else DELTA_TYPES[dtype][0]),
                      "customization": cust_txt, "fidelity": [f"{x['field']}: " + "; ".join(x["problems"]) for x in fid], "notes": notes,
                      "how_found": (f"{first['dimension']} check: {_fmt(first['detail'])}" if first else "all assessed dimensions match the delivered entity"),
                      "coverage": f"{a['coverage']['numerator']}/{a['coverage']['denominator']}", "route": route,
                      "next_step": (d.get("implementation_steps") or [d.get("reason", "-")])[0] if dtype != "FIDELITY_LOSS" else FIDELITY_ROUTE,
-                     "approvals": d.get("approvals", []), "evidence": "SYNTHETIC EXAMPLE" if example else IMPORT_EVIDENCE})
+                     "approvals": ([] if dtype == "FIDELITY_LOSS" else d.get("approvals", [])), "evidence": "SYNTHETIC EXAMPLE" if example else IMPORT_EVIDENCE})
     by = {}
     for r in rows:
         by[r["delta_type"]] = by.get(r["delta_type"], 0) + 1

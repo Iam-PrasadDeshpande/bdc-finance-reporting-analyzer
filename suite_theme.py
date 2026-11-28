@@ -187,7 +187,8 @@ def css(theme: str, show_sidebar: bool = False) -> str:
 
 
 def esc(v) -> str:
-    return html.escape(str(v), quote=True).replace("$", "&#36;")  # '$' would otherwise start markdown math
+    # '$' would otherwise start markdown math; whitespace (incl. newlines) is collapsed so uploaded text can never end an HTML block and inject markdown
+    return html.escape(" ".join(str(v).split()), quote=True).replace("$", "&#36;")
 
 
 def _cell(v) -> str:
