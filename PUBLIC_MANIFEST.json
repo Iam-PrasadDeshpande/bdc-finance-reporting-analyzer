@@ -1,6 +1,6 @@
 {
  "staged_utc": "2026-11-27",
- "source_build_manifest_sha256": "519ea978eded36355f94db1214cb2f4c461dcbe1e6f8c7c3f456c7de3110aded",
+ "source_build_manifest_sha256": "a9561863e78e0e738e9c7fdbf283be1380e518d44f878e9537bbfc5e700f493d",
  "files": [
   {
    "path": ".gitignore",
@@ -79,8 +79,8 @@
   },
   {
    "path": "bdcwb/delta.py",
-   "sha256": "042405f2477e8e9a71d040110b65430e288eb271d5a3fa711e71854ece638aa9",
-   "bytes": 18708
+   "sha256": "3e51f0ea0c9d101d44f8fe61397f5810d3e5745f3953db4c2b669d640dd8e22c",
+   "bytes": 18896
   },
   {
    "path": "bdcwb/diagram.py",
@@ -124,7 +124,7 @@
   },
   {
    "path": "bdcwb/release_evidence.json",
-   "sha256": "c381259c7da72e2123d40dad6253ac52ca18a36286e8efcb274b6c9fa84bc386",
+   "sha256": "c7f8e6fc3a14510eddf4437b5ec5e146f8e7a3af5767842234c4ca0f50ea39f9",
    "bytes": 696
   },
   {
@@ -209,12 +209,12 @@
   },
   {
    "path": "v013_page.py",
-   "sha256": "4031c9bf91a422c4f8e7af995b072cc1b008a8ce0a0aa1ae003bdb191712a7b4",
-   "bytes": 68991
+   "sha256": "9e4830817bf12ae8facdc872d68dcbd60f07967ee3c3fefaeea7ffd01883c568",
+   "bytes": 71998
   }
  ],
  "audit_status": "PASS",
  "hard_findings": 0,
  "soft_findings": 18,
- "release": "v0.13.6"
+ "release": "v0.13.7"
 }

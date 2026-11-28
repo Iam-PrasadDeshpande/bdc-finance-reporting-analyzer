@@ -17,7 +17,7 @@ import re
 import streamlit as st
 
 import suite_theme as T
-from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, landscape, ontology, status
+from bdcwb import adapters, agents, arch, arch_diagrams as AD, delta, importer, landscape, ontology, status
 from bdcwb.run import run_all
 
 STAGES = delta.STAGES
@@ -29,7 +29,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.6"
+RELEASE = "0.13.7"
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
@@ -461,6 +461,8 @@ def _stage1(res, s, scn, tech):
         _delta_by_object(rows)
     if start != START[1]:
         _delta_by_product(res, scn)
+    if st.toggle("Run the delta on your own exports (import-assisted, no connection needed)", key="ag_show_import"):
+        _import_panel()
     with st.expander("What the delta types mean"):
         table([{"delta": k, "label": v[0], "meaning": v[1]} for k, v in delta.DELTA_TYPES.items()], 380)
     with st.expander("Customizations found (custom fields, customer objects, custom logic)"):
@@ -474,6 +476,45 @@ def _stage1(res, s, scn, tech):
         _a2(res, s, tech)
         _a3(res, s, tech)
         _a4(res, s, tech)
+
+
+def _use_import_example() -> None:
+    st.session_state["imp_use_example"] = True
+
+
+def _import_panel() -> None:
+    st.markdown("##### Delta from your own exports")
+    st.caption("The same delta engine, on two files you supply instead of the synthetic fixtures: an extension inventory (what your S/4HANA objects contain, custom fields flagged) and a "
+               "data-product catalog export (what SAP delivers). Files are read in memory, compared and discarded; nothing is connected, stored or written. Imported evidence stays "
+               "CUSTOMER_PROVIDED, and catalog completeness is UNKNOWN unless your file declares it. Besides missing fields it finds extensions the product carries in a degraded form "
+               "(wrong type, empty business name, lost currency or unit reference).")
+    c = st.columns(2)
+    c[0].download_button("Download example inventory (JSON)", json.dumps(importer.EXAMPLE_INVENTORY, indent=1), "example_inventory.json", "application/json", key="imp_dl_inv", width="stretch")
+    c[1].download_button("Download example catalog export (JSON)", json.dumps(importer.EXAMPLE_CATALOG, indent=1), "example_catalog.json", "application/json", key="imp_dl_cat", width="stretch")
+    f1 = st.file_uploader("Extension inventory (JSON, schema bdc-delta-inventory/1)", type=["json"], key="imp_inv")
+    f2 = st.file_uploader("Data-product catalog export (JSON, schema bdc-delta-catalog/1)", type=["json"], key="imp_cat")
+    st.button("Use the synthetic example files", key="imp_ex", on_click=_use_import_example)
+    if f1 is not None and f2 is not None:
+        inv, e1 = importer.parse(f1.getvalue(), "inventory")
+        cat, e2 = importer.parse(f2.getvalue(), "catalog")
+        out = {"ok": False, "errors": e1 + e2, "rows": [], "summary": {}} if (e1 or e2) else importer.run(inv, cat)
+    elif st.session_state.get("imp_use_example"):
+        out = importer.run(importer.EXAMPLE_INVENTORY, importer.EXAMPLE_CATALOG, example=True)
+    else:
+        st.info("Upload both files, or use the synthetic example files to see the format and the result.")
+        return
+    if not out["ok"]:
+        st.error("The files were not accepted. Nothing was compared.")
+        table([{"problem": e} for e in out["errors"][:40]], 300)
+        return
+    sm = out["summary"]
+    m = st.columns(3)
+    m[0].metric("Objects compared", sm["objects"])
+    m[1].metric("With customizations", sm["with_customization"])
+    m[2].metric("Degraded in the product", sm["with_fidelity_findings"])
+    table([{"object": r["object"], "delivered product": r["product"], "delta": r["delta"], "customization": r["customization"],
+            "degraded in the product": "; ".join(r["fidelity"]) or "-", "how it was found": r["how_found"], "next step": r["route"], "evidence": r["evidence"]} for r in out["rows"]], 520)
+    st.caption(out["note"])
 
 
 def _delta_by_object(rows):

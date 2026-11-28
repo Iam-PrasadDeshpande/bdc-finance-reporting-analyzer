@@ -73,6 +73,7 @@ DELTA_TYPES = {
     "SECURITY": ("Authorization not enforced", "The product does not enforce the authorization objects the report needs."),
     "NO_STANDARD_PRODUCT": ("No SAP-delivered product", "The catalog is complete for the domain and has no product for this object."),
     "UNKNOWN_CATALOG": ("Catalog evidence incomplete", "Cannot conclude: the product may exist but is not established."),
+    "FIDELITY_LOSS": ("Extension degraded in the product", "The delivered product carries the field, but with a different data type, no business name, or no currency or unit reference."),
     "OTHER_GAP": ("Other product gap", "A gap class without its own delta type (for example availability); see the gap classes of the row."),
 }
 DETECTION_SCOPE = {
