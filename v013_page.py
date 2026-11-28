@@ -29,7 +29,7 @@ ONTO_VIEWS = ["How data flows", "How components are wired", "Concept model"]
 HOME_TABS = ["How it works", "Delta journey", "Agents & architecture"]
 AGENT_TABS = ["Ask the agents", "Agent catalog", "Technical options"]
 ARCH_TABS = ["Live run", "Complete architecture", "Adapters", "Tool hosting", "Agent hosting", "Registry", "Selection criteria", "Decision brief", "Diagrams"]
-RELEASE = "0.13.7"
+RELEASE = "0.13.8"
 SPACE_SLUGS = {"Delta journey": "delta-journey", "Ontology": "ontology", "Agents": "agents", "Architecture & operations": "architecture"}
 SPACE_BY_SLUG = {v: k for k, v in SPACE_SLUGS.items()}
 INTENT_STAGE = {"ontology": 0, "product": 1, "delta": 1, "discovery": 1, "solution": 2, "datasphere": 3, "rules": 3, "recon": 4, "validation": 4, "full": 5, "readiness": 5, "write": 5}
@@ -891,6 +891,26 @@ def _run_architecture(res, scn):
     run = agents.run_request(ss.get("ag_liveq", ""), res, scn)
     ss["ag_live"] = run
     ss["ag_step"] = len(arch.live_events(run))
+    ss["ag_play"] = False
+
+
+PLAY_SPEEDS = {"0.25x": 0.25, "0.5x": 0.5, "1x": 1.0, "2x": 2.0, "4x": 4.0}
+PLAY_BASE_SECONDS = 1.5   # seconds per event at 1x
+
+
+def _toggle_play(n):
+    ss = st.session_state
+    if ss.get("ag_play"):
+        ss["ag_play"] = False
+    else:
+        if ss.get("ag_step", n) >= n:
+            ss["ag_step"] = 0
+        ss["ag_play"] = True
+
+
+def _restart_play():
+    st.session_state["ag_step"] = 0
+    st.session_state["ag_play"] = True
 
 
 def _architecture(res, s, scn, tech):
@@ -904,11 +924,28 @@ def _architecture(res, s, scn, tech):
         st.button("Run architecture", key="runarch", type="primary", on_click=_run_architecture, args=(res, scn))
         run = st.session_state.get("ag_live") or agents.run_request(q, res, scn)
         ev = arch.live_events(run)
-        if not 0 <= st.session_state.get("ag_step", -1) <= len(ev):
-            st.session_state["ag_step"] = len(ev)
-        step = st.slider("Replay step", 0, len(ev), key="ag_step", help="Drag to replay the request one event at a time. Run architecture resets it to the full trace.")
-        diagram(AD.sequence_svg(ev, step)[0])
-        table([{"#": i + 1, "from": e["from"], "to": e["to"], "event": e["label"], "state": e["state"]} for i, e in enumerate(ev[:max(step, 1)])])
+        ss = st.session_state
+        if not 0 <= ss.get("ag_step", -1) <= len(ev):
+            ss["ag_step"] = len(ev)
+        c1, c2, c3 = st.columns([1, 1, 3])
+        playing = bool(ss.get("ag_play"))
+        c1.button("Pause" if playing else "Play replay", key="ag_playbtn", on_click=_toggle_play, args=(len(ev),), help="Replays the request event by event, hands-free.")
+        c2.button("Restart", key="ag_restart", on_click=_restart_play)
+        c3.select_slider("Speed", options=list(PLAY_SPEEDS), value="1x", key="ag_speed", help="Playback speed. 0.25x is slowest, 4x fastest.")
+        every = PLAY_BASE_SECONDS / PLAY_SPEEDS[ss.get("ag_speed", "1x")] if playing else None
+
+        @st.fragment(run_every=every)
+        def _replay():
+            if ss.get("ag_play"):
+                if ss["ag_step"] < len(ev):
+                    ss["ag_step"] += 1
+                if ss["ag_step"] >= len(ev):
+                    ss["ag_play"] = False
+                    st.rerun()
+            step = st.slider("Replay step", 0, len(ev), key="ag_step", help="Drag to step through manually. Run architecture resets it to the full trace.")
+            diagram(AD.sequence_svg(ev, step)[0])
+            table([{"#": i + 1, "from": e["from"], "to": e["to"], "event": e["label"], "state": e["state"]} for i, e in enumerate(ev[:max(step, 1)])])
+        _replay()
         st.caption("Events are produced from the real orchestrator trace. The last event shows that SAP connectors are not reached in DEMO mode.")
     elif tab == "Complete architecture":
         _complete_architecture(res, s, scn)
